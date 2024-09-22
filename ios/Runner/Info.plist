@@ -70,7 +70,7 @@
     	<array>
         <string>fetch</string>
         <string>bluetooth-central</string>
-
+        </array>
 
     <!-- File Sharing and Document Support -->
     <key>UIFileSharingEnabled</key>
