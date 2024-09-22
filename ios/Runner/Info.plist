@@ -59,6 +59,19 @@
     <string>We need access to your library to save and share files.</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Your app needs Face ID (or Touch ID) to authenticate user.</string>
+
+    <!-- Bluetooth Support -->
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    	<string>We need access to Bluetooth to connect to printers.</string>
+    	<key>NSBluetoothPeripheralUsageDescription</key>
+    	<string>We need access to Bluetooth to connect to printers.</string>
+
+    	<key>UIBackgroundModes</key>
+    	<array>
+        <string>fetch</string>
+        <string>bluetooth-central</string>
+
+
     <!-- File Sharing and Document Support -->
     <key>UIFileSharingEnabled</key>
     <true/>
