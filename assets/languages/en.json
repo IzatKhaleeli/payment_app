@@ -194,8 +194,8 @@
   "hello": "Hello",
 
   "emailSubject": "Payment Notice -",
-  "emailBodyLine1": "Dear Subscriber",
-  "emailBodyLine2": "Attached is your payment notification dated",
+  "emailBodyLine1": "Dear Subscriber,",
+  "emailBodyLine2": "Attached is your payment notice dated",
   "emailBodyLine3": "and thank you",
   "smsSubject": "Payment Received ",
   "subject": "Subject",

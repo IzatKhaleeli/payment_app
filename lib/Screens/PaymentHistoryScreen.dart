@@ -242,7 +242,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => RecordPaymentScreen()));
             },
             backgroundColor: Color(0xFFC62828),
-            child: Icon(Icons.add),
+            child: Icon(Icons.add,color: Colors.white,),
           ),
         ),
       ),
@@ -407,16 +407,20 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('selectStatus')),
+              title: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('selectStatus'),
+                style: TextStyle(fontWeight: FontWeight.bold), // Make the text bold
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: <String>['Saved', 'Confirmed', 'Synced', 'cancelPending', 'Cancelled']
+                children: <String>['Confirmed', 'Synced', 'cancelPending', 'Cancelled']
                     .map((String status) {
                   return CheckboxListTile(
                     title: Text(
                       Provider.of<LocalizationService>(context, listen: false).getLocalizedString(status.toLowerCase()),
+                      style: TextStyle(color: Colors.black), // Set the title (status) text color to black
                     ),
                     value: _selectedStatuses.contains(status),
+                    activeColor: Color(0xFFC62828),
                     onChanged: (bool? value) {
                       setState(() {
                         if (value == true) {
@@ -431,7 +435,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               ),
               actions: [
                 TextButton(
-                  child: Text(  Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancel')),
+                  child: Text(  Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancel'),style: TextStyle(color: Color(0xFFC62828))),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
