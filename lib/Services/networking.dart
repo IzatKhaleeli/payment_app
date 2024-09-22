@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'dart:convert';
-import 'package:path/path.dart' as path;
 import 'dart:io';
 
 class NetworkHelper {
@@ -24,7 +23,7 @@ class NetworkHelper {
 
 
   Future<dynamic> getData() async {
-    print("api :${url}:${map}:${headers}");
+    print("api :$url:$map:$headers");
 
     try {
       http.Response response;
@@ -116,7 +115,7 @@ class NetworkHelper {
       request.files.add(multipartFile);
 
       // Send request
-      var response = await request.send().timeout(timeoutDuration);;
+      var response = await request.send().timeout(timeoutDuration);
 
       // Get response body
       final responseBody = await response.stream.bytesToString();
@@ -148,5 +147,4 @@ class NetworkHelper {
       return null;
     }
   }
-
 }

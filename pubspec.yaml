@@ -84,9 +84,9 @@ flutter:
     - assets/images/Init Logo.png
     - assets/images/logo_ooredoo.png
     - assets/fonts/
-    - assets/images/headerEmail.jpg
-    - assets/images/footerEmail.jpg
-    - assets/images/bluetooth_print.png
+#    - assets/images/headerEmail.jpg
+#    - assets/images/footerEmail.jpg
+#    - assets/images/bluetooth_print.png
 
   fonts:
     - family: NotoSansUI

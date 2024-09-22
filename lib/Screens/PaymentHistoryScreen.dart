@@ -714,15 +714,15 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                         },
                       ),
                     ),
-                    Tooltip(
-                      message:Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sendPrinter') ,
-                      child: IconButton(
-                        icon: Icon(Icons.print, color: Colors.black,size: 22),
-                        onPressed: (){
-                          ShareScreenOptions.showLanguageSelectionAndShare(context, record.id!,ShareOption.print);
-                        },
-                      ),
-                    ),
+                    // Tooltip(
+                    //   message:Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sendPrinter') ,
+                    //   child: IconButton(
+                    //     icon: Icon(Icons.print, color: Colors.black,size: 22),
+                    //     onPressed: (){
+                    //       ShareScreenOptions.showLanguageSelectionAndShare(context, record.id!,ShareOption.print);
+                    //     },
+                    //   ),
+                    // ),
                     Tooltip(
                       message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sendEmail'),
                       child:IconButton(

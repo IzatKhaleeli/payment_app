@@ -105,6 +105,7 @@ class _PrintPageState extends State<PrintPage> {
 
     bytesInt += generator.text('                                ', styles: PosStyles(bold: true));
     bytesInt += generator.text('Ooredoo', styles: PosStyles(
+        bold: true,
       height: PosTextSize.size3,
       width: PosTextSize.size3,
         align: PosAlign.center

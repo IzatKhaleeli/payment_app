@@ -152,7 +152,7 @@ class ShareScreenOptions {
   static void _showLanguageSelectionDialog(BuildContext context, Function(String) onLanguageSelected) {
     //String systemLanguageCode = Localizations.localeOf(context).languageCode; // Get system's default language
     String _selectedLanguageCode = 'ar';
-
+    String appLanguage = Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode;
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -221,22 +221,23 @@ class ShareScreenOptions {
                   ),
                   SizedBox(height: 20),
                   Align(
-                    alignment: _selectedLanguageCode == 'en' ? Alignment.centerRight : Alignment.centerLeft,
+                    alignment: appLanguage == 'en' ? Alignment.centerRight : Alignment.centerLeft,
                     child: ElevatedButton(
                       onPressed: () {
                         onLanguageSelected(_selectedLanguageCode); // Return the selected language
                         Navigator.of(context).pop(); // Close the dialog
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFC62828), // Update color as specified
-                        padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                        backgroundColor: Color(0xFFC62828),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                       ),
                       child: Text(
                         Provider.of<LocalizationService>(context, listen: false).getLocalizedString("next"),
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+
                       ),
                     ),
                   ),
