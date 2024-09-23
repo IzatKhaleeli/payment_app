@@ -242,7 +242,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => RecordPaymentScreen()));
             },
             backgroundColor: Color(0xFFC62828),
-            child: Icon(Icons.add,color: Colors.white,),
+            child: Icon(Icons.add,color: Colors.white),
           ),
         ),
       ),

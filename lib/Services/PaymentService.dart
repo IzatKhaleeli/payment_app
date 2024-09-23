@@ -206,8 +206,8 @@ class PaymentService {
           // print("currency :${p["currency"]}");
           // print("voucherSerialNumber :${p["voucherSerialNumber"]}");
           // print("paymentMethod :${p["paymentMethod"]}");
-          await SmsService.sendSmsRequest(context, p["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, p["currency"], p["voucherSerialNumber"], Provider.of<LocalizationService>(context, listen: false).getLocalizedString(p["paymentMethod"].toString().toLowerCase()),isCancel: true);
-
+        //  await SmsService.sendSmsRequest(context, p["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, p["currency"], p["voucherSerialNumber"], Provider.of<LocalizationService>(context, listen: false).getLocalizedString(p["paymentMethod"].toString().toLowerCase()),isCancel: true);
+          await SmsService.sendSmsRequest(context, p["msisdn"], 'ar', amount, p["currency"], p["voucherSerialNumber"], p["paymentMethod"].toString().toLowerCase()=='cash' ? 'كاش' : 'شيك' ,isCancel: true);
         } else {
           print('Failed to cancel payment: ${response.body}');
         }
@@ -268,7 +268,8 @@ class PaymentService {
             ? (payment["amount"]?.toString() ?? '0')
             : (payment["amountCheck"]?.toString() ?? '0');
 
-        await SmsService.sendSmsRequest(context, payment["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, payment["currency"], voucherSerialNumber, Provider.of<LocalizationService>(context, listen: false).getLocalizedString(payment["paymentMethod"].toString().toLowerCase()));
+      //  await SmsService.sendSmsRequest(context, payment["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, payment["currency"], voucherSerialNumber, Provider.of<LocalizationService>(context, listen: false).getLocalizedString(payment["paymentMethod"].toString().toLowerCase()));
+        await SmsService.sendSmsRequest(context, payment["msisdn"],'ar', amount, payment["currency"], voucherSerialNumber, payment["paymentMethod"].toString().toLowerCase()=='cash' ? 'كاش' : 'شيك');
       }
       else {
         Map<String, dynamic> errorResponse = json.decode(response.body);
@@ -327,7 +328,8 @@ class PaymentService {
               ? (paymentToCancel["amount"]?.toString() ?? '0')
               : (paymentToCancel["amountCheck"]?.toString() ?? '0');
 
-          await SmsService.sendSmsRequest(context, paymentToCancel["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, paymentToCancel["currency"], paymentToCancel["voucherSerialNumber"], Provider.of<LocalizationService>(context, listen: false).getLocalizedString(paymentToCancel["paymentMethod"].toString().toLowerCase()),isCancel: true);
+          //await SmsService.sendSmsRequest(context, paymentToCancel["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, paymentToCancel["currency"], paymentToCancel["voucherSerialNumber"], Provider.of<LocalizationService>(context, listen: false).getLocalizedString(paymentToCancel["paymentMethod"].toString().toLowerCase()),isCancel: true);
+          await SmsService.sendSmsRequest(context, paymentToCancel["msisdn"],'ar', amount, paymentToCancel["currency"], paymentToCancel["voucherSerialNumber"], paymentToCancel["paymentMethod"].toString().toLowerCase()=='cash' ? 'كاش' : 'شيك',isCancel: true);
 
         }
 

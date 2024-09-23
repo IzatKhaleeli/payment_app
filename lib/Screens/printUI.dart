@@ -98,22 +98,76 @@ class _PrintPageState extends State<PrintPage> {
     }
   }
 
+  // Future<List<int>> testTicket() async {
+  //   final profile = await CapabilityProfile.load();
+  //   final generator = Generator(PaperSize.mm58, profile);
+  //   List<int> bytesInt = [];
+  //
+  //   bytesInt += generator.text('                                ', styles: PosStyles(bold: true));
+  //   bytesInt += generator.text('Ooredoo', styles: PosStyles(
+  //       bold: true,
+  //     height: PosTextSize.size3,
+  //     width: PosTextSize.size3,
+  //       align: PosAlign.center
+  //   ));
+  //   bytesInt += generator.feed(3);
+  //   bytesInt += generator.cut();
+  //   return bytesInt;
+  // }
+
+
   Future<List<int>> testTicket() async {
     final profile = await CapabilityProfile.load();
     final generator = Generator(PaperSize.mm58, profile);
     List<int> bytesInt = [];
 
-    bytesInt += generator.text('                                ', styles: PosStyles(bold: true));
-    bytesInt += generator.text('Ooredoo', styles: PosStyles(
-        bold: true,
-      height: PosTextSize.size3,
-      width: PosTextSize.size3,
-        align: PosAlign.center
-    ));
-    bytesInt += generator.feed(3);
-    bytesInt += generator.cut();
+    // Example usages with respect to print width (max 50 characters for 50 mm)
+    bytesInt += await _leftAlign('Hello, World!', 50);  // Adjusted to 50
+    bytesInt += await _rightAlign('Hello, World!', 50); // Adjusted to 50
+    bytesInt += await _centerAlign('Hello, World!', 50); // Adjusted to 50
+    bytesInt += await _leftRightAlign('Left Text', 'Right Text', 50); // Adjusted to 50
+
+    bytesInt += generator.feed(2); // Add some space after the text
+    bytesInt += generator.cut(); // Cut the paper
     return bytesInt;
   }
+
+// Align text to the left
+  Future<List<int>> _leftAlign(String text, int totalWidth) async {
+    final profile = await CapabilityProfile.load();
+    final generator = Generator(PaperSize.mm58, profile);
+    String paddedMessage = text + ' ' * (totalWidth - text.length);
+    return generator.text(paddedMessage, styles: PosStyles());
+  }
+
+// Align text to the right
+  Future<List<int>> _rightAlign(String text, int totalWidth) async {
+    final profile = await CapabilityProfile.load();
+    final generator = Generator(PaperSize.mm58, profile);
+    String paddedMessage = ' ' * (totalWidth - text.length) + text;
+    return generator.text(paddedMessage, styles: PosStyles());
+  }
+
+// Center align text
+  Future<List<int>> _centerAlign(String text, int totalWidth) async {
+    final profile = await CapabilityProfile.load();
+    final generator = Generator(PaperSize.mm58, profile);
+    int padding = (totalWidth - text.length-1) ~/ 2;
+    String paddedMessage = ' ' * padding + text + ' ' * (totalWidth - text.length - padding);
+    return generator.text(paddedMessage, styles: PosStyles());
+  }
+
+// Align two texts to the left and right
+  Future<List<int>> _leftRightAlign(String leftText, String rightText, int totalWidth) async {
+    final profile = await CapabilityProfile.load();
+    final generator = Generator(PaperSize.mm58, profile);
+    String paddedMessage = leftText + ' ' * (totalWidth - leftText.length - rightText.length - 1) + rightText;
+    return generator.text(paddedMessage, styles: PosStyles());
+  }
+
+
+
+
 
 
   void _showMessage(String message) {
