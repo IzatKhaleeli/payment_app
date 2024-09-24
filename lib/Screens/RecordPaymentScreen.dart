@@ -814,7 +814,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
   bool _validateFields() {
     String isRequired =Provider.of<LocalizationService>(context, listen: false).getLocalizedString('isRequired');
-    String mustContainOnlyNumber =Provider.of<LocalizationService>(context, listen: false).getLocalizedString('isRequired');
+    String mustContainOnlyNumber =Provider.of<LocalizationService>(context, listen: false).getLocalizedString('mustContainOnlyNumber');
     String invalidMSISDN = Provider.of<LocalizationService>(context, listen: false).getLocalizedString('invalidMSISDN');
     String maxLengthExceeded = Provider.of<LocalizationService>(context, listen: false).getLocalizedString('maxLengthExceeded');
 
@@ -833,6 +833,15 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('MSISDN')} ${isRequired}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
+    }
+    else if (!_msisdnController.text.isEmpty && _msisdnController.text.length != 10){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(maxLengthExceeded),
           backgroundColor: Colors.red,
         ),
       );

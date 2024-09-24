@@ -155,27 +155,44 @@ class _SmsBottomSheetState extends State<SmsBottomSheet> {
                         alignment: currentLanguageCode == 'ar' ? Alignment.centerLeft : Alignment.centerRight,
                         child: ElevatedButton.icon(
                             onPressed: () async {
+                              final msisdnRegex = RegExp(r'^05\d{8}$');
                               setState(() {
                                 if (_phoneController.text.isEmpty) {
                                   _errorText = appLocalization.getLocalizedString('phoneNumberFieldError');
                                   return;
                                 }
-                                _errorText = null; // Clear error if valid
+                                else if(!RegExp(r'^[0-9]*$').hasMatch(_phoneController.text)) {
+                                  _errorText='${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('MSISDN')} ${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('mustContainOnlyNumber')}';
+                                }
+                                else if (_phoneController.text.length != 10){
+                                  _errorText= Provider.of<LocalizationService>(context, listen: false).getLocalizedString('maxLengthExceeded');
+                                }
+                                else if (!msisdnRegex.hasMatch(_phoneController.text)) {
+                                  _errorText = Provider.of<LocalizationService>(context, listen: false).getLocalizedString('invalidMSISDN');
+                                  return ;
+                                }
+                                else {
+                                  _errorText = null;
+                                }
                               });
 
                               await _loadLocalizedMessage(_selectedMessageLanguage);
 
-                              if (_messageJson != null) {
+                              if (_messageJson != null && _errorText == null) {
+                                print("message sent now");
                                 String amount = widget.payment.amount?.toString() ?? widget.payment.amountCheck.toString();
-                                await SmsService.sendSmsRequest(
-                                  context,
-                                  _phoneController.text,
-                                  _selectedMessageLanguage,
-                                  amount,
-                                  widget.payment.currency!,
-                                  widget.payment.voucherSerialNumber,
-                                  _messageJson![widget.payment.paymentMethod.toLowerCase()]
-                              );
+
+                                  // await SmsService.sendSmsRequest(
+                                  //     context,
+                                  //     _phoneController.text,
+                                  //     _selectedMessageLanguage,
+                                  //     amount,
+                                  //     widget.payment.currency!,
+                                  //     widget.payment.voucherSerialNumber,
+                                  //     _messageJson![widget.payment.paymentMethod.toLowerCase()]
+                                  // );
+
+
 
                                 // Close bottom sheet if no error
                                 if (_errorText == null) Navigator.pop(context);

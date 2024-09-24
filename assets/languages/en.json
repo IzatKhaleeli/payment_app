@@ -236,9 +236,12 @@
   "networkError": "Network error occurred. Please check your connection and try again.",
 
   "submit": "Submit",
-  "invalidMSISDN": "Not a valid format. It should start with '05' and be exactly 10 digits long.",
+  "invalidMSISDN": "Not a valid format. It should start with '05'",
   "maxLengthExceeded": "Must be exactly 10 digits long.",
   "next": "Next",
   "pdfPreview": "PDF Preview",
-  "noteEmail": "Note: You will receive a message once the payment is deposited into your account."
+  "noteEmail": "Note: You will receive a message once the payment is deposited into your account.",
+
+  "invalidEmailError": "Invalid email format. Please enter a valid email address."
+
 }

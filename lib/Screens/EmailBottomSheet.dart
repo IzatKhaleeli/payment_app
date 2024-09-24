@@ -221,6 +221,10 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                                 _errorText = appLocalization.getLocalizedString('toFieldError');
                                 return;
                               }
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(_toController.text)) {
+                                _errorText = appLocalization.getLocalizedString('invalidEmailError'); // Localized string for invalid email
+                                return;
+                              }
                               _errorText = null; // Clear error if valid
                             });
                             if(_errorText ==null) {
