@@ -120,8 +120,8 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
 
 // Format the output as a string
     String formattedDate = '${year.toString().padLeft(4, '0')}/${month.toString().padLeft(2, '0')}/${day.toString().padLeft(2, '0')} ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+   // String formattedDate = '${year.toString().padLeft(4, '0')}/${month.toString().padLeft(2, '0')}/${day.toString().padLeft(2, '0')}';
 
-    //String subject = "${getLocalizedEmailContent('emailSubject')} ${formattedDate}";
     var appLocalization = Provider.of<LocalizationService>(context, listen: false);
     String currentLanguageCode = Localizations.localeOf(context).languageCode;
 
@@ -242,19 +242,19 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                               String direction = _selectedLanguage == 'en' ? 'left' : 'right';
                               print("_selectedLanguage :${_selectedLanguage} and direction :${direction}");
                               String emailBody = "<html>\n"
-                                  + "<body style=\"font-family: Arial, sans-serif; margin: 0; padding: 0; width: 975px; align=${direction == 'right' ? 'right' : 'left'};\">\n"
+                                  + "<body style=\"font-family: Arial, sans-serif; margin: 0; padding: 0; max-width: 970px; align=${direction == 'right' ? 'right' : 'left'};\">\n"
                                   + "    <!-- Header Image -->\n"
-                                  + "    <div style=\"font-family: Arial, sans-serif; margin: 0; padding: 0; width: 975px; background-color: #f0f0f0;\">\n"
-                                  + "        <table role=\"presentation\" style=\"width: 975px;; border: 0; cellpadding: 0; cellspacing: 0;\">\n"
+                                  + "    <div style=\"font-family: Arial, sans-serif; margin: 0; padding: 0; max-width: 970px; background-color: #f0f0f0;\">\n"
+                                  + "        <table role=\"presentation\" style=\"max-width: 970px; border: 0; cellpadding: 0; cellspacing: 0;\">\n"
                                   + "        <tr>\n"
                                   + "            <td style=\"padding: 10px 0;\">\n"
-                                  + "                <img src=\"cid:headerImageCID\" alt=\"Header Image\" style=\"width: 975px; height: auto; display: block;\"/>\n"
+                                  + "                <img src=\"cid:headerImageCID\" alt=\"Header Image\" style=\"max-width: 970px; height: auto; display: block;\"/>\n"
                                   + "            </td>\n"
                                   + "        </tr>\n"
                                   + "    </table>\n"
                                   + "    </div>\n"
                                   + "    <!-- Email Content -->\n"
-                                  + "    <table role=\"presentation\" style=\"width: 975px; border: 0; cellpadding: 0; cellspacing: 0; text-align: ${direction};\">\n"
+                                  + "    <table role=\"presentation\" style=\"width: 970px; border: 0; cellpadding: 0; cellspacing: 0; text-align: ${direction};\">\n"
                                   + "        <tr>\n"
                                   + "            <td style=\"padding: 20px 10px; border-bottom: 1px solid #dddddd;\">\n"
                                   + "                <p style=\"font-size: 18px; color: #333333; margin: 0;\">${getLocalizedEmailContent('emailBodyLine1')}</p>\n"
@@ -269,27 +269,26 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                                   + "            </td>\n"
                                   + "        </tr>\n"
                                   + "    </table>\n"
-                                  + "    <br/>\n"
-                                  + "    <div style=\"font-family: Arial, sans-serif; margin: 0; padding: 0; width: 975px; background-color: #f0f0f0;\">\n"
-                                  + "        <table role=\"presentation\" style=\"width: 975px; border-collapse: collapse;\">\n"
+                                  + "    <div style=\"font-family: Arial, sans-serif; margin: 0; padding: 0; max-width: 970px; background-color: #f0f0f0;\">\n"
+                                  + "        <table role=\"presentation\" style=\"max-width: 970px; border-collapse: collapse;\">\n"
                                   + "            <tr>\n"
-                                  + "                <td style=\"width: 50%; padding: 10px; border-right: 1px solid #ddd; vertical-align: top; text-align: left; direction: ltr;\">\n"
+                                  + "                <td style=\"max-width: 487px; padding: 10px; border-right: 1px solid #ddd; vertical-align: top; text-align: left; direction: ltr;\">\n"
                                   + "                    <div style=\"font-weight: bold; margin-bottom: 2px;\">Disclaimer</div>\n"
-                                  + "                    <p style=\"width: 975px;\">The information in this email may contain confidential material and it is intended solely for the addresses. Access to this email by anyone else is unauthorized. If you are not the intended recipient, please delete the email instantly.</p>\n"
+                                  + "                    <p style=\"max-width: 487px;\">The information in this email may contain confidential material and it is intended solely for the addresses. Access to this email by anyone else is unauthorized. If you are not the intended recipient, please delete the email instantly.</p>\n"
                                   + "                </td>\n"
-                                  + "                <td style=\"width: 50%; padding: 10px; border-left: 1px solid #ddd; text-align: right; vertical-align: top; direction: rtl;\">\n"
+                                  + "                <td style=\"max-width: 487px; padding: 10px; border-left: 1px solid #ddd; text-align: right; vertical-align: top; direction: rtl;\">\n"
                                   + "                    <div style=\"font-weight: bold; margin-bottom: 2px;\">إخلاء المسؤوليه</div>\n"
-                                  + "                    <p style=\"width: 975px;\">قد يحتوي هذا البريد الإلكتروني على مواد سرية. الحصول على هذه الرسالة من قبل أي شخص آخر، هو شيء غير مصرح به. إذا لم تكن المتلقي المقصود، يرجى حذف هذا البريد الإلكتروني على الفور.</p>\n"
+                                  + "                    <p style=\"max-width: 487px;\">قد يحتوي هذا البريد الإلكتروني على مواد سرية. الحصول على هذه الرسالة من قبل أي شخص آخر، هو شيء غير مصرح به. إذا لم تكن المتلقي المقصود، يرجى حذف هذا البريد الإلكتروني على الفور.</p>\n"
                                   + "                </td>\n"
                                   + "            </tr>\n"
                                   + "        </table>\n"
                                   + "    </div>\n"
 
-                                  + "    <div style=\"font-family: Arial, sans-serif; margin: 0; padding: 0;width: 975px; background-color: #f0f0f0;\">\n"
-                                  + "        <table role=\"presentation\" style=\"width: 975px; border: 0; cellpadding: 0; cellspacing: 0;\">\n"
+                                  + "    <div style=\"font-family: Arial, sans-serif; margin: 0; padding: 0;max-width: 970px; background-color: #f0f0f0;\">\n"
+                                  + "        <table role=\"presentation\" style=\"max-width: 970px; border: 0; cellpadding: 0; cellspacing: 0;\">\n"
                                   + "            <tr>\n"
                                   + "                <td style=\"padding: 10px 0;\">\n"
-                                  + "                    <img src=\"cid:footerImageCID\" alt=\"Footer Image\" style=\"width: 100%; height: auto; display: block;\"/>\n"
+                                  + "                    <img src=\"cid:footerImageCID\" alt=\"Footer Image\" style=\"max-width: 100%; height: auto; display: block;\"/>\n"
                                   + "                </td>\n"
                                   + "            </tr>\n"
                                   + "        </table>\n"

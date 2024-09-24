@@ -29,9 +29,7 @@ class SmsService {
         : translatedCurrency!["englishName"];
     if(isCancel==false){
     if (language == 'ar') {
-      return'''
-      
-      
+      return'''   
 تم استلام دفعه ${paymentMethod} بقيمة ${amount} ${appearedCurrency} من مدير حسابكم ${username}
 رقم الحركة ${voucherSerialNumber}
 

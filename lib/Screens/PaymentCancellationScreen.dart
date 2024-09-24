@@ -64,7 +64,7 @@ class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
             }
 
             final paymentToCancel = snapshot.data!;
-
+            print("payment to cancel is :${paymentToCancel}");
             return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,24 +79,29 @@ class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  '${ Provider.of<LocalizationService>(context, listen: false).getLocalizedString('voucherNumber')}: ${paymentToCancel["voucherNumber"]}',
-                  style: TextStyle(color: Colors.grey, fontSize: 14.sp),
+                  '${ Provider.of<LocalizationService>(context, listen: false).getLocalizedString('voucherNumber')}: ${paymentToCancel["voucherSerialNumber"]}',
+                  style: TextStyle(color: Colors.grey, fontSize: 12.sp),
                 ),
                 SizedBox(height: 16.h),
                 Text(
                   Provider.of<LocalizationService>(context, listen: false).getLocalizedString('reasonCancellation'),
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 8.h),
                 TextField(
                   controller: _reasonController,
                   maxLines: 3,
                   decoration: InputDecoration(
-                    hintText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('enterTheReasonHere'),
-                    fillColor: Color(0xFFF2F2F2),
+                    hintText: Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString('enterTheReasonHere'),
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    fillColor: Colors.grey[100], // Light background
                     filled: true,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    errorText: _errorText,
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Color(0xFFC62828), width: 2), // Highlight border when focused
+                    ),                 errorText: _errorText,
+
                   ),
                 ),
                 SizedBox(height: 16.h),
@@ -108,17 +113,17 @@ class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
                         Navigator.of(context).pop();
 
                       },
-                      child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancel'), style: TextStyle(fontSize: 16.sp)),
+                      child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancel'), style: TextStyle(fontSize: 14.sp)),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFFC62828),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       onPressed: () {
                         _handleCancellation(context, paymentToCancel);
                       },
-                      child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('submit'), style: TextStyle(fontSize: 16.sp)),
+                      child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('submit'), style: TextStyle(fontSize: 14.sp)),
                     ),
                   ],
                 ),
