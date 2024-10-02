@@ -113,6 +113,7 @@ class ShareScreenOptions {
 
   }
   static void _shareViaPrint(BuildContext context, int id) async {
+    final file = await sharePdf(context, id, 'en');
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -387,19 +388,20 @@ class ShareScreenOptions {
       if(payment.paymentMethod.toLowerCase() == 'cash' || payment.paymentMethod.toLowerCase() == 'كاش')
         paymentDetails = [
           {'title': localizedStrings['paymentMethod'], 'value': payment.paymentMethod},
-          {'title': localizedStrings['amount'], 'value': payment.amount.toString()},
           {'title': localizedStrings['currency'], 'value': languageCode =='ar' ? currency!["arabicName"] ?? '' : currency!["englishName"]},
+          {'title': localizedStrings['amount'], 'value': payment.amount.toString()},
         ];
       else if(payment.paymentMethod.toLowerCase() == 'check' || payment.paymentMethod.toLowerCase() == 'شيك')
         paymentDetails = [
           {'title': localizedStrings['paymentMethod'], 'value': localizedStrings[payment.paymentMethod.toLowerCase()]},
-          {'title': localizedStrings['amountCheck'], 'value': payment.amountCheck.toString()},
-          {'title': localizedStrings['currency'], 'value': languageCode =='ar' ? currency!["arabicName"] ?? '' : currency!["englishName"]},
           {'title': localizedStrings['checkNumber'], 'value': payment.checkNumber.toString()},
           {'title': localizedStrings['bankBranchCheck'], 'value': languageCode =='ar' ? bankDetails!["arabicName"] ??'' : bankDetails!["englishName"] ?? ''},
           {'title': localizedStrings['dueDateCheck'], 'value': payment.dueDateCheck != null
               ? DateFormat('yyyy-MM-dd').format(payment.dueDateCheck!)
               : ''},
+          {'title': localizedStrings['amountCheck'], 'value': payment.amountCheck.toString()},
+          {'title': localizedStrings['currency'], 'value': languageCode =='ar' ? currency!["arabicName"] ?? '' : currency!["englishName"]},
+
         ];
       final List<Map<String, String>> additionalDetail= [
         {'title': localizedStrings['userid'], 'value': usernameLogin!},

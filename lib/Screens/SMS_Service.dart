@@ -33,7 +33,7 @@ class SmsService {
 تم استلام دفعه ${paymentMethod} بقيمة ${amount} ${appearedCurrency} من مدير حسابكم ${username}
 رقم الحركة ${voucherSerialNumber}
 
-ملاحظة: ستتلقى رسالة بمجرد إيداع الدفعة في حسابك
+ملاحظة: سيصلكم رسالة حال الإيداع في صندوق الشركة 
 ''';
     } else {
       return '''
@@ -45,17 +45,18 @@ Note: You will receive a message once the payment is deposited into your account
     }
     }
     else {
-      if (language == 'ar') {
+      // if (language == 'ar') {
         return '''
 تم تقديم إلغاء دفعة ${paymentMethod} بقيمة ${amount} ${appearedCurrency} من مدير حسابكم ${username}
 رقم الحركة ${voucherSerialNumber}
 ''';
-      } else {
-        return '''
-$amount $appearedCurrency ${paymentMethod.toLowerCase()} payment has been submitted for cancellation by account manager $username
-Transaction reference ${voucherSerialNumber}
-''';
-      }
+   //   }
+//       else {
+//         return '''
+// $amount $appearedCurrency ${paymentMethod.toLowerCase()} payment has been submitted for cancellation by account manager $username
+// Transaction reference ${voucherSerialNumber}
+// ''';
+//       }
     }
   }
 

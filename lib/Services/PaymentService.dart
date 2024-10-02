@@ -225,6 +225,7 @@ class PaymentService {
         ? convertAmountToWords(payment['amount'])
         : convertAmountToWords(payment['amountCheck']);
 
+    print("pp :${payment}");
     Map<String, dynamic> body = {
       'transactionDate': payment['transactionDate'],
       'accountName': payment['customerName'],
@@ -236,6 +237,7 @@ class PaymentService {
       'checkNumber': payment['checkNumber'],
       'checkAmount': payment['amountCheck'],
       'checkBank': payment['bankBranch'],
+      'notes': payment['paymentInvoiceFor'],
       'checkDueDate': payment['dueDateCheck'] != null &&
           payment['dueDateCheck'] != 'null'
           ? DateTime.parse(payment['dueDateCheck']).toIso8601String()

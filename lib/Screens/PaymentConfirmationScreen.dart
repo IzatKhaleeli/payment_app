@@ -444,7 +444,7 @@ import 'PaymentCancellationScreen.dart';
                 Tooltip(
                     message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sharePayment'),
                     child:IconButton(
-                      icon: Icon(Icons.send, color: Colors.green),
+                      icon:FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green,),
                       onPressed: () async{
                         var connectivityResult = await (Connectivity().checkConnectivity());
                         if(connectivityResult.toString() == '[ConnectivityResult.none]'){

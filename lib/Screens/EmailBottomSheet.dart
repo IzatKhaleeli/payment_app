@@ -40,8 +40,6 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
   String? _errorText;
   String _selectedLanguage = 'ar';
   Map<String, dynamic>? _emailJson;
-  String? _headerBase64;
-  String? _footerBase64;
 
   @override
   void initState() {
@@ -55,7 +53,6 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     });
     _loadSavedLanguageCode();
     _loadLocalizedEmailContent(_selectedLanguage);
-    _loadBase64Images();
   }
 
   Future<void> _loadSavedLanguageCode() async {
@@ -85,18 +82,6 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     return _emailJson![key] ?? '** $key not found';
   }
 
-  Future<void> _loadBase64Images() async {
-    try {
-      final headerBase64 = await encodeImageToBase64('assets/images/headerEmail.jpg');
-      final footerBase64 = await encodeImageToBase64('assets/images/footerEmail.jpg');
-      setState(() {
-        _headerBase64 = headerBase64;
-        _footerBase64 = footerBase64;
-      });
-    } catch (e) {
-      print("Error encoding images to Base64: $e");
-    }
-  }
 
   Future<String> encodeImageToBase64(String path) async {
     final ByteData data = await rootBundle.load(path);
@@ -106,7 +91,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    if (_emailJson == null || _headerBase64 == null || _footerBase64 == null) {
+    if (_emailJson == null ) {
       return Center(child: CircularProgressIndicator());
     }
     DateTime transactionDate = widget.payment.transactionDate!;

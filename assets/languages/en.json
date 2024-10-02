@@ -109,7 +109,7 @@
   "currency": "Currency",
   "notes": "Notes",
   "customerName": "Customer Name",
-  "fieldsMissedMessageError": "All fields must be filled in. Thank you.",
+  "fieldsMissedMessageError": "All fields must be filled in.",
   "fieldsMissedMessageSuccess": "'Payment Successfully Recorded",
 
   "noNotificationsYet": "No Notifications Yet",
@@ -141,7 +141,7 @@
   "time": "Time",
   "thankYou": "Thank You",
 
-  "paymentInvoiceFor": "Payment is for the following invoices:",
+  "paymentInvoiceFor": "Notes:",
 
   "confirmTitle": "Confirm Payment",
   "saveTitle": "Save Payment",
