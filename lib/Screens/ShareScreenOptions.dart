@@ -425,7 +425,7 @@ print("smssss");
                 child: pw.Container(
 
                   color: PdfColors.white,
-                  padding: pw.EdgeInsets.all(20),
+                  padding: pw.EdgeInsets.all(12),
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.center,
                     children: [
@@ -435,11 +435,11 @@ print("smssss");
                           border: pw.Border.all(color: PdfColors.grey),
                           color: PdfColors.white,
                         ),
-                        child:pw.Image(imageLogo, height: 110),
+                        child:pw.Image(imageLogo, height: 60),
                       ),
                       pw.Container(
                         alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(10), // Add padding here
+                        padding: pw.EdgeInsets.all(2), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.black,
                           border: pw.Border.all(color: PdfColors.black),
@@ -448,7 +448,7 @@ print("smssss");
                           receiptVoucher,
                           style: pw.TextStyle(
                             color: PdfColors.white,
-                            fontSize: 30,
+                            fontSize: 24,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
@@ -456,7 +456,7 @@ print("smssss");
                       ),
                       pw.Container(
                         alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(6), // Add padding here
+                        padding: pw.EdgeInsets.all(2), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.grey300,
                           border: pw.Border.all(color: PdfColors.black),
@@ -464,7 +464,7 @@ print("smssss");
                         child: pw.Text(
                           customersDetail,
                           style: pw.TextStyle(
-                            fontSize: 25,
+                            fontSize: 22,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
@@ -473,7 +473,7 @@ print("smssss");
                       _buildInfoTableDynamic(customerDetails, notoSansFont, amiriFont, isEnglish),
                       pw.Container(
                         alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(6), // Add padding here
+                        padding: pw.EdgeInsets.all(2), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.grey300,
                           border: pw.Border.all(color: PdfColors.black),
@@ -481,7 +481,7 @@ print("smssss");
                         child: pw.Text(
                           paymentDetail,
                           style: pw.TextStyle(
-                            fontSize: 25,
+                            fontSize: 22,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
@@ -490,7 +490,7 @@ print("smssss");
                       _buildInfoTableDynamic(paymentDetails, notoSansFont, amiriFont, isEnglish),
                       pw.Container(
                         alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(6), // Add padding here
+                        padding: pw.EdgeInsets.all(2), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.grey300,
                           border: pw.Border.all(color: PdfColors.black),
@@ -498,7 +498,7 @@ print("smssss");
                         child: pw.Text(
                           additionalDetails,
                           style: pw.TextStyle(
-                            fontSize: 25,
+                            fontSize: 22,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
@@ -507,7 +507,7 @@ print("smssss");
                       _buildInfoTableDynamic(additionalDetail, notoSansFont, amiriFont, isEnglish),
                       pw.Container(
                         alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(4), // Add padding here
+                        padding: pw.EdgeInsets.all(2), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.white,
                           border: pw.Border.all(color: PdfColors.black),
@@ -515,7 +515,7 @@ print("smssss");
                         child: pw.Text(
                           footerPdf,
                           style: pw.TextStyle(
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
@@ -585,44 +585,44 @@ print("smssss");
       children: isEnglish
           ? [
         pw.Container(
-          padding: pw.EdgeInsets.all(10),
+          padding: pw.EdgeInsets.all(6),
           alignment: pw.Alignment.centerLeft,
           child: pw.Text(
             title,
-            style: pw.TextStyle(font: fontForTitle, fontSize: 18),
+            style: pw.TextStyle(font: fontForTitle, fontSize: 19),
             textDirection: isArabic(title) ? pw.TextDirection.rtl : pw.TextDirection.ltr,
           ),
         ),
         pw.Container(
-          padding: pw.EdgeInsets.all(10),
+          padding: pw.EdgeInsets.all(6),
           alignment: pw.Alignment.centerRight,
           child: pw.Directionality(
             textDirection: textDirectionForValue,
             child: pw.Text(
               value,
-              style: pw.TextStyle(font: fontForValue, fontSize: 18),
+              style: pw.TextStyle(font: fontForValue, fontSize: 19),
             ),
           ),
         ),
       ]
           : [
         pw.Container(
-          padding: pw.EdgeInsets.all(10),
+          padding: pw.EdgeInsets.all(6),
           alignment: pw.Alignment.centerLeft,
           child: pw.Directionality(
             textDirection: textDirectionForValue,
             child: pw.Text(
               value,
-              style: pw.TextStyle(font: fontForValue, fontSize: 18),
+              style: pw.TextStyle(font: fontForValue, fontSize: 19),
             ),
           ),
         ),
         pw.Container(
-          padding: pw.EdgeInsets.all(10),
+          padding: pw.EdgeInsets.all(6),
           alignment: pw.Alignment.centerRight,
           child: pw.Text(
             title,
-            style: pw.TextStyle(font: fontForTitle, fontSize: 18),
+            style: pw.TextStyle(font: fontForTitle, fontSize: 19),
             textDirection: isArabic(title) ? pw.TextDirection.rtl : pw.TextDirection.ltr,
           ),
         ),

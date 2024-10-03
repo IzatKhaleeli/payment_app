@@ -517,7 +517,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             decoration: InputDecoration(
               prefixIcon: icon != null
                   ? Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                padding: EdgeInsets.symmetric(horizontal: 4.w),
                 child: Icon(icon, color: Color(0xFFC62828)),
               )
                   : null,

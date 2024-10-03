@@ -84,13 +84,9 @@ flutter:
     - assets/languages/ar.json
     - assets/images/Init Logo.png
     - assets/images/logo_ooredoo.png
-    - assets/images/Ooredoo_Logo.jpg
     - assets/images/Ooredoo_Logo_noBG.png
-    - assets/images/test_payment.jpg
+    - assets/images/payment_test.png
     - assets/fonts/
-#    - assets/images/headerEmail.jpg
-#    - assets/images/footerEmail.jpg
-#    - assets/images/bluetooth_print.png
 
   fonts:
     - family: NotoSansUI

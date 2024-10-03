@@ -292,7 +292,7 @@ class _PrintPageState extends State<PrintPage> {
   Future<void> _loadImage() async {
     try {
       // Load the image from assets as ByteData
-      ByteData bytesData = await rootBundle.load('assets/images/test_payment.jpg');
+      ByteData bytesData = await rootBundle.load('assets/images/payment_test.png');
       // Convert ByteData to Uint8List
       Uint8List imageData = bytesData.buffer.asUint8List();
 
@@ -427,7 +427,7 @@ class _PrintPageState extends State<PrintPage> {
     List<int> textCommand2 = _createTextCommand("test text to printer2");
     List<int> LFCR = [0x0A,0x0D ];   // LFCR
 
-    print("image part");
+    print("image part started");
 
     // Load the image from assets
     img.Image? image = await ImageToEscPosConverter.loadImageFromAssets('assets/images/test_payment.jpg');
@@ -436,13 +436,11 @@ class _PrintPageState extends State<PrintPage> {
     if (image != null) {
       // Convert the image to ESC/POS commands
       escPosCommands = ImageToEscPosConverter.convertImageToEscPosCommands(context,image, 320); // Example width
-
       // Here you can send the escPosCommands to your printer
       print('ESC/POS Commands generated: ${escPosCommands.length} bytes');
     } else {
       print('Image loading failed.');
     }
-
     print("image part finished");
 
 

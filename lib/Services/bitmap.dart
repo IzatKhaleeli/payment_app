@@ -6,6 +6,18 @@ import 'package:image/image.dart' as img;
 import 'imagePreviewScreen.dart';
 
 class ImageToEscPosConverter {
+  // Load image from assets
+  static Future<img.Image?> loadImageFromAssets(String path) async {
+    try {
+      ByteData byteData = await rootBundle.load(path);
+      final imageBytes = byteData.buffer.asUint8List(); // Convert to Uint8List
+      return img.decodeImage(imageBytes); // Decode the image
+    } catch (e) {
+      print('Error loading image: $e');
+      return null;
+    }
+  }
+
   // Convert the image to ESC/POS format
   static Uint8List convertImageToEscPosCommands(context,img.Image image, int maxWidth) {
     // Resize the image to the printer's width (if necessary)
@@ -19,9 +31,9 @@ class ImageToEscPosConverter {
     image = img.bitmapToGray(image);
     print("Converted to grayscale: width: ${image.width}, height: ${image.height}");
 
-    //
-    image = convertGreyImgByFloyd(image);
-    print("image dim :width :${image.width}, hieght :${image.height}");
+
+    // image = convertGreyImgByFloyd(image);
+    // print("image dim :width :${image.width}, hieght :${image.height}");
 
     showImagePreview(context,image,320);
     print("test");
@@ -130,15 +142,4 @@ class ImageToEscPosConverter {
     }
   }
 
-  // Load image from assets
-  static Future<img.Image?> loadImageFromAssets(String path) async {
-    try {
-      ByteData byteData = await rootBundle.load(path);
-      final imageBytes = byteData.buffer.asUint8List(); // Convert to Uint8List
-      return img.decodeImage(imageBytes); // Decode the image
-    } catch (e) {
-      print('Error loading image: $e');
-      return null;
-    }
-  }
 }
