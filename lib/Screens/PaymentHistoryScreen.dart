@@ -522,14 +522,26 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     backgroundColor: Colors.white,
     child: Icon(statusIcon, color: statusColor, size: 26),
     ),
-    title:    Text(
-      record.customerName,
-      style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.black87),
-      maxLines: 2, // Allow a maximum of 2 lines
-      overflow: TextOverflow.ellipsis, // Show '...' if it exceeds 2 lines
-      softWrap: true, // Allow wrapping to next line
+    title:   Row(
+      children: [
+        Expanded(
+          child: Text(
+            record.customerName,
+            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.black87),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            softWrap: true,
+          ),
+        ),
+        SizedBox(width: 8), // Add some space between name and date
+        Text(
+          formatDate(record.transactionDate!).toString(), // Format and display the transaction date
+          style: TextStyle(fontSize: 14.sp, color: Colors.grey.shade600),
+        ),
+      ],
     ),
-    subtitle: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString(record.status.toLowerCase()),
+    subtitle:
+    Text("${record.amount != null ? record.amount.toString() : record.amountCheck.toString()} ${record.currency!.toLowerCase()}",
     style: TextStyle(fontSize: 12.sp, color: Colors.grey.shade600)),
     childrenPadding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
     children: [

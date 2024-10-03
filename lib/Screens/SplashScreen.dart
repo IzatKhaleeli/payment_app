@@ -83,7 +83,7 @@ class _SplashScreenState extends State<SplashScreen>
                 opacity: _logoOpacity.value,
                 child: Transform.scale(
                   scale: _logoScale.value,
-                  child: Image.asset('assets/images/logo_ooredoo.png'),
+                  child: Image.asset('assets/images/Ooredoo_Logo_noBG.png'),
                 ),
               ),
             ),

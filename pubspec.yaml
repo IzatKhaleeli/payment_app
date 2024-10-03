@@ -84,7 +84,8 @@ flutter:
     - assets/languages/ar.json
     - assets/images/Init Logo.png
     - assets/images/logo_ooredoo.png
-    - assets/images/test_payment.png
+    - assets/images/Ooredoo_Logo.jpg
+    - assets/images/Ooredoo_Logo_noBG.png
     - assets/images/test_payment.jpg
     - assets/fonts/
 #    - assets/images/headerEmail.jpg

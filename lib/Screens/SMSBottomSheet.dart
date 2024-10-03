@@ -66,7 +66,7 @@ class _SmsBottomSheetState extends State<SmsBottomSheet> {
     // Fetching localized strings for the app's UI
     var appLocalization = Provider.of<LocalizationService>(context, listen: false);
     String currentLanguageCode = Localizations.localeOf(context).languageCode;
-
+print("smss build");
     return Directionality(
       textDirection: currentLanguageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
       child: Padding(
@@ -182,17 +182,15 @@ class _SmsBottomSheetState extends State<SmsBottomSheet> {
                                 print("message sent now");
                                 String amount = widget.payment.amount?.toString() ?? widget.payment.amountCheck.toString();
 
-                                  // await SmsService.sendSmsRequest(
-                                  //     context,
-                                  //     _phoneController.text,
-                                  //     _selectedMessageLanguage,
-                                  //     amount,
-                                  //     widget.payment.currency!,
-                                  //     widget.payment.voucherSerialNumber,
-                                  //     _messageJson![widget.payment.paymentMethod.toLowerCase()]
-                                  // );
-
-
+                                  await SmsService.sendSmsRequest(
+                                      context,
+                                      _phoneController.text,
+                                      _selectedMessageLanguage,
+                                      amount,
+                                      widget.payment.currency!,
+                                      widget.payment.voucherSerialNumber,
+                                      _messageJson![widget.payment.paymentMethod.toLowerCase()]
+                                  );
 
                                 // Close bottom sheet if no error
                                 if (_errorText == null) Navigator.pop(context);

@@ -59,8 +59,7 @@
   "saveAndConfirm": "حفظ و تأكيد",
 
   "printreceipt": "طباعة الإيصال",
-  "filterNumber": "رقم القسيمة",
-  "voucherNumber": "رقم قسيمة",
+  "voucherNumber": "رقم السند",
   "amount": "المبلغ",
   "sendSelected": "إرسال المحدد",
   "printSelected": "طباعة المحدد",
@@ -95,7 +94,7 @@
   "search": "البحث",
 
   "recordPayment": "تسجيل دفعة جديدة",
-  "customerDetails": "تفاصيل العميل",
+  "customerDetails": "تفاصيل المشترك",
   "paymentInformation": "معلومات الدفعة",
   "MSISDN": "رقم الهاتف",
   "PR": "رقم الحساب",
@@ -106,7 +105,7 @@
   "paymentMethod": "طريقة الدفع",
   "currency": "العملة",
   "notes": "الملاحظات",
-  "customerName": "إسم العميل",
+  "customerName": "إسم المشترك",
   "fieldsMissedMessageError": "يجب تعبئة جميع الحقول.",
   "fieldsMissedMessageSuccess": "'تم تسجيل الدفعة بنجاح",
   "status": "الحالة",

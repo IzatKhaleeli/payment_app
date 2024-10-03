@@ -13,11 +13,13 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'dart:io';
 import 'package:share_plus/share_plus.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import '../Utils/Enum.dart';
 import 'EmailBottomSheet.dart';
 import 'PDFviewScreen.dart';
 import 'SMSBottomSheet.dart';
+import 'package:image/image.dart' as img;
+import 'package:pdf/widgets.dart' as pw;
+import 'package:flutter/services.dart' show rootBundle;
 
 class ShareScreenOptions {
   static String? _selectedLanguageCode='ar';
@@ -145,7 +147,7 @@ class ShareScreenOptions {
 
     // Create a Payment instance from the fetched map
     final payment = Payment.fromMap(paymentMap);
-
+print("smssss");
     showSmsBottomSheet(context,payment);
   }
 
@@ -317,6 +319,9 @@ class ShareScreenOptions {
       // Fetch localized strings for the specified language code
       final localizedStrings = await localizationService.getLocalizedStringsForLanguage(languageCode);
 
+      // Load the image from assets
+      final pw.MemoryImage imageLogo = await getBlackAndWhiteImage();
+
       // Fetch payment details from the database
       final paymentMap = await DatabaseProvider.getPaymentById(id);
       if (paymentMap == null) {
@@ -430,17 +435,11 @@ class ShareScreenOptions {
                           border: pw.Border.all(color: PdfColors.grey),
                           color: PdfColors.white,
                         ),
-                        child: pw.Text(
-                          'Ooredoo',
-                          style: pw.TextStyle(
-                            color: PdfColors.black,
-                            fontSize: 42,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
+                        child:pw.Image(imageLogo, height: 110),
                       ),
                       pw.Container(
                         alignment: pw.Alignment.center,
+                        padding: pw.EdgeInsets.all(10), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.black,
                           border: pw.Border.all(color: PdfColors.black),
@@ -449,7 +448,7 @@ class ShareScreenOptions {
                           receiptVoucher,
                           style: pw.TextStyle(
                             color: PdfColors.white,
-                            fontSize: 26,
+                            fontSize: 30,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
@@ -457,6 +456,7 @@ class ShareScreenOptions {
                       ),
                       pw.Container(
                         alignment: pw.Alignment.center,
+                        padding: pw.EdgeInsets.all(6), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.grey300,
                           border: pw.Border.all(color: PdfColors.black),
@@ -464,7 +464,7 @@ class ShareScreenOptions {
                         child: pw.Text(
                           customersDetail,
                           style: pw.TextStyle(
-                            fontSize: 24,
+                            fontSize: 25,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
@@ -473,6 +473,7 @@ class ShareScreenOptions {
                       _buildInfoTableDynamic(customerDetails, notoSansFont, amiriFont, isEnglish),
                       pw.Container(
                         alignment: pw.Alignment.center,
+                        padding: pw.EdgeInsets.all(6), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.grey300,
                           border: pw.Border.all(color: PdfColors.black),
@@ -480,7 +481,7 @@ class ShareScreenOptions {
                         child: pw.Text(
                           paymentDetail,
                           style: pw.TextStyle(
-                            fontSize: 24,
+                            fontSize: 25,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
@@ -489,6 +490,7 @@ class ShareScreenOptions {
                       _buildInfoTableDynamic(paymentDetails, notoSansFont, amiriFont, isEnglish),
                       pw.Container(
                         alignment: pw.Alignment.center,
+                        padding: pw.EdgeInsets.all(6), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.grey300,
                           border: pw.Border.all(color: PdfColors.black),
@@ -496,7 +498,7 @@ class ShareScreenOptions {
                         child: pw.Text(
                           additionalDetails,
                           style: pw.TextStyle(
-                            fontSize: 24,
+                            fontSize: 25,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
@@ -505,6 +507,7 @@ class ShareScreenOptions {
                       _buildInfoTableDynamic(additionalDetail, notoSansFont, amiriFont, isEnglish),
                       pw.Container(
                         alignment: pw.Alignment.center,
+                        padding: pw.EdgeInsets.all(4), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.white,
                           border: pw.Border.all(color: PdfColors.black),
@@ -512,7 +515,7 @@ class ShareScreenOptions {
                         child: pw.Text(
                           footerPdf,
                           style: pw.TextStyle(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
@@ -560,7 +563,7 @@ class ShareScreenOptions {
       border: pw.TableBorder.all(),
       columnWidths: {
         0: pw.FlexColumnWidth(2), // Adjust as needed
-        1: pw.FlexColumnWidth(3), // Adjust as needed
+        1: pw.FlexColumnWidth(2), // Adjust as needed
       },
       children: rowData.map((row) => _buildTableRowDynamic(row['title']!, row['value']!, fontEnglish, fontArabic, isEnglish)).toList().cast<pw.TableRow>(),
     );
@@ -582,49 +585,78 @@ class ShareScreenOptions {
       children: isEnglish
           ? [
         pw.Container(
-          padding: pw.EdgeInsets.all(6),
+          padding: pw.EdgeInsets.all(10),
           alignment: pw.Alignment.centerLeft,
           child: pw.Text(
             title,
-            style: pw.TextStyle(font: fontForTitle, fontSize: 14),
+            style: pw.TextStyle(font: fontForTitle, fontSize: 18),
             textDirection: isArabic(title) ? pw.TextDirection.rtl : pw.TextDirection.ltr,
           ),
         ),
         pw.Container(
-          padding: pw.EdgeInsets.all(6),
+          padding: pw.EdgeInsets.all(10),
           alignment: pw.Alignment.centerRight,
           child: pw.Directionality(
             textDirection: textDirectionForValue,
             child: pw.Text(
               value,
-              style: pw.TextStyle(font: fontForValue, fontSize: 14),
+              style: pw.TextStyle(font: fontForValue, fontSize: 18),
             ),
           ),
         ),
       ]
           : [
         pw.Container(
-          padding: pw.EdgeInsets.all(6),
+          padding: pw.EdgeInsets.all(10),
           alignment: pw.Alignment.centerLeft,
           child: pw.Directionality(
             textDirection: textDirectionForValue,
             child: pw.Text(
               value,
-              style: pw.TextStyle(font: fontForValue, fontSize: 14),
+              style: pw.TextStyle(font: fontForValue, fontSize: 18),
             ),
           ),
         ),
         pw.Container(
-          padding: pw.EdgeInsets.all(6),
+          padding: pw.EdgeInsets.all(10),
           alignment: pw.Alignment.centerRight,
           child: pw.Text(
             title,
-            style: pw.TextStyle(font: fontForTitle, fontSize: 14),
+            style: pw.TextStyle(font: fontForTitle, fontSize: 18),
             textDirection: isArabic(title) ? pw.TextDirection.rtl : pw.TextDirection.ltr,
           ),
         ),
       ],
     );
   }
+
+  static Future<pw.MemoryImage> getBlackAndWhiteImage() async {
+    // Load the image from assets
+    final ByteData imageData = await rootBundle.load('assets/images/Ooredoo_Logo_noBG.png');
+
+    // Convert the image to a usable format
+    final img.Image originalImage = img.decodeImage(imageData.buffer.asUint8List())!;
+
+    // Convert the image to grayscale (black and white)
+    final img.Image grayscaleImage = img.grayscale(originalImage);
+
+    // Apply a threshold to convert grayscale to black and white
+    final img.Image blackAndWhiteImage = img.Image(grayscaleImage.width, grayscaleImage.height);
+    const int threshold = 128; // You can adjust the threshold (0-255) for your desired result
+    for (int y = 0; y < grayscaleImage.height; y++) {
+      for (int x = 0; x < grayscaleImage.width; x++) {
+        final int pixel = grayscaleImage.getPixel(x, y);
+        final int luma = img.getLuminance(pixel);
+        blackAndWhiteImage.setPixel(x, y, luma < threshold ? img.getColor(0, 0, 0) : img.getColor(255, 255, 255));
+      }
+    }
+
+    // Convert the black-and-white image back to Uint8List
+    final Uint8List blackAndWhiteBytes = Uint8List.fromList(img.encodePng(blackAndWhiteImage));
+
+    // Return a pdf-compatible MemoryImage
+    return pw.MemoryImage(blackAndWhiteBytes);
+  }
+
 
 }
