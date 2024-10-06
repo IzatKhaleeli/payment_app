@@ -182,10 +182,10 @@
   "paymentCancelledSuccessfully": "Payment cancelled successfully",
 
   "checoutPdf": "Check out this PDF",
-  "receiptVoucher": "Receipt Voucher(copy)",
+  "receiptVoucher": "Receipt Voucher (copy)",
   "customersDetail": "Customers Detail",
   "mobileNumber": "Mobile Number",
-  "paymentDetail": "paymentDetail",
+  "paymentDetail": "Payment Detail",
   "additionalDetails": "Additional Detail",
   "checkoutPdf": "Checkout Pdf",
   "userid": "User Id",
