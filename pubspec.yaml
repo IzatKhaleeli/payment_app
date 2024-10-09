@@ -56,7 +56,7 @@ dependencies:
   esc_pos_utils: ^1.1.0
   esc_pos_bluetooth: ^0.4.1
   flutter_bluetooth_basic: ^0.1.7
-  rongta_printer: ^0.0.1
+  flutter_jailbreak_detection: ^1.10.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -125,19 +125,57 @@ class LoginScreen extends StatelessWidget {
                                         bool isValid = validateLoginInputs(loginState);
                                         if (isValid) {
                                           _handleLogin(context, localizationService);
-                                          bool? loginResult =await loginState.login(loginState.username,loginState.password);
-                                          if (loginResult ) {
+                                          var loginResult =await loginState.login(loginState.username,loginState.password);
+                                          print("loginResult :${loginResult}");
+                                          if (loginResult["status"] == 200) {
                                             await saveCredentials(loginState.username,loginState.password);
                                             await LOVCompareService.compareAndSyncCurrencies();
                                             await LOVCompareService.compareAndSyncBanks();
                                             await PaymentService.getExpiredPaymentsNumber();
-
+                                            print("jjjj");
                                             Navigator.of(context).pop();  // Dismiss the loading dialog
                                             Navigator.pushReplacement(
                                               context,
                                               MaterialPageRoute(builder: (context) => DashboardScreen()),
                                             );
-                                          } else {
+                                          }
+                                          else if (loginResult['status'] == 408) { // Handle timeout
+                                            Navigator.of(context).pop();
+
+                                            _showLoginFailedDialog(
+                                              context,
+                                              localizationService
+                                                  .getLocalizedString(
+                                                  'loginFailedTimeout'),
+                                              localizationService
+                                                  .isLocalizationLoaded
+                                                  ? localizationService
+                                                  .getLocalizedString(
+                                                  'loginfailed')
+                                                  : 'Login Failed',
+                                              localizationService
+                                                  .selectedLanguageCode,
+                                            );
+                                          }
+                                          else if (loginResult['status'] == 503) { // Handle network error
+                                            Navigator.of(context).pop();
+
+                                            _showLoginFailedDialog(
+                                              context,
+                                              localizationService
+                                                  .getLocalizedString(
+                                                  'loginfailedNetworkError'),
+                                              localizationService
+                                                  .isLocalizationLoaded
+                                                  ? localizationService
+                                                  .getLocalizedString(
+                                                  'loginfailed')
+                                                  : 'Login Failed',
+                                              localizationService
+                                                  .selectedLanguageCode,
+                                            );
+                                          }
+                                          else {
                                             Navigator.of(context).pop();
 
                                             _showLoginFailedDialog(
@@ -282,8 +320,8 @@ class LoginScreen extends StatelessWidget {
         String? username = credentials['username'];
         String? password = credentials['password'];
         if (username != null && password != null) {
-          bool loginSuccessful = await loginState.login(username, password);
-          if (loginSuccessful) {
+          var loginSuccessful = await loginState.login(username, password);
+          if (loginSuccessful["status"] == 200) {
             print("loginSuccessful tt");
             await LOVCompareService.compareAndSyncCurrencies();
             await LOVCompareService.compareAndSyncBanks();

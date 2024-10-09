@@ -82,13 +82,6 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     return _emailJson![key] ?? '** $key not found';
   }
 
-
-  Future<String> encodeImageToBase64(String path) async {
-    final ByteData data = await rootBundle.load(path);
-    final List<int> bytes = data.buffer.asUint8List();
-    return base64Encode(bytes);
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_emailJson == null ) {
@@ -105,7 +98,6 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
 
 // Format the output as a string
     String formattedDate = '${year.toString().padLeft(4, '0')}/${month.toString().padLeft(2, '0')}/${day.toString().padLeft(2, '0')} ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
-   // String formattedDate = '${year.toString().padLeft(4, '0')}/${month.toString().padLeft(2, '0')}/${day.toString().padLeft(2, '0')}';
 
     var appLocalization = Provider.of<LocalizationService>(context, listen: false);
     String currentLanguageCode = Localizations.localeOf(context).languageCode;
@@ -228,62 +220,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                               String toEmail = _toController.text;
                               print("To: $toEmail");
                               print("Subject: $fileName");
-                              String direction = _selectedLanguage == 'en' ? 'left' : 'right';
-                              print("_selectedLanguage :${_selectedLanguage} and direction :${direction}");
-                              String emailBody = "<html>\n"
-                                  + "<body style=\"font-family: Arial, sans-serif; margin: 0; padding: 0; max-width: 970px; align=${direction == 'right' ? 'right' : 'left'};\">\n"
-                                  + "    <!-- Header Image -->\n"
-                                  + "    <div style=\"font-family: Arial, sans-serif; margin: 0; padding: 0; max-width: 970px; background-color: #f0f0f0;\">\n"
-                                  + "        <table role=\"presentation\" style=\"max-width: 970px; border: 0; cellpadding: 0; cellspacing: 0;\">\n"
-                                  + "        <tr>\n"
-                                  + "            <td style=\"padding: 10px 0;\">\n"
-                                  + "                <img src=\"cid:headerImageCID\" alt=\"Header Image\" style=\"max-width: 970px; height: auto; display: block;\"/>\n"
-                                  + "            </td>\n"
-                                  + "        </tr>\n"
-                                  + "    </table>\n"
-                                  + "    </div>\n"
-                                  + "    <!-- Email Content -->\n"
-                                  + "    <table role=\"presentation\" style=\"width: 970px; border: 0; cellpadding: 0; cellspacing: 0; text-align: ${direction};\">\n"
-                                  + "        <tr>\n"
-                                  + "            <td style=\"padding: 20px 10px; border-bottom: 1px solid #dddddd;\">\n"
-                                  + "                <p style=\"font-size: 18px; color: #333333; margin: 0;\">${getLocalizedEmailContent('emailBodyLine1')}</p>\n"
-                                  + "                <br/>\n"
-                                  + "                <br/>\n"
-                                  + "                <p style=\"font-size: 18px; color: #333333; margin: 0;\">${getLocalizedEmailContent('emailBodyLine2')} ${formattedDate}</p>\n"
-                                  + "                <br/>\n"
-                                  + "                <p style=\"font-size: 18px; color: #333333; margin: 0;\">${getLocalizedEmailContent('noteEmail')}</p>\n"
-                                  + "                <br/>\n"
-                                  + "                <br/>\n"
-                                  + "                <p style=\"font-size: 18px; color: #333333; margin: 0;\">${getLocalizedEmailContent('thankYou')}</p>\n"
-                                  + "            </td>\n"
-                                  + "        </tr>\n"
-                                  + "    </table>\n"
-                                  + "    <div style=\"font-family: Arial, sans-serif; margin: 0; padding: 0; max-width: 970px; background-color: #f0f0f0;\">\n"
-                                  + "        <table role=\"presentation\" style=\"max-width: 970px; border-collapse: collapse;\">\n"
-                                  + "            <tr>\n"
-                                  + "                <td style=\"max-width: 487px; padding: 10px; border-right: 1px solid #ddd; vertical-align: top; text-align: left; direction: ltr;\">\n"
-                                  + "                    <div style=\"font-weight: bold; margin-bottom: 2px;\">Disclaimer</div>\n"
-                                  + "                    <p style=\"max-width: 487px;\">The information in this email may contain confidential material and it is intended solely for the addresses. Access to this email by anyone else is unauthorized. If you are not the intended recipient, please delete the email instantly.</p>\n"
-                                  + "                </td>\n"
-                                  + "                <td style=\"max-width: 487px; padding: 10px; border-left: 1px solid #ddd; text-align: right; vertical-align: top; direction: rtl;\">\n"
-                                  + "                    <div style=\"font-weight: bold; margin-bottom: 2px;\">إخلاء المسؤوليه</div>\n"
-                                  + "                    <p style=\"max-width: 487px;\">قد يحتوي هذا البريد الإلكتروني على مواد سرية. الحصول على هذه الرسالة من قبل أي شخص آخر، هو شيء غير مصرح به. إذا لم تكن المتلقي المقصود، يرجى حذف هذا البريد الإلكتروني على الفور.</p>\n"
-                                  + "                </td>\n"
-                                  + "            </tr>\n"
-                                  + "        </table>\n"
-                                  + "    </div>\n"
 
-                                  + "    <div style=\"font-family: Arial, sans-serif; margin: 0; padding: 0;max-width: 970px; background-color: #f0f0f0;\">\n"
-                                  + "        <table role=\"presentation\" style=\"max-width: 970px; border: 0; cellpadding: 0; cellspacing: 0;\">\n"
-                                  + "            <tr>\n"
-                                  + "                <td style=\"padding: 10px 0;\">\n"
-                                  + "                    <img src=\"cid:footerImageCID\" alt=\"Footer Image\" style=\"max-width: 100%; height: auto; display: block;\"/>\n"
-                                  + "                </td>\n"
-                                  + "            </tr>\n"
-                                  + "        </table>\n"
-                                  + "    </div>\n"
-                                  + "</body>\n"
-                                  + "</html>";
 
                               final file = await ShareScreenOptions.sharePdf(
                                   context, widget.payment.id!,
@@ -293,7 +230,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                               }
                               else {
                                 print("ready to send to email api");
-                                await sendPdfFileViaApi(context, file, toEmail, fileName, emailBody,fileName);
+                                await sendPdfFileViaApi(context, file, toEmail, fileName,fileName,currentLanguageCode ,formattedDate);
                               }
                               // Close bottom sheet if no error
                               Navigator.pop(context);
@@ -321,7 +258,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     );
   }
 
-  Future<void> sendPdfFileViaApi(BuildContext context,File pdfFile, String toEmail, String subject, String emailBody,String fileName) async {
+  Future<void> sendPdfFileViaApi(BuildContext context,File pdfFile, String toEmail, String subject,String fileName,String languageCode,String transactionDate,) async {
     try {
 
 
@@ -339,8 +276,8 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
       };
       Map<String, String> emailDetails = {
         'to': toEmail,
-        'subject': subject,
-        'body': emailBody,
+        'transactionDate': transactionDate,
+        'languageCode': _selectedLanguage,
       };
 
       NetworkHelper networkHelper = NetworkHelper(
@@ -348,6 +285,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
         headers: headers
       );
 
+      print("emailDetails :${emailDetails}");
       String emailDetailsJson = jsonEncode(emailDetails);
       print("file name before send : ${fileName}");
       dynamic response = await networkHelper.uploadFile(

@@ -12,54 +12,6 @@ import '../Services/apiConstants.dart';
 import '../Services/database.dart';
 
 class SmsService {
-
-  // Method to create the message template based on parameters
-  static Future<String> createMessageTemplate({
-    required String language,
-    required String amount,
-    required String currency,
-    required String voucherSerialNumber,
-    required String paymentMethod,
-    required String username,
-    required bool isCancel
-  }) async {
-    Map<String, dynamic>? translatedCurrency = await DatabaseProvider.getCurrencyById(currency);
-    String appearedCurrency = language == 'ar'
-        ? translatedCurrency!["arabicName"]
-        : translatedCurrency!["englishName"];
-    if(isCancel==false){
-    if (language == 'ar') {
-      return'''   
-تم استلام دفعه ${paymentMethod} بقيمة ${amount} ${appearedCurrency} من مدير حسابكم ${username}
-رقم الحركة ${voucherSerialNumber}
-
-ملاحظة: سيصلكم رسالة حال الإيداع في صندوق الشركة 
-''';
-    } else {
-      return '''
-$amount $appearedCurrency ${paymentMethod.toLowerCase()} payment has been received by account manager $username
-Transaction reference ${voucherSerialNumber}
-
-Note: You will receive a message once the payment is deposited into your account.
-''';
-    }
-    }
-    else {
-      // if (language == 'ar') {
-        return '''
-تم تقديم إلغاء دفعة ${paymentMethod} بقيمة ${amount} ${appearedCurrency} من مدير حسابكم ${username}
-رقم الحركة ${voucherSerialNumber}
-''';
-   //   }
-//       else {
-//         return '''
-// $amount $appearedCurrency ${paymentMethod.toLowerCase()} payment has been submitted for cancellation by account manager $username
-// Transaction reference ${voucherSerialNumber}
-// ''';
-//       }
-    }
-  }
-
   static Future<void> sendSmsRequest(
       BuildContext context,
       String phoneNumber,
@@ -75,34 +27,34 @@ Note: You will receive a message once the payment is deposited into your account
       ) async {
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     String? username = prefs.getString('usernameLogin');
     String? tokenID = prefs.getString('token');
     if (tokenID == null) {
       print('Token not found');
       return;
     }
+    String? AppearedCurrency;
+    Map<String, dynamic>? currentCurrency = await DatabaseProvider.getCurrencyById(currency);
+
+    AppearedCurrency = selectedMessageLanguage == 'ar' ? currentCurrency!["arabicName"] :  currentCurrency!["englishName"];
+
+
     String fullToken = "Barer ${tokenID}";
     Map<String, String> headers = {
       'Content-Type': 'application/json',
       'tokenID': fullToken,
     };
 
-    String message = await createMessageTemplate(
-      language: selectedMessageLanguage,
-      amount: amount,
-      currency: currency,
-      voucherSerialNumber: voucherSerialNumber,
-      paymentMethod: paymentMethod,
-      username: username!,
-      isCancel:isCancel
-    );
-
 
     Map<String, String> body = {
       "to": phoneNumber,
       "lang": selectedMessageLanguage,
-      "message": message,
+      "username": username!,
+      "paymentMethod": paymentMethod,
+      "voucherSerialNumber": voucherSerialNumber,
+      "currency": AppearedCurrency.toString(),
+      "amount": amount,
+      "type":isCancel== true ? "cancel":"sync",
     };
     print("body is :${body}");
     print("headers is :${headers}");
@@ -124,7 +76,7 @@ Note: You will receive a message once the payment is deposited into your account
             print('Success acknowledged');
           },
         );
-      } else if (response.statusCode == 401) {
+      } else if (response.statusCode == 400 || response.statusCode == 401) {
         print(response.body);
         int responseNumber = await PaymentService.attemptReLogin(context);
         print("The response number from get expand the session is :${responseNumber}");

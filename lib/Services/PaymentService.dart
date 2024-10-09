@@ -27,6 +27,7 @@ class PaymentService {
       void>.broadcast();
 
   static Stream<void> get syncStream => _syncController.stream;
+  static bool _isSyncing = false;  // Flag to track if sync is in progress
 
 
   static void _cancelNetworkTimer() {
@@ -101,7 +102,7 @@ class PaymentService {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('language_code');
-    await prefs.setString('language_code', 'en'); // Set default language
+    await prefs.setString('language_code', 'ar'); // Set default language
     await prefs.remove('usernameLogin');
     _cancelNetworkTimer();
 
@@ -147,10 +148,17 @@ class PaymentService {
   }
 
   static Future<void> syncPayments(BuildContext context) async {
+    // Check if a sync operation is already in progress
+    if (_isSyncing) {
+      print("Sync is already in progress, skipping this sync cycle.");
+      return;
+    }
+    _isSyncing = true;  // Set syncing flag to true to prevent re-entry
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? tokenID = prefs.getString('token');
     if (tokenID == null) {
       print('Token not found');
+      _isSyncing = false;  // Reset syncing flag after operation
       return;
     }
     String fullToken = "Barer ${tokenID}";
@@ -200,13 +208,6 @@ class PaymentService {
               ? (p["amount"]?.toString() ?? '0')
               : (p["amountCheck"]?.toString() ?? '0');
 
-          // print("phoneNumber :${ p["msisdn"]}");
-          // print("selectedMessageLanguage :${Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode}");
-          // print("amount :${p["amount"]}");
-          // print("currency :${p["currency"]}");
-          // print("voucherSerialNumber :${p["voucherSerialNumber"]}");
-          // print("paymentMethod :${p["paymentMethod"]}");
-        //  await SmsService.sendSmsRequest(context, p["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, p["currency"], p["voucherSerialNumber"], Provider.of<LocalizationService>(context, listen: false).getLocalizedString(p["paymentMethod"].toString().toLowerCase()),isCancel: true);
           await SmsService.sendSmsRequest(context, p["msisdn"], 'ar', amount, p["currency"], p["voucherSerialNumber"], p["paymentMethod"].toString().toLowerCase()=='cash' ? 'كاش' : 'شيك' ,isCancel: true);
         } else {
           print('Failed to cancel payment: ${response.body}');
@@ -216,6 +217,8 @@ class PaymentService {
         print('Error syncing payment: $e');
       }
     }
+
+    _isSyncing = false;  // Ensure the syncing flag is reset after operation
     _syncController.add(null);
   }
 
@@ -363,11 +366,19 @@ class PaymentService {
     String? password = credentials['password'];
      if (username != null && password != null) {
        LoginState loginState = LoginState();
-       bool loginSuccessful = await loginState.login(username, password);
-       if (loginSuccessful) {
+       var loginSuccessful = await loginState.login(username, password);
+
+       if (loginSuccessful["status"] == 200) {
         print("Re-login successful");
           await syncPayments(context); // Retry the sync with new token
-      } else {
+      }
+       else if(loginSuccessful["status"] == 503){
+           print("Re-login failed.credentials error Unable to sync payment.");
+       }
+       else if(loginSuccessful["status"] == 408){
+         print("Re-login failed.credentials error Unable to sync payment.");
+       }
+       else {
         print("Re-login failed. Unable to sync payment.");
         _showSessionExpiredDialog(context); // Show session expired message
       }
@@ -382,11 +393,24 @@ class PaymentService {
     String? password = credentials['password'];
     if (username != null && password != null) {
       LoginState loginState = LoginState();
-      bool loginSuccessful = await loginState.login(username, password);
-      if (loginSuccessful) {
+      var loginSuccessful = await loginState.login(username, password);
+      if (loginSuccessful["status"] == 200) {
         return 200;
-      } else {
-        print("Re-login failed. Unable to sync payment.");
+      } else if(loginSuccessful["status"] == 400) {
+        print("Re-login failed.credentials error Unable to sync payment.");
+        _showSessionExpiredDialog(context); // Show session expired message
+        return 400;
+      }
+      else if(loginSuccessful["status"] == 503){
+        print("Re-login failed. Network issue.");
+        return 503;
+      }
+      else if(loginSuccessful["status"] == 408){
+        print("Re-login failed. Network issue.");
+        return 408;
+      }
+      else {
+        print("Re-login failed.credentials error Unable to sync payment.");
         _showSessionExpiredDialog(context); // Show session expired message
         return 400;
       }

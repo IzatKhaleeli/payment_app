@@ -4,10 +4,21 @@ import 'package:provider/provider.dart';
 import 'Screens/SplashScreen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'Services/LocalizationService.dart';
+import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LocalizationService localizeService = LocalizationService();
+
+  // Check for jailbreak status
+  bool isJailbroken = await FlutterJailbreakDetection.jailbroken;;
+
+  if (isJailbroken) {
+    runApp(MyApp(isJailbroken: true));
+  }
+  else {
+    print("Device is not jailbroken.");
+
 
   try {
     await localizeService.initLocalization();
@@ -21,14 +32,17 @@ void main() async {
         ChangeNotifierProvider(create: (context) => LocalizationService()),
         ChangeNotifierProvider(create: (context) => LoginState()),
       ],
-      child: const MyApp(),
+      child: const MyApp(isJailbroken: false),
     ),
   );
+  }
 }
 
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isJailbroken;
+
+  const MyApp({super.key, required this.isJailbroken});
   @override
   Widget build(BuildContext context) {
     const Color primaryRed =
@@ -82,7 +96,19 @@ class MyApp extends StatelessWidget {
         bodyMedium: TextStyle(color: Colors.black),
       ),
     );
-
+    if (isJailbroken) {
+      return MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Text(
+              'This application cannot be run on jailbroken devices.',
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
     return Consumer<LocalizationService>(
       builder: (context, localizeService, _) {
         return MaterialApp(

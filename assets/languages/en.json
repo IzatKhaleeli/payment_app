@@ -7,6 +7,9 @@
   "loginfailed": "Login Failed",
   "loginFailedEmpty": "The Username/Password field is empty",
   "loginFailedwrong": "The Username/Password field is wrong",
+  "loginFailedTimeout": "The request timed out. Please try again later.",
+  "loginfailedNetworkError": "Please check your internet connection and try again.",
+
   "recordPayment": "Record Payment",
   "paymentHistory": "Payment History",
   "printReceipt": "Print Receipt",

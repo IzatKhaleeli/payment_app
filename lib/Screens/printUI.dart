@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-
 import '../Services/bitmap.dart';
 import '../Utils/Alignments.dart';
 import 'dart:async';
@@ -26,7 +24,6 @@ class _PrintPageState extends State<PrintPage> {
   bool _isPrinting = false;
   PrinterBluetooth? _selectedPrinter;
   StreamSubscription<List<PrinterBluetooth>>? _subscription;
-  Uint8List? _imageData;
   double paperWidthMM = 80.0; // 80mm paper width
   double dpi = 203.0; // 203 DPI
 
@@ -155,30 +152,11 @@ class _PrintPageState extends State<PrintPage> {
               ),
             ),
             SizedBox(height: 16),
-        _imageData != null
-            ? Expanded(child: Image.memory(_imageData!)) // Display the image
-            : CircularProgressIndicator(),
-            SizedBox(height: 16),
-
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: _selectedPrinter != null && !_isPrinting
-                        ? () async => await _loadImage()
-                    : null,
-                    icon: Icon(Icons.print),
-                    label: Text('Preview Image'),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      primary: Colors.green,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 15),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _selectedPrinter != null && !_isPrinting
+                    onPressed:_selectedPrinter != null && !_isPrinting
                         ? () => _printReceiptJavaImage(_selectedPrinter!)
                         : null,
                     icon: Icon(Icons.print),
@@ -288,22 +266,6 @@ class _PrintPageState extends State<PrintPage> {
     return bytesInt;
   }
 
-
-  Future<void> _loadImage() async {
-    try {
-      // Load the image from assets as ByteData
-      ByteData bytesData = await rootBundle.load('assets/images/payment_test.png');
-      // Convert ByteData to Uint8List
-      Uint8List imageData = bytesData.buffer.asUint8List();
-
-      setState(() {
-        _imageData = imageData;
-      });
-    } catch (e) {
-      print("Error loading image: $e");
-    }
-  }
-
   Future<List<int>> _printReceiptImage(PrinterBluetooth printer) async {
     setState(() {
       _isPrinting = true;
@@ -314,7 +276,7 @@ class _PrintPageState extends State<PrintPage> {
 
 
       // Step 1: Load image from assets
-      ByteData byteData = await rootBundle.load('assets/images/test_payment.jpg');
+      ByteData byteData = await rootBundle.load('assets/images/payment_test.png');
 
       // Step 2: Convert ByteData to Uint8List
       Uint8List imageData = byteData.buffer.asUint8List();
@@ -420,6 +382,7 @@ class _PrintPageState extends State<PrintPage> {
 
     // Step 1: Create ESC/POS commands (hexadecimal)
     List<int> headerCmd = [0x1B, 0x40]; // ESC @ command to initialize printer
+    List<int> lineSpacingCmd = [0x1B, 0x33, 50]; // 50 can be adjusted for more or less spacing
     List<int> alignLeftCmd = [0x1B, 0x61, 0x00]; // Left align
     List<int> alignCenterCmd = [0x1B, 0x61, 0x01]; // Center align
     List<int> alignRightCmd = [0x1B, 0x61, 0x02]; // Right align
@@ -428,30 +391,59 @@ class _PrintPageState extends State<PrintPage> {
     List<int> LFCR = [0x0A,0x0D ];   // LFCR
 
     print("image part started");
-
-    // Load the image from assets
-    img.Image? image = await ImageToEscPosConverter.loadImageFromAssets('assets/images/test_payment.jpg');
     // Declare escPosCommands outside the if block
     Uint8List escPosCommands = Uint8List(0); // Initialize to an empty Uint8List
-    if (image != null) {
-      // Convert the image to ESC/POS commands
-      escPosCommands = ImageToEscPosConverter.convertImageToEscPosCommands(context,image, 320); // Example width
-      // Here you can send the escPosCommands to your printer
-      print('ESC/POS Commands generated: ${escPosCommands.length} bytes');
-    } else {
-      print('Image loading failed.');
-    }
-    print("image part finished");
 
+    // Load the image from assets
+    img.Image? image = await ImageToEscPosConverter.loadImageFromAssets('assets/images/payment_test.png');
+
+
+    if (image == null) {
+      print('Image loading failed.');
+
+    } else {
+      // Convert the image to ESC/POS commands
+      escPosCommands = await ImageToEscPosConverter.convertImageToEscPosCommands(context,image, 180); // Example width
+      // Here you can send the escPosCommands to your printer
+
+      print("image part finished");
+
+      // Send the commands in chunks
+      int chunkSize = 1024; // Define the chunk size
+      int totalBytes = escPosCommands.length;
+      print('totalBytes: ${escPosCommands.length} bytes');
+
+      // Step 4: Send commands in chunks
+      // Step 4: Send commands in chunks
+      for (int offset = 0; offset < totalBytes; offset += chunkSize) {
+        int bytesToSend = (offset + chunkSize < totalBytes) ? chunkSize : totalBytes - offset; // Calculate the number of bytes to send
+        Uint8List chunk = escPosCommands.sublist(offset, offset + bytesToSend); // Create the chunk
+
+        try {
+          List<int> bytChunks = chunk.toList(); // Convert byte array to List<int>
+
+          // Send chunk to printer
+          await printerManager.writeBytes(bytChunks);
+          print("Sent chunk: ${offset ~/ chunkSize + 1} (${bytesToSend} bytes)");
+
+          // Introduce a delay to ensure the printer can process the current chunk
+          await Future.delayed(Duration(milliseconds: 500)); // Adjust the duration as needed
+        } catch (e) {
+          print("Failed to send chunk: ${e.toString()}");
+        }
+      }
 
     // Step 4: Combine commands to be sent to the printer
     List<int> fullCommand = [];
     fullCommand.addAll(headerCmd); // Initialize printer
-   // fullCommand.addAll(alignCenterCmd); // Set alignment to center
-    //fullCommand.addAll(textCommand1); // Add the text command
-    //fullCommand.addAll(textCommand2); // Add the text command
-   // fullCommand.addAll(escPosCommands); // Add the image data
-    fullCommand.addAll(LFCR); // Add the LFCR
+    fullCommand.addAll(textCommand1); // Add the text command
+   // fullCommand.addAll(lineSpacingCmd); // Set line spacing
+    // fullCommand.addAll(escPosCommands); // Add the image data
+     //fullCommand.addAll(LFCR); // Add the LFCR
+     fullCommand.addAll(LFCR); // Add the LFCR
+     // fullCommand.addAll(textCommand2); // Add the text command
+     // fullCommand.addAll(LFCR); // Add the LFCR
+     // fullCommand.addAll(LFCR); // Add the LFCR
 
 
 
@@ -470,11 +462,12 @@ class _PrintPageState extends State<PrintPage> {
           _showMessage('Printing failed: ${result.msg}');
 
         }
-      } else {
+      }   else {
         // Handle unexpected results
         print('Unexpected result type: $result');
         _showMessage('Unexpected result: $result');
       }
+    }
     } catch (e) {
       print("^Error during printing: $e");
       _showMessage('Error during printing: $e');
@@ -484,6 +477,8 @@ class _PrintPageState extends State<PrintPage> {
         _isPrinting = false; // Ensure the printing state is reset
       });
     }
+
   }
+
 
 }

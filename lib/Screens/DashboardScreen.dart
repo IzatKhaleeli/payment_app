@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/LocalizationService.dart';
 import '../Services/PaymentService.dart';
+import '../Services/apiConstants.dart';
+import '../Services/networking.dart';
 import 'LoginScreen.dart';
 import 'PaymentHistoryScreen.dart';
 import 'RecordPaymentScreen.dart';
@@ -293,6 +296,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     context: context,
                     label: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('logout'),
                     onPressed: () async {
+                      var connectivityResult = await (Connectivity().checkConnectivity());
+                      print("connectivityResult :${connectivityResult}");
+                      if(connectivityResult.toString() != '[ConnectivityResult.none]'){
+                        print("logout have internet");
+                        SharedPreferences prefs = await SharedPreferences.getInstance();
+                        String? tokenID = prefs.getString('token');
+                        print("logout token to delete :${tokenID}");
+
+                        if (tokenID == null) {
+                          print('Token not found');
+                          return;
+                        }
+                        String finalLogout ="${apiUrlLogout}?token=${tokenID}";
+                        print("url :${finalLogout}");
+
+                        NetworkHelper helper = NetworkHelper(url: finalLogout);
+                        try {
+                          var logoutStatus = await helper.getData();
+                          print("logout.status :${logoutStatus}");
+                        }
+                        catch (e) {
+                          print("logout failed :${e}");
+                          return ;
+                        }
+                      }
                       PaymentService.showLoadingAndNavigate(context);
                     },
                     backgroundColor: Color(0xFFC62828), // Ooredoo theme color

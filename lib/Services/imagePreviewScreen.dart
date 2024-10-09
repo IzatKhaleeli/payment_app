@@ -2,16 +2,15 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 
+import '../Screens/DashboardScreen.dart';
 import 'bitmap.dart';
 
 class ImagePreviewScreen extends StatefulWidget {
   final Uint8List imageBytes;
-  final int maxWidth;
 
   const ImagePreviewScreen({
     Key? key,
     required this.imageBytes,
-    this.maxWidth = 320, // Default maxWidth for resizing
   }) : super(key: key);
 
   @override
@@ -19,7 +18,6 @@ class ImagePreviewScreen extends StatefulWidget {
 }
 
 class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
-  Uint8List? _resizedImageBytes;
   img.Image? _resizedImage;
 
   @override
@@ -34,10 +32,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
 
     if (image != null) {
       // Resize the image
-      Uint8List escPosCommands = ImageToEscPosConverter.convertImageToEscPosCommands(context,image, widget.maxWidth);
-
       setState(() {
-        _resizedImageBytes = escPosCommands;
         _resizedImage = image;
       });
     }
@@ -48,8 +43,17 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Image Preview'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back), // Arrow back icon
+          onPressed: () {
+            // Navigate to the Dashboard screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => DashboardScreen()),
+            );          },
+        ),
       ),
-      body: _resizedImageBytes != null && _resizedImage != null
+      body: _resizedImage != null
           ? Column(
         children: [
           // Show the resized image

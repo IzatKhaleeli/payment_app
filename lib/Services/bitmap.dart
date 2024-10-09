@@ -10,136 +10,163 @@ class ImageToEscPosConverter {
   static Future<img.Image?> loadImageFromAssets(String path) async {
     try {
       ByteData byteData = await rootBundle.load(path);
-      final imageBytes = byteData.buffer.asUint8List(); // Convert to Uint8List
-      return img.decodeImage(imageBytes); // Decode the image
+      List<int> bytes = byteData.buffer.asUint8List();
+
+      return img.decodeImage(bytes); // Decode the image
     } catch (e) {
-      print('Error loading image: $e');
+      print('Failed to decode image.: $e');
       return null;
     }
   }
 
   // Convert the image to ESC/POS format
-  static Uint8List convertImageToEscPosCommands(context,img.Image image, int maxWidth) {
-    // Resize the image to the printer's width (if necessary)
-    if (image.width > maxWidth) {
-      image = img.copyResize(image, width: maxWidth);
-    }
-    print("Resized image dimensions: width: ${image.width}, height: ${image.height}");
-    // Convert the image to grayscale
+  static Future<Uint8List> convertImageToEscPosCommands(context,img.Image image, int maxWidth) async {
+    print("convertImageToEscPosCommands started");
 
-    //image = img.grayscale(image);
-    image = img.bitmapToGray(image);
-    print("Converted to grayscale: width: ${image.width}, height: ${image.height}");
+    // Step 1: Resize the image to the printer's width (if necessary)
+    int newHeight = (image.height * maxWidth / image.width).toInt();
+    img.Image resizedImage = img.copyResize(image, width: maxWidth, height: newHeight);
+    print("Resized image dimensions: width: ${resizedImage.width}, height: ${resizedImage.height}");
 
+    // Step 2: Convert to grayscale
+    img.Image grayscaleImage = bitmap2Gray(resizedImage);
+    print("grayscaleImage image dimensions: width: ${grayscaleImage.width}, height: ${grayscaleImage.height}");
 
-    // image = convertGreyImgByFloyd(image);
-    // print("image dim :width :${image.width}, hieght :${image.height}");
+    // Step 3: Apply Floyd-Steinberg dithering to the grayscale image
+   img.Image ditheredImage = await convertGreyImgByFloyed(grayscaleImage);
 
-    showImagePreview(context,image,320);
-    print("test");
-    // Create ESC/POS commands
-    return generateEscPosCommand(image);
+    //Preview the dithered image
+    showImagePreview(context, ditheredImage); // Pass ditheredImage instead of grayscaleImage
+
+    // Step 4: Convert the dithered image to ESC/POS commands
+    return imageToEscPosCommands(ditheredImage);
   }
 
+  /// Convert a color image to grayscale in Flutter (similar to Java's bitmap2Gray)
+  static img.Image bitmap2Gray(img.Image src) {
+    // Create a new grayscale image with the same width and height
+    img.Image grayImage = img.Image(src.width, src.height);
 
-  /// Convert the image to grayscale using Floyd-Steinberg dithering
-  static img.Image convertGreyImgByFloyd(img.Image source) {
-    int width = source.width;
-    int height = source.height;
+    // Iterate through each pixel in the source image
+    for (int y = 0; y < src.height; y++) {
+      for (int x = 0; x < src.width; x++) {
+        // Get the current pixel's color
+        int pixel = src.getPixel(x, y);
+        int r = img.getRed(pixel);
+        int g = img.getGreen(pixel);
+        int b = img.getBlue(pixel);
 
-    // Create an array for pixel data and luminance values
-    List<int> pixels = source.getBytes();
-    List<int> luminance = List<int>.filled(width * height, 0);
+        // Convert the color to grayscale using luminance formula
+        int gray = (0.299 * r + 0.587 * g + 0.114 * b).toInt();
 
-    // Extract the red channel for dithering (you can also average R, G, B for better grayscale)
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        int pixel = pixels[(y * width + x) * 4]; // RGBA format
-        int red = (pixel >> 16) & 0xFF;           // Extract red channel
-        luminance[y * width + x] = red;          // Store luminance
+        // Set the new grayscale pixel
+        grayImage.setPixel(x, y, img.getColor(gray, gray, gray));
       }
     }
 
-    // Apply Floyd-Steinberg dithering
+
+    return grayImage; // Return the grayscale image
+  }
+
+  static Future<img.Image> convertGreyImgByFloyed(img.Image grayscaleImage) async {
+    // Ensure that the input image is already in grayscale.
+    int width = grayscaleImage.width;
+    int height = grayscaleImage.height;
+
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
-        int oldPixel = luminance[y * width + x];
-        int newPixel = (oldPixel >= 176) ? 255 : 0; // Thresholding
-        int quantError = oldPixel - newPixel;
+        int oldPixel = grayscaleImage.getPixel(x, y) & 0xFF;  // Grayscale value
+        int newPixel = oldPixel < 128 ? 0 : 255;  // Threshold to black or white
+        int error = oldPixel - newPixel;
 
-        // Set the dithered pixel to black or white
-        int color = (newPixel == 255) ? 0xFFFFFFFF : 0xFF000000; // White or Black
-        pixels[(y * width + x) * 4] = color; // Set RGBA pixel
+        // Set the new pixel color (black or white)
+        grayscaleImage.setPixel(x, y, img.getColor(newPixel, newPixel, newPixel));
 
-        // Spread the quantization error to neighboring pixels
-        if (x + 1 < width) luminance[y * width + (x + 1)] += (quantError * 7) ~/ 16;
+        // Distribute the error to neighboring pixels using Floyd-Steinberg coefficients
+        if (x + 1 < width) {
+          int rightPixel = grayscaleImage.getPixel(x + 1, y) & 0xFF;
+          grayscaleImage.setPixel(x + 1, y, _applyError(rightPixel, error, 7 / 16));
+        }
+        if (x - 1 >= 0 && y + 1 < height) {
+          int bottomLeftPixel = grayscaleImage.getPixel(x - 1, y + 1) & 0xFF;
+          grayscaleImage.setPixel(x - 1, y + 1, _applyError(bottomLeftPixel, error, 3 / 16));
+        }
         if (y + 1 < height) {
-          if (x > 0) luminance[(y + 1) * width + (x - 1)] += (quantError * 3) ~/ 16;
-          luminance[(y + 1) * width + x] += (quantError * 5) ~/ 16;
-          if (x + 1 < width) luminance[(y + 1) * width + (x + 1)] += quantError ~/ 16;
+          int bottomPixel = grayscaleImage.getPixel(x, y + 1) & 0xFF;
+          grayscaleImage.setPixel(x, y + 1, _applyError(bottomPixel, error, 5 / 16));
+        }
+        if (x + 1 < width && y + 1 < height) {
+          int bottomRightPixel = grayscaleImage.getPixel(x + 1, y + 1) & 0xFF;
+          grayscaleImage.setPixel(x + 1, y + 1, _applyError(bottomRightPixel, error, 1 / 16));
         }
       }
     }
 
-    // Create and return a new image from the modified pixels
-    img.Image resultImage = img.Image.fromBytes(width, height, pixels, format: img.Format.rgba);
-    return resultImage;
+    return grayscaleImage;
   }
 
-  // Generate ESC/POS command for the printer
+// Helper function to apply the error diffusion to the pixel value
+  static int _applyError(int pixel, int error, double factor) {
+    int newPixelValue = (pixel + error * factor).clamp(0, 255).toInt();
+    return img.getColor(newPixelValue, newPixelValue, newPixelValue);  // Grayscale
+  }
 
-  static Uint8List generateEscPosCommand(img.Image image) {
-    final width = image.width;
-    final height = image.height;
 
-    // Calculate the number of bytes needed per row (8 pixels per byte)
-    int bytesPerRow = (width + 7) ~/ 8; // (width / 8) rounded up
+  /// Convert a bitmap2Gray image to ESCPOS image in Flutter (similar to Java's bitmap2Gray)
+  static Uint8List imageToEscPosCommands(img.Image image) {
+    List<int> bytes = [];
 
-    // ESC * command (select bit image mode)
-    final List<int> escPosHeader = [
-      0x1D, 0x76, 0x30, 0x00, // Select bit image mode
-      bytesPerRow % 256, bytesPerRow ~/ 256, // Width in bytes
-      height % 256, height ~/ 256, // Height
-    ];
+    // Initialize the printer to raster mode
+    bytes += [0x1B, 0x40]; // ESC @ - Initialize the printer
+    bytes += [0x1D, 0x76, 0x30, 0x00]; // ESC * Raster mode command
 
-    // Convert image data to binary format for the printer
-    final List<int> imageData = [];
+    int width = image.width;
+    int height = image.height;
 
-    for (var y = 0; y < height; ++y) {
-      for (var x = 0; x < bytesPerRow; ++x) {
+    // Set the width in bytes, rounded up to the nearest byte boundary
+    int widthBytes = ((width + 7) ~/ 8);
+    bytes += [(widthBytes % 256), (widthBytes ~/ 256)]; // Width of the image in bytes
+    bytes += [(height % 256), (height ~/ 256)]; // Height of the image in pixels
+
+    // Loop through the image's pixels and convert to monochrome (0 or 1 bit)
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x += 8) {
         int byte = 0;
-        int var19 = x * 8; // Calculate the bit position for 8 pixels
 
-        for (var bit = 0; bit < 8; ++bit) {
-          if (var19 + bit < width) { // Ensure we don't go out of bounds
-            final pixel = image.getPixel(var19 + bit, y); // Get pixel color
-            final luminance = img.getLuminance(pixel); // Get grayscale value
-
-            if (luminance < 128) { // Black pixel condition
-              byte |= (1 << (7 - bit)); // Set the bit for black pixels (MSB to LSB)
+        // Create a byte by setting 8 pixels at a time
+        for (int bit = 0; bit < 8; bit++) {
+          if (x + bit < width) {
+            int pixel = image.getPixel(x + bit, y) & 0xFF;
+            if (pixel == 0x00) { // Assuming the dithered image uses 0 for black and 255 for white
+              byte |= (1 << (7 - bit)); // Set the bit if it's black
             }
           }
         }
-
-        imageData.add(byte); // Add the constructed byte to the image data
+        bytes.add(byte); // Add this byte to the ESC/POS command buffer
       }
     }
 
-    // Combine header and image data
-    return Uint8List.fromList([...escPosHeader, ...imageData]);
+    // Add final feed and cut commands if required
+    bytes += [0x0C]; // Form feed (optional)
+    bytes += [0x1B, 0x69]; // ESC i - Full cut (optional)
+
+    return Uint8List.fromList(bytes);
   }
 
   // Load the image from assets and show the preview
-  static void showImagePreview(BuildContext context, img.Image image, int maxWidth) async {
+  static void showImagePreview(BuildContext context, img.Image? image) async {
     if (image != null) {
-      image = img.copyResize(image, width: maxWidth); // Resize the image
+      Uint8List imageBytes = Uint8List.fromList(img.encodePng(image));
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ImagePreviewScreen(imageBytes: Uint8List.fromList(img.encodePng(image!))),
+          builder: (context) => ImagePreviewScreen(imageBytes: imageBytes),
         ),
       );
+    } else {
+      print("Image is null. Cannot preview.");
     }
   }
+
 
 }

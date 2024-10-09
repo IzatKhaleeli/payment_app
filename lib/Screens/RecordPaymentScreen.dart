@@ -197,10 +197,13 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       print("the paymentParams from parameter not null ");
       Map<String, dynamic> paymentParams = widget.paymentParams!; // Ensure id is not null
       if (paymentParams != null) {
+        print("check1");
         setState(() {
           _selectedPaymentMethod = cash;
           _selectedCurrencyDB=paymentParams["currency"];
         });
+        print("check2");
+
         if (paymentParams["paymentMethod"] == "Check") {
           setState(() {
             _selectedPaymentMethod = check;
@@ -208,15 +211,32 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             _selectedBankDB=paymentParams["bankBranch"];
           });
         }
+        print("check3");
+
 
         _customerNameController.text = paymentParams["customerName"];
+        print("check4");
+
         _msisdnController.text = paymentParams["msisdn"]?? '';
+        print("check5");
+
         _prNumberController.text = paymentParams["prNumber"]?? '' ;
+        print("check6");
+
         _amountController.text = paymentParams["amount"].toString()?? '';
+        print("check7");
+
         _amountCheckController.text = paymentParams["amountCheck"].toString()?? '';
+        print("check8");
+
         _checkNumberController.text = paymentParams["checkNumber"].toString()?? '';
+        print("check9");
+
         _paymentInvoiceForController.text = paymentParams["paymentInvoiceFor"]?? '';
+        print("check10");
+
         _dueDateCheckController.text = paymentParams["dueDateCheck"].toString()?? '';
+        print("check11");
 
       }
     }
@@ -250,6 +270,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
   @override
   Widget build(BuildContext context) {
+    print("check12");
+
     ScreenUtil.init(context, designSize: Size(360, 690));
 
     return Scaffold(
@@ -632,18 +654,26 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         bool required = false,
       }) {
     // Find the Currency object with the id matching _selectedCurrencyDB
+    print("check22");
+
     Currency? initialCurrency;
-    if (_selectedCurrencyDB != null) {
+    if (_selectedCurrencyDB != null && items.isNotEmpty) {
       initialCurrency = items.firstWhere(
             (currency) => currency.id == _selectedCurrencyDB,
+
       );
-    } else if (items.any((currency) => currency.id == 'ILS')) {
+      print("check23");
+
+    }
+    else if (items.any((currency) => currency.id == 'ILS')) {
       initialCurrency = items.firstWhere((currency) => currency.id == 'ILS');
       if (initialCurrency != null) {
         setState(() {
           _selectedCurrencyDB = 'ILS';
         });
       }
+      print("check21");
+
     }
 
     return Padding(
@@ -730,6 +760,13 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       }) {
     // Find the Bank object with the id matching _selectedBankDB
     Bank? initialBank;
+    if (items.isEmpty) {
+      // Handle the empty case, e.g., show a message or return a default value
+      return DropdownButton<String>(
+        items: [],
+        onChanged: null, // Disable the dropdown if there are no banks
+      );
+    }
     if (_selectedBankDB != null) {
       initialBank = items.firstWhere(
             (bank) => bank.id == _selectedBankDB,

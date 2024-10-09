@@ -45,17 +45,16 @@ class LoginState with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> login(String username, String password) async {
+  Future<Map<String, dynamic>> login(String username, String password) async {
     Map<String, dynamic> map = {
       "username": username,
       "password": password,
     };
     print("Attempting login with username, password: $map");
-
     NetworkHelper helper = NetworkHelper(url: apiUrlLogin, map: map);
-
+    var userData;
     try {
-      var userData = await helper.getData();
+      userData = await helper.getData();
       print("userData.status :${userData}");
 
       if (userData.containsKey('token')) {
@@ -65,14 +64,35 @@ class LoginState with ChangeNotifier {
         await prefs.setString('token', token);
         print("Token stored successfully: $token");
 
-        return true;
-      } else {
-        print("Token not found in the response");
-        return false;
+        return {
+          'success': true,
+          'token': token,
+          'status': 200,
+        };
+      }
+      else if (userData.containsKey('error')) {
+        // Return the error and the status code for better feedback
+        print("Login error: ${userData['error']}");
+        return {
+          'success': false,
+          'message': userData['error'],
+          'status': userData['status'],
+        };
+      }
+      else {
+        print("Login failed: Token not found");
+        return {
+          'success': false,
+          'message': 'Token not found',
+          'status': 400,
+        };
       }
     } catch (e) {
-      print("Login failed :${e}");
-      return false;
+      print("Login failed: $e");
+      return {
+        'success': false,
+        'message': 'An unexpected error occurred: $e',
+      };
     }
   }
 

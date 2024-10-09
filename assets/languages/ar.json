@@ -7,6 +7,9 @@
   "loginfailed": "فشل تسجيل الدخول",
   "loginFailedEmpty": "اسم المستخدم/كلمة المرور فارغ",
   "loginFailedwrong": "اسم المستخدم/كلمة المرور خطأ",
+  "loginFailedTimeout": "انتهت مهلة الطلب. يرجى المحاولة مرة أخرى لاحقًا.",
+  "loginfailedNetworkError": "يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.",
+
   "recordPayment": "تسجيل دفعة",
   "paymentHistory": "سجل الدفعات",
   "printReceipt": "طباعة الإيصال",

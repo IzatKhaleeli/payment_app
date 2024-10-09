@@ -47,28 +47,42 @@ class NetworkHelper {
       }
 
       if (response.statusCode == 200) {
-        print("status iss 200");
-        return jsonDecode(response.body);
-      } else {
-        print("status is: ${response.statusCode}");
+        print("status is 200");
+        return response.body.isNotEmpty ? jsonDecode(response.body) : {};
+      }
+      else {
         print("Response body: ${response.body}");
-        return null;
+        print("Error_Status: ${response.statusCode}");
+        return {
+          'error': 'Error: Status code ${response.statusCode}',
+          'status': response.statusCode,
+          'body': response.body
+        };
       }
     }
     on TimeoutException catch (_) {
-      // Handle the timeout exception
       print('Request timed out.');
-      return http.Response('Request timed out', 408); // Returning a response with 408 Request Timeout status code
-    } on SocketException catch (e) {
+      return {
+        'error': 'Request timed out',
+        'status': 408,
+      };
+    }
+    on SocketException catch (e) {
       // Handle network errors
       print('Network error: $e');
-      return http.Response('Network error', 503); // Returning a response with 503 Service Unavailable status code
+      return {
+        'error': 'Network error',
+        'status': 503,
+      };
     }
     catch (e) {
       print("Error during HTTP request: $e");
-      return null;
+      return {
+        'error': 'Exception: $e',
+      };
     }
   }
+
 
 
   Future<bool> testConnection() async {
