@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ooredoo_app/Screens/printUI.dart';
 import 'package:provider/provider.dart';
 import '../Services/LocalizationService.dart';
 import 'DashboardScreen.dart';
@@ -45,6 +46,7 @@ class _SplashScreenState extends State<SplashScreen>
     } else {
       Navigator.of(context).pushReplacement(
         _createRoute(LoginScreen()), // Navigate to LoginScreen if not logged in
+      //  _createRoute(PrintPage()), // Navigate to LoginScreen if not logged in
       );
     }
   }

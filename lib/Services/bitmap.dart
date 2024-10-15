@@ -20,7 +20,7 @@ class ImageToEscPosConverter {
   }
 
   // Convert the image to ESC/POS format
-  static Future<Uint8List> convertImageToEscPosCommands(context,img.Image image, int maxWidth) async {
+  static Future<Uint8List> convertImageToEscPosCommands(context, img.Image image, int maxWidth) async {
     print("convertImageToEscPosCommands started");
 
     // Step 1: Resize the image to the printer's width (if necessary)
@@ -30,16 +30,20 @@ class ImageToEscPosConverter {
 
     // Step 2: Convert to grayscale
     img.Image grayscaleImage = bitmap2Gray(resizedImage);
-    print("grayscaleImage image dimensions: width: ${grayscaleImage.width}, height: ${grayscaleImage.height}");
+    print("Grayscale image dimensions: width: ${grayscaleImage.width}, height: ${grayscaleImage.height}");
 
     // Step 3: Apply Floyd-Steinberg dithering to the grayscale image
-   img.Image ditheredImage = await convertGreyImgByFloyed(grayscaleImage);
+    img.Image ditheredImage = await convertGreyImgByFloyed(grayscaleImage);
+    print("Dithered image dimensions: width: ${ditheredImage.width}, height: ${ditheredImage.height}");
 
-    //Preview the dithered image
-    showImagePreview(context, ditheredImage); // Pass ditheredImage instead of grayscaleImage
+    // // Optional: Preview the dithered image if you have a UI preview function
+    // showImagePreview(context, ditheredImage);
 
     // Step 4: Convert the dithered image to ESC/POS commands
-    return imageToEscPosCommands(ditheredImage);
+    Uint8List escPosCommands = imageToEscPosCommands(ditheredImage);
+
+    print("convertImageToEscPosCommands finished");
+    return escPosCommands;
   }
 
   /// Convert a color image to grayscale in Flutter (similar to Java's bitmap2Gray)
@@ -106,9 +110,9 @@ class ImageToEscPosConverter {
   }
 
 // Helper function to apply the error diffusion to the pixel value
-  static int _applyError(int pixel, int error, double factor) {
-    int newPixelValue = (pixel + error * factor).clamp(0, 255).toInt();
-    return img.getColor(newPixelValue, newPixelValue, newPixelValue);  // Grayscale
+  static int _applyError(int pixelValue, int error, double coefficient) {
+    int newValue = (pixelValue + error * coefficient).round();
+    return newValue.clamp(0, 255); // Ensure the result stays within 0-255 grayscale range
   }
 
 
@@ -132,12 +136,10 @@ class ImageToEscPosConverter {
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x += 8) {
         int byte = 0;
-
-        // Create a byte by setting 8 pixels at a time
         for (int bit = 0; bit < 8; bit++) {
           if (x + bit < width) {
             int pixel = image.getPixel(x + bit, y) & 0xFF;
-            if (pixel == 0x00) { // Assuming the dithered image uses 0 for black and 255 for white
+            if (pixel == 0x00) { // Assuming the dithered image uses 0 for black
               byte |= (1 << (7 - bit)); // Set the bit if it's black
             }
           }
@@ -145,10 +147,6 @@ class ImageToEscPosConverter {
         bytes.add(byte); // Add this byte to the ESC/POS command buffer
       }
     }
-
-    // Add final feed and cut commands if required
-    bytes += [0x0C]; // Form feed (optional)
-    bytes += [0x1B, 0x69]; // ESC i - Full cut (optional)
 
     return Uint8List.fromList(bytes);
   }

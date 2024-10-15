@@ -1,6 +1,12 @@
 import '../Utils/Alignments.dart';
 
 class PrintUtils {
+  static List<int> initialization() {
+    return [0x1B, 0x40];
+  }
+  static List<int> rasterMode() {
+    return [0x1D, 0x76, 0x30, 0x00];
+  }
   // Align Left
   static List<int> alignLeft() {
     return [0x1B, 0x61, 0x00];

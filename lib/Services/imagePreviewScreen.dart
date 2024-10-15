@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
+import 'package:ooredoo_app/Screens/printUI.dart';
 
 import '../Screens/DashboardScreen.dart';
 import 'bitmap.dart';
@@ -49,7 +50,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
             // Navigate to the Dashboard screen
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => DashboardScreen()),
+              MaterialPageRoute(builder: (context) => PrintPage()),
             );          },
         ),
       ),

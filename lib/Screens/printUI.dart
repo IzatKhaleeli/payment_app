@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:math';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import '../Services/bitmap.dart';
-import '../Utils/Alignments.dart';
 import 'dart:async';
 import 'package:esc_pos_bluetooth/esc_pos_bluetooth.dart';
 import 'package:flutter/material.dart';
@@ -24,10 +22,6 @@ class _PrintPageState extends State<PrintPage> {
   bool _isPrinting = false;
   PrinterBluetooth? _selectedPrinter;
   StreamSubscription<List<PrinterBluetooth>>? _subscription;
-  double paperWidthMM = 80.0; // 80mm paper width
-  double dpi = 203.0; // 203 DPI
-
-
 
   @override
   void initState() {
@@ -50,7 +44,7 @@ class _PrintPageState extends State<PrintPage> {
       _isLoading = true;
     });
 
-    printerManager.startScan(Duration(seconds: 3));
+    printerManager.startScan(Duration(seconds: 2));
     _subscription = printerManager.scanResults.listen((devices) {
       if (mounted) {
         setState(() {
@@ -61,7 +55,7 @@ class _PrintPageState extends State<PrintPage> {
     });
     print("Devices found: ${_devices.length}");
     for (var device in _devices) {
-      print("Device Name: ${device.name}, Address: ${device.address}");
+      print("Device info: ${device}");
     }
   }
 
@@ -223,8 +217,7 @@ class _PrintPageState extends State<PrintPage> {
 
       // Send receipt data to printer
       await printerManager.writeBytes(receiptData);
-      await Future.delayed(Duration(seconds: 2)); // Adjust delay as necessary
-
+      await Future.delayed(Duration(seconds: 1)); // Adjust delay as necessary
       _showMessage('Printing successful');
     } catch (e) {
       print("Error during printing status: ${e.toString()}");
@@ -245,8 +238,7 @@ class _PrintPageState extends State<PrintPage> {
   Future<List<int>> _generateTestTicket() async {
     List<int> bytesInt = [];
 
-    // ESC @ (Initialize printer)
-    bytesInt += [0x1B, 0x40];
+    bytesInt += PrintUtils.initialization();
 
     // Print bold left-aligned text
     bytesInt += PrintUtils.printBoldAlignedTextLeft('Ooredoo Left\n');
@@ -264,77 +256,6 @@ class _PrintPageState extends State<PrintPage> {
     bytesInt += [0x1D, 0x56, 0x00]; // ESC i (Full cut)
 
     return bytesInt;
-  }
-
-  Future<List<int>> _printReceiptImage(PrinterBluetooth printer) async {
-    setState(() {
-      _isPrinting = true;
-    });
-      print("Connecting to the printer...");
-      printerManager.selectPrinter(printer);
-      print("Printer connected");
-
-
-      // Step 1: Load image from assets
-      ByteData byteData = await rootBundle.load('assets/images/payment_test.png');
-
-      // Step 2: Convert ByteData to Uint8List
-      Uint8List imageData = byteData.buffer.asUint8List();
-
-      // Step 3: Get temporary directory
-      Directory tempDir = await getTemporaryDirectory();
-      String tempPath = tempDir.path;
-
-      // Step 4: Create a File in the temporary directory
-      File imageFile = File('$tempPath/test_payment.jpg');
-
-      // Step 6: Load the image for processing (e.g., resizing, printing)
-      img.Image image = img.decodeImage(imageFile.readAsBytesSync())!;
-
-      // Calculate width in pixels
-      double paperWidthInches = paperWidthMM / 25.4; // Convert mm to inches
-      int printWidthPixels = (paperWidthInches * dpi).round(); // Width in pixels
-      // Resize image to fit the printer width (50mm width, 203px at 203 dpi)
-
-    print("width in pixeles : ${printWidthPixels}");
-      img.Image resizedImage = img.copyResize(image, width: printWidthPixels);
-
-      // Convert the image to a monochrome bitmap suitable for the printer
-      List<int> bitmapData = [];
-      int widthBytes = (printWidthPixels + 7) ~/ 8; // Calculate number of bytes required for the width
-
-
-
-      // Add the image height to the bitmapData
-      bitmapData.add(0x1B); // ESC
-      bitmapData.add(0x2A); // *
-      bitmapData.add(widthBytes); // number of bytes per line
-      bitmapData.add(resizedImage.height); // height of the image in dots
-
-
-      for (int y = 0; y < resizedImage.height; y++) {
-        int byte = 0;
-        for (int x = 0; x < resizedImage.width; x++) {
-          // Get the pixel color (ARGB)
-          int pixel = resizedImage.getPixel(x, y);
-          // Convert it to monochrome (black or white)
-          int luminance = img.getLuminance(pixel);
-          if (luminance < 128) {
-            byte |= (1 << (7 - (x % 8))); // Set bit for black pixel
-          }
-
-          // If the width is reached, add the byte to the bitmapData
-          if ((x + 1) % 8 == 0 || x == resizedImage.width - 1) {
-            bitmapData.add(byte);
-            byte = 0; // Reset byte for the next set of pixels
-          }
-        }
-      }
-    setState(() {
-      _isPrinting = false;
-    });
-      return bitmapData;
-
   }
 
   List<int> _createTextCommand(String text) {
@@ -377,108 +298,78 @@ class _PrintPageState extends State<PrintPage> {
     print("Connecting to the printer...");
 
     try {
-    printerManager.selectPrinter(printer);
-    print("Printer connected");
+      // Step 1: Select the printer
+      printerManager.selectPrinter(printer);
+      print("Printer connected");
 
-    // Step 1: Create ESC/POS commands (hexadecimal)
-    List<int> headerCmd = [0x1B, 0x40]; // ESC @ command to initialize printer
-    List<int> lineSpacingCmd = [0x1B, 0x33, 50]; // 50 can be adjusted for more or less spacing
-    List<int> alignLeftCmd = [0x1B, 0x61, 0x00]; // Left align
-    List<int> alignCenterCmd = [0x1B, 0x61, 0x01]; // Center align
-    List<int> alignRightCmd = [0x1B, 0x61, 0x02]; // Right align
-    List<int> textCommand1 = _createTextCommand("test text to printer1");
-    List<int> textCommand2 = _createTextCommand("test text to printer2");
-    List<int> LFCR = [0x0A,0x0D ];   // LFCR
+      // Step 2: Define ESC/POS commands (hexadecimal)
+      List<int> headerCmd = [0x1B, 0x40]; // ESC @ to initialize printer
+      List<int> rastercmd = [0x1D, 0x76, 0x30, 0x00]; // ESC @ to initialize printer
+      List<int> lineSpacingCmd = [0x1B, 0x33, 50]; // Adjust line spacing
+      List<int> alignLeftCmd = [0x1B, 0x61, 0x00]; // Left align
+      List<int> alignCenterCmd = [0x1B, 0x61, 0x01]; // Center align
+      List<int> textCommand1 = _createTextCommand("test text to printer1");
+      List<int> LFCR = [0x0A, 0x0D]; // Line Feed and Carriage Return
 
-    print("image part started");
-    // Declare escPosCommands outside the if block
-    Uint8List escPosCommands = Uint8List(0); // Initialize to an empty Uint8List
+      // Step 3: Image handling
+      print("Loading and processing image...");
+      Uint8List escPosCommands = Uint8List(0); // Initialize with empty command
+      List<List<int>> commandChunks=[];
+      // Load the image from assets
+      img.Image? image = await ImageToEscPosConverter.loadImageFromAssets('assets/images/payment_test.png');
 
-    // Load the image from assets
-    img.Image? image = await ImageToEscPosConverter.loadImageFromAssets('assets/images/payment_test.png');
-
-
-    if (image == null) {
-      print('Image loading failed.');
-
-    } else {
-      // Convert the image to ESC/POS commands
-      escPosCommands = await ImageToEscPosConverter.convertImageToEscPosCommands(context,image, 180); // Example width
-      // Here you can send the escPosCommands to your printer
-
-      print("image part finished");
-
-      // Send the commands in chunks
-      int chunkSize = 1024; // Define the chunk size
-      int totalBytes = escPosCommands.length;
-      print('totalBytes: ${escPosCommands.length} bytes');
-
-      // Step 4: Send commands in chunks
-      // Step 4: Send commands in chunks
-      for (int offset = 0; offset < totalBytes; offset += chunkSize) {
-        int bytesToSend = (offset + chunkSize < totalBytes) ? chunkSize : totalBytes - offset; // Calculate the number of bytes to send
-        Uint8List chunk = escPosCommands.sublist(offset, offset + bytesToSend); // Create the chunk
-
-        try {
-          List<int> bytChunks = chunk.toList(); // Convert byte array to List<int>
-
-          // Send chunk to printer
-          await printerManager.writeBytes(bytChunks);
-          print("Sent chunk: ${offset ~/ chunkSize + 1} (${bytesToSend} bytes)");
-
-          // Introduce a delay to ensure the printer can process the current chunk
-          await Future.delayed(Duration(milliseconds: 500)); // Adjust the duration as needed
-        } catch (e) {
-          print("Failed to send chunk: ${e.toString()}");
-        }
+      if (image == null) {
+        print('Image loading failed.');
+      } else {
+        // Convert the image to ESC/POS commands
+        escPosCommands = await ImageToEscPosConverter.convertImageToEscPosCommands(context, image, 350 ); // Example width
+        commandChunks = await chunkCommands(escPosCommands, 4096 ); // Adjust chunk size based on printer limits
+        print('ESC/POS Commands for image generated: ${escPosCommands.length} bytes');
       }
+      List<int> fullCommand = [];
+      for (List<int> commandChunk in commandChunks) {
+      // Step 4: Combine all commands
 
-    // Step 4: Combine commands to be sent to the printer
-    List<int> fullCommand = [];
-    fullCommand.addAll(headerCmd); // Initialize printer
-    fullCommand.addAll(textCommand1); // Add the text command
-   // fullCommand.addAll(lineSpacingCmd); // Set line spacing
-    // fullCommand.addAll(escPosCommands); // Add the image data
-     //fullCommand.addAll(LFCR); // Add the LFCR
-     fullCommand.addAll(LFCR); // Add the LFCR
-     // fullCommand.addAll(textCommand2); // Add the text command
-     // fullCommand.addAll(LFCR); // Add the LFCR
-     // fullCommand.addAll(LFCR); // Add the LFCR
+      fullCommand.addAll(headerCmd);          // Initialize printer
+      fullCommand.addAll(alignLeftCmd);     // Center align for the image
+      fullCommand.addAll(commandChunk);       // Add image data
+      fullCommand.addAll(LFCR);             // Line feed after text
+      fullCommand.addAll(textCommand1);     // Add text to print
+      fullCommand.addAll(LFCR);             // Line feed after text
 
-
-
-    // Step 3: Send the combined command to the printer
+      // Step 5: Send the full command to the printer
+      print("Sending print commands to the printer...");
       final result = await printerManager.writeBytes(fullCommand);
-    // Create a Completer for the synchronous operation
-      // Check if result is an instance of PosPrintResult
-      if (result is PosPrintResult) {
-        // Directly check for success
+
+      await Future.delayed(Duration(seconds: 5)); // Adjust delay to ensure the printer processes the image fully
+
+      // Step 6: Handle the result
         if (result.value == PosPrintResult.success.value) {
           _showMessage('Printing successful');
         } else {
-          // Handle error cases
-          print('Error Code: ${result.value}');
-          print('Error Message: ${result.msg}');
+          print('Error Code: ${result.value}, Message: ${result.msg}');
           _showMessage('Printing failed: ${result.msg}');
-
         }
-      }   else {
-        // Handle unexpected results
-        print('Unexpected result type: $result');
-        _showMessage('Unexpected result: $result');
+      // Wait before sending the next chunk
+      await Future.delayed(Duration(seconds: 7)); // Adjust delay
       }
-    }
     } catch (e) {
-      print("^Error during printing: $e");
+      print("Error during printing: $e");
       _showMessage('Error during printing: $e');
     }
     finally {
       setState(() {
-        _isPrinting = false; // Ensure the printing state is reset
+        _isPrinting = false; // Reset the printing state
       });
     }
 
   }
 
-
+  Future<List<List<int>>> chunkCommands(List<int> commands, int chunkSize) async {
+    List<List<int>> chunks = [];
+    for (int i = 0; i < commands.length; i += chunkSize) {
+      chunks.add(commands.sublist(i, min(i + chunkSize, commands.length)));
+    }
+    return chunks;
+  }
 }

@@ -56,16 +56,18 @@ class SmsService {
       "amount": amount,
       "type":isCancel== true ? "cancel":"sync",
     };
+
     print("body is :${body}");
     print("headers is :${headers}");
     print("apiUrlSMS is :${apiUrlSMS}");
+    print("url send here");//
     try {
       final response = await http.post(
         Uri.parse(apiUrlSMS),
         headers: headers,
         body: json.encode(body),
-      ).timeout(Duration(seconds: 3));
-
+      ).timeout(Duration(seconds: 5));
+print("response.statusCode :${response.statusCode}");
       if (response.statusCode == 200) {
         CustomPopups.showCustomResultPopup(
           context: context,
@@ -76,7 +78,19 @@ class SmsService {
             print('Success acknowledged');
           },
         );
-      } else if (response.statusCode == 400 || response.statusCode == 401) {
+      }
+      else if (response.statusCode == 429) {
+        CustomPopups.showCustomResultPopup(
+          context: context,
+          icon: Icon(Icons.error, color: Colors.red, size: 40),
+          message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("exceedNumberOfRequest"),
+          buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+          onPressButton: () {
+            print('Exceed number of request');
+          },
+        );
+      }
+      else if (response.statusCode == 400 || response.statusCode == 401) {
         print(response.body);
         int responseNumber = await PaymentService.attemptReLogin(context);
         print("The response number from get expand the session is :${responseNumber}");
@@ -108,14 +122,26 @@ class SmsService {
                 print('Success acknowledged');
               },
             );
-          } else {
+          }
+          else if (response.statusCode == 429) {
+            CustomPopups.showCustomResultPopup(
+              context: context,
+              icon: Icon(Icons.error, color: Colors.red, size: 40),
+              message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("exceedNumberOfRequest"),
+              buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+              onPressButton: () {
+                print('Exceed number of request');
+              },
+            );
+          }
+          else {
             CustomPopups.showCustomResultPopup(
               context: context,
               icon: Icon(Icons.error, color: Colors.red, size: 40),
               message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentSmsFailed"),
               buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
               onPressButton: () {
-                print('Error acknowledged');
+                print('Error acknowledgeds');
                 print(reloginResponse.body);
                 print(reloginResponse.statusCode);
               },
@@ -139,7 +165,7 @@ class SmsService {
           message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentSmsFailed"),
           buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
           onPressButton: () {
-            print('Error acknowledged');
+            print('Error acknowledgedq');
             print(response.body);
             print(response.statusCode);
           },
@@ -164,7 +190,7 @@ class SmsService {
         message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkTimeoutError"),
         buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
         onPressButton: () {
-          print('Timeout error acknowledged :${e}');
+          print('Timeout error acknowledgede :${e}');
         },
       );
     }
@@ -175,7 +201,7 @@ class SmsService {
         message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentSmsFailed")}: $e',
         buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
         onPressButton: () {
-          print('Error acknowledged :${e}');
+          print('Error acknowledgedr :${e}');
         },
       );
     }
