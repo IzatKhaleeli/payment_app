@@ -57,6 +57,8 @@ dependencies:
   esc_pos_bluetooth: ^0.4.1
   flutter_bluetooth_basic: ^0.1.7
   flutter_jailbreak_detection: ^1.10.0
+  conditional_builder_null_safety: ^0.0.6
+  flutter_scan_bluetooth: ^2.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

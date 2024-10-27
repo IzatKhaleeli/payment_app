@@ -5,6 +5,7 @@ import '../Services/LocalizationService.dart';
 import 'DashboardScreen.dart';
 import 'LoginScreen.dart';
 import '../Models/LoginState.dart';
+import 'flutter_scan_bluetooth_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -46,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen>
     } else {
       Navigator.of(context).pushReplacement(
         _createRoute(LoginScreen()), // Navigate to LoginScreen if not logged in
-      //  _createRoute(PrintPage()), // Navigate to LoginScreen if not logged in
+      //  _createRoute(FlutterScanBluetoothScreen()), // Navigate to LoginScreen if not logged in
       );
     }
   }

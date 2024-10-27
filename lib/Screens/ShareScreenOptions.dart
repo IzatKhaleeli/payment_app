@@ -116,12 +116,12 @@ class ShareScreenOptions {
   }
   static void _shareViaPrint(BuildContext context, int id) async {
     final file = await sharePdf(context, id, 'en');
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PrintPage(),
-      ),
-    );
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => PrintPage(),
+    //   ),
+    // );
     }
   static Future<void> _shareViaEmail(BuildContext context, int id) async {
     // Fetch payment details from the database

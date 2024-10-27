@@ -48,10 +48,11 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
           icon: const Icon(Icons.arrow_back), // Arrow back icon
           onPressed: () {
             // Navigate to the Dashboard screen
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => PrintPage()),
-            );          },
+            // Navigator.pushReplacement(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => PrintPage()),
+            // );
+            },
         ),
       ),
       body: _resizedImage != null
