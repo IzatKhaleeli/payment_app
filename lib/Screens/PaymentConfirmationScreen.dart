@@ -387,21 +387,14 @@ import 'PaymentCancellationScreen.dart';
                 ),
               if (canSend)
                 ...[
-                  // Tooltip(
-                  //   message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sendPrinter'),
-                  //   child:IconButton(
-                  //     icon: Icon(Icons.print, color: Colors.black),
-                  //     onPressed: () async{
-                  //       var connectivityResult = await (Connectivity().checkConnectivity());
-                  //       if(connectivityResult.toString() == '[ConnectivityResult.none]'){
-                  //         CustomPopups.showLoginFailedDialog(context, Provider.of<LocalizationService>(context, listen: false).getLocalizedString("noInternet"), Provider.of<LocalizationService>(context, listen: false).isLocalizationLoaded ?  Provider.of<LocalizationService>(context, listen: false).getLocalizedString('noInternetConnection')
-                  //             : 'No Internet Connection',  Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode);
-                  //       }
-                  //       else
-                  //         ShareScreenOptions.showLanguageSelectionAndShare(context, widget.paymentId,ShareOption.print);
-                  //
-                  //     },
-                  //   ),),
+                  Tooltip(
+                    message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sendPrinter'),
+                    child:IconButton(
+                      icon: Icon(Icons.print, color: Colors.black),
+                      onPressed: () async{
+                         ShareScreenOptions.showLanguageSelectionAndShare(context, widget.paymentId,ShareOption.print);
+                      },
+                    ),),
                   Tooltip(
                     message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sendSms'),
                     decoration: BoxDecoration(

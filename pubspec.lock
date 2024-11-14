@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.8"
+  blue_thermal_printer:
+    dependency: "direct main"
+    description:
+      name: blue_thermal_printer
+      sha256: "2b8a93f90be335494d2172dbc869c31b95638087f89591b4ad69fd9305eaf80b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.3"
   boolean_selector:
     dependency: transitive
     description:
@@ -65,14 +73,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.17.0"
-  conditional_builder_null_safety:
-    dependency: "direct main"
-    description:
-      name: conditional_builder_null_safety
-      sha256: "4428f40c20e222acead5e424fb9fba261733fc9da06ef58a08d9477207b0adfd"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.6"
   connectivity_plus:
     dependency: "direct main"
     description:
@@ -137,14 +137,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.10"
-  esc_pos_bluetooth:
-    dependency: "direct main"
-    description:
-      name: esc_pos_bluetooth
-      sha256: "46455b48afeeb5eabdfdde59697e0328247df6537f6d5e8d8f6664975e886e4b"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.1"
   esc_pos_utils:
     dependency: "direct main"
     description:
@@ -182,14 +174,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_bluetooth_basic:
-    dependency: "direct main"
-    description:
-      name: flutter_bluetooth_basic
-      sha256: e81a2c5e9340660b4832831b33d9f3c1f1b098c8f924bc1dafef9702c5985921
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.7"
   flutter_jailbreak_detection:
     dependency: "direct main"
     description:
@@ -215,10 +199,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_pdfview
-      sha256: "6b625b32a9102780236554dff42f2d798b4627704ab4a3153c07f2134a52b697"
+      sha256: "715085f9f2c1ad5129dfe0d31a5f0e5481e2e296ce4e6ce72662de28df5456a6"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.3"
+    version: "1.3.4"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -227,14 +211,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.17"
-  flutter_scan_bluetooth:
-    dependency: "direct main"
-    description:
-      name: flutter_scan_bluetooth
-      sha256: "01f0a203b328210a93142abf0297433308e571c5b02c654706a11fe9a8839598"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.4"
   flutter_screenutil:
     dependency: "direct main"
     description:
@@ -381,14 +357,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.5"
-  json_annotation:
-    dependency: transitive
-    description:
-      name: json_annotation
-      sha256: b10a7b2ff83d83c777edba3c6a0f97045ddadd56c944e1a23a3fdf43a1bf4467
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.8.1"
   lints:
     dependency: transitive
     description:
@@ -573,6 +541,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.8.4"
+  pdf_render:
+    dependency: "direct main"
+    description:
+      name: pdf_render
+      sha256: b4a5b81af382a2270047d4191496e4efd60f19c2807f64dc9dc8f55c97b5c0d1
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   permission_handler:
     dependency: "direct main"
     description:
@@ -661,14 +637,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
-  rxdart:
-    dependency: transitive
-    description:
-      name: rxdart
-      sha256: "2ef8b4e91cb3b55d155e0e34eeae0ac7107974e451495c955ac04ddee8cc21fd"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.26.0"
   share_plus:
     dependency: "direct main"
     description:

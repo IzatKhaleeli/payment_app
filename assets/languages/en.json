@@ -46,6 +46,8 @@
   "dataStorage": "Data & Storage",
   "notificationSettings": "Notification Settings",
   "printerSettings": "Printer Settings",
+  "sendToPrinter": "Send To Printer",
+  "printerSetAsDefaultSuccess": "Printer set as default successfully.",
   "aboutHelp": "About & Help",
   "account": "Account",
   "preferences": "Preferences",
@@ -212,6 +214,8 @@
   "sendSms": "Share Via SMS",
   "sendEmail": "Share Via Email",
   "sendPrinter": "Print Payment",
+  "printer": "Printer",
+  "mac": "MAC Address",
   "openAsPdf": "Open As PDF File",
 
   "selectLanguageForMessage": "Select language of Message:",
@@ -244,6 +248,13 @@
   "pdfPreview": "PDF Preview",
   "noteEmail": "Note: You will receive a message once the payment is deposited into your account.",
 
-  "invalidEmailError": "Invalid email format. Please enter a valid email address."
+  "invalidEmailError": "Invalid email format. Please enter a valid email address.",
 
+  "unknown": "Unknown",
+  "default": "Default",
+  "setAsDefault": "Set as Default",
+  "scan": "Scan",
+  "setDeviceAsDefault": "Set Device as Default",
+  "label": "Label",
+  "labelValidation": "Label is mandatory"
 }

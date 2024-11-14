@@ -11,7 +11,7 @@ class LocalizationService extends ChangeNotifier {
   LocalizationService() {
     _localizedStrings = {};
     _isLocalizationLoaded = false;
-    _selectedLanguageCode = 'en'; // Default language code
+    _selectedLanguageCode = 'en';
     _loadLocalizedStrings();
   }
 

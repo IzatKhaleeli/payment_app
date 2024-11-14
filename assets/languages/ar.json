@@ -34,6 +34,8 @@
   "dataStorage": "البيانات والتخزين",
   "notificationSettings": "إعدادات الإشعارات",
   "printerSettings": "إعدادات الطابعة",
+  "sendToPrinter": "ارسال الى الطابعة",
+  "printerSetAsDefaultSuccess": "تم تعيين الطابعة كافتراضي بنجاح.",
   "aboutHelp": "حول و المساعدة",
   "account": "الحساب",
   "preferences": "التفضيلات",
@@ -197,6 +199,8 @@
   "sendSms": "إرسال كرسالة قصيرة ",
   "sendEmail": "إرسال عبر إيميل",
   "sendPrinter": "طباعة الدفعة",
+  "printer": "الطابعة",
+  "mac": "عنوان ماك",
   "openAsPdf": "فتح ك ملف PDF",
 
   "sendPaymentOptions": "خيارات ارسال الدفعة",
@@ -229,6 +233,13 @@
   "noteEmail": ".ملاحظة: سيصلكم رسالة حال الإيداع في صندوق الشركة",
 
   "invalidEmailError": "تنسيق البريد الإلكتروني غير صالح. يرجى إدخال عنوان بريد إلكتروني صالح.",
-  "exceedNumberOfRequest": "لقد تجاوزت عدد الطلبات المسموح بها."
+  "exceedNumberOfRequest": "لقد تجاوزت عدد الطلبات المسموح بها.",
 
+  "unknown": "غير معروف",
+  "default": "افتراضي",
+  "setAsDefault": "تعيين كافتراضي",
+  "scan": "بحث",
+  "setDeviceAsDefault": "تعيين الجهاز كافتراضي",
+  "label": "اسم الطابعة",
+  "labelValidation": "اسم الطابعة إجباري"
 }

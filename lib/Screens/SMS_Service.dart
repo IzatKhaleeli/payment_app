@@ -60,13 +60,13 @@ class SmsService {
     print("body is :${body}");
     print("headers is :${headers}");
     print("apiUrlSMS is :${apiUrlSMS}");
-    print("url send here");//
+    print("url send here");
     try {
       final response = await http.post(
         Uri.parse(apiUrlSMS),
         headers: headers,
         body: json.encode(body),
-      ).timeout(Duration(seconds: 5));
+      ).timeout(Duration(seconds: 20));
 print("response.statusCode :${response.statusCode}");
       if (response.statusCode == 200) {
         CustomPopups.showCustomResultPopup(

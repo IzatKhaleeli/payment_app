@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-import '../Screens/printUI.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -16,6 +15,7 @@ import 'package:share_plus/share_plus.dart';
 import '../Utils/Enum.dart';
 import 'EmailBottomSheet.dart';
 import 'PDFviewScreen.dart';
+import 'PrinterConfirmationBottomSheet.dart';
 import 'SMSBottomSheet.dart';
 import 'package:image/image.dart' as img;
 import 'package:pdf/widgets.dart' as pw;
@@ -33,7 +33,24 @@ class ShareScreenOptions {
         _shareViaSms(context, id);
         break;
       case ShareOption.print:
-        _shareViaPrint(context, id);
+        _showLanguageSelectionDialog(context, (String languageCode) async {
+          final file = await sharePdf(context, id, languageCode,header2Size:26 ,header3Size:24 ,header4Size: 22);
+          if (file != null && await file.exists()) {
+           // _openPrintPreview(file.path);
+            _shareViaPrint(context, file.path);
+
+          } else {
+            CustomPopups.showCustomResultPopup(
+              context: context,
+              icon: Icon(Icons.error, color: Colors.red, size: 40),
+              message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("printFailed")}: Failed to load PDF',
+              buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+              onPressButton: () {
+                print('Failed to load PDF for printing');
+              },
+            );
+          }
+        });
         break;
       case ShareOption.OpenPDF:
         _showLanguageSelectionDialog(context, (String languageCode) async {
@@ -114,14 +131,23 @@ class ShareScreenOptions {
     }
 
   }
-  static void _shareViaPrint(BuildContext context, int id) async {
-    final file = await sharePdf(context, id, 'en');
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => PrintPage(),
-    //   ),
-    // );
+  static void _shareViaPrint(BuildContext context, String path) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return PrinterConfirmationBottomSheet(pdfFilePath: path); // Pass the file path
+      },
+    );
+    // final file = await sharePdf(context, id, 'en');
+    // if (file != null) {
+    //   // File is not null, open the PrinterConfirmationBottomSheet
+    //
+    // }
+    // else {
+    //   print("Error generating PDF");
+    // }
+
     }
   static Future<void> _shareViaEmail(BuildContext context, int id) async {
     // Fetch payment details from the database
@@ -312,7 +338,7 @@ print("smssss");
   }
 
 
-  static Future<File?> sharePdf(BuildContext context, int id, String languageCode) async {
+  static Future<File?> sharePdf(BuildContext context, int id, String languageCode ,{double header2Size = 24, double header3Size = 20, double header4Size = 18}) async {
     try {
       // Get the current localization service without changing the app's locale
       final localizationService = Provider.of<LocalizationService>(context, listen: false);
@@ -425,7 +451,7 @@ print("smssss");
                 child: pw.Container(
 
                   color: PdfColors.white,
-                  padding: pw.EdgeInsets.all(12),
+                  padding: pw.EdgeInsets.all(8),
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.center,
                     children: [
@@ -439,7 +465,7 @@ print("smssss");
                       ),
                       pw.Container(
                         alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(2), // Add padding here
+                        padding: pw.EdgeInsets.all(3), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.black,
                           border: pw.Border.all(color: PdfColors.black),
@@ -448,7 +474,7 @@ print("smssss");
                           receiptVoucher,
                           style: pw.TextStyle(
                             color: PdfColors.white,
-                            fontSize: 24,
+                            fontSize: header2Size,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
@@ -456,7 +482,7 @@ print("smssss");
                       ),
                       pw.Container(
                         alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(2), // Add padding here
+                        padding: pw.EdgeInsets.all(3), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.grey300,
                           border: pw.Border.all(color: PdfColors.black),
@@ -464,16 +490,16 @@ print("smssss");
                         child: pw.Text(
                           customersDetail,
                           style: pw.TextStyle(
-                            fontSize: 22,
+                            fontSize: header2Size,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
                         ),
                       ),
-                      _buildInfoTableDynamic(customerDetails, notoSansFont, amiriFont, isEnglish),
+                      _buildInfoTableDynamic(customerDetails, notoSansFont, amiriFont, isEnglish,header3Size),
                       pw.Container(
                         alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(2), // Add padding here
+                        padding: pw.EdgeInsets.all(3), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.grey300,
                           border: pw.Border.all(color: PdfColors.black),
@@ -481,16 +507,16 @@ print("smssss");
                         child: pw.Text(
                           paymentDetail,
                           style: pw.TextStyle(
-                            fontSize: 22,
+                            fontSize: header2Size,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
                         ),
                       ),
-                      _buildInfoTableDynamic(paymentDetails, notoSansFont, amiriFont, isEnglish),
+                      _buildInfoTableDynamic(paymentDetails, notoSansFont, amiriFont, isEnglish,header3Size),
                       pw.Container(
                         alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(2), // Add padding here
+                        padding: pw.EdgeInsets.all(3), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.grey300,
                           border: pw.Border.all(color: PdfColors.black),
@@ -498,13 +524,13 @@ print("smssss");
                         child: pw.Text(
                           additionalDetails,
                           style: pw.TextStyle(
-                            fontSize: 22,
+                            fontSize: header2Size,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
                         ),
                       ),
-                      _buildInfoTableDynamic(additionalDetail, notoSansFont, amiriFont, isEnglish),
+                      _buildInfoTableDynamic(additionalDetail, notoSansFont, amiriFont, isEnglish,header3Size),
                       pw.Container(
                         alignment: pw.Alignment.center,
                         padding: pw.EdgeInsets.all(2), // Add padding here
@@ -515,7 +541,7 @@ print("smssss");
                         child: pw.Text(
                           footerPdf,
                           style: pw.TextStyle(
-                            fontSize: 15,
+                            fontSize: header4Size,
                             fontWeight: pw.FontWeight.bold,
                             font: font,
                           ),
@@ -558,18 +584,18 @@ print("smssss");
     }
   }
   // Build info table with dynamic localization
-  static pw.Widget _buildInfoTableDynamic(List<Map<String, String>> rowData, pw.Font fontEnglish, pw.Font fontArabic, bool isEnglish) {
+  static pw.Widget _buildInfoTableDynamic(List<Map<String, String>> rowData, pw.Font fontEnglish, pw.Font fontArabic, bool isEnglish,double header3Size) {
     return pw.Table(
       border: pw.TableBorder.all(),
       columnWidths: {
         0: pw.FlexColumnWidth(2), // Adjust as needed
         1: pw.FlexColumnWidth(2), // Adjust as needed
       },
-      children: rowData.map((row) => _buildTableRowDynamic(row['title']!, row['value']!, fontEnglish, fontArabic, isEnglish)).toList().cast<pw.TableRow>(),
+      children: rowData.map((row) => _buildTableRowDynamic(row['title']!, row['value']!, fontEnglish, fontArabic, isEnglish,header3Size)).toList().cast<pw.TableRow>(),
     );
   }
 
-  static pw.TableRow _buildTableRowDynamic(String title, String value, pw.Font fontEnglish, pw.Font fontArabic, bool isEnglish) {
+  static pw.TableRow _buildTableRowDynamic(String title, String value, pw.Font fontEnglish, pw.Font fontArabic, bool isEnglish,double header3Size) {
     // Function to determine if the text is Arabic
     bool isArabic(String text) {
       final arabicCharRegExp = RegExp(r'[\u0600-\u06FF]');
@@ -585,44 +611,44 @@ print("smssss");
       children: isEnglish
           ? [
         pw.Container(
-          padding: pw.EdgeInsets.all(6),
+          padding: pw.EdgeInsets.all(3),
           alignment: pw.Alignment.centerLeft,
           child: pw.Text(
             title,
-            style: pw.TextStyle(font: fontForTitle, fontSize: 19),
+            style: pw.TextStyle(font: fontForTitle, fontSize: header3Size),
             textDirection: isArabic(title) ? pw.TextDirection.rtl : pw.TextDirection.ltr,
           ),
         ),
         pw.Container(
-          padding: pw.EdgeInsets.all(6),
+          padding: pw.EdgeInsets.all(3),
           alignment: pw.Alignment.centerRight,
           child: pw.Directionality(
             textDirection: textDirectionForValue,
             child: pw.Text(
               value,
-              style: pw.TextStyle(font: fontForValue, fontSize: 19),
+              style: pw.TextStyle(font: fontForValue, fontSize: header3Size),
             ),
           ),
         ),
       ]
           : [
         pw.Container(
-          padding: pw.EdgeInsets.all(6),
+          padding: pw.EdgeInsets.all(3),
           alignment: pw.Alignment.centerLeft,
           child: pw.Directionality(
             textDirection: textDirectionForValue,
             child: pw.Text(
               value,
-              style: pw.TextStyle(font: fontForValue, fontSize: 19),
+              style: pw.TextStyle(font: fontForValue, fontSize: header3Size),
             ),
           ),
         ),
         pw.Container(
-          padding: pw.EdgeInsets.all(6),
+          padding: pw.EdgeInsets.all(3),
           alignment: pw.Alignment.centerRight,
           child: pw.Text(
             title,
-            style: pw.TextStyle(font: fontForTitle, fontSize: 19),
+            style: pw.TextStyle(font: fontForTitle, fontSize: header3Size),
             textDirection: isArabic(title) ? pw.TextDirection.rtl : pw.TextDirection.ltr,
           ),
         ),

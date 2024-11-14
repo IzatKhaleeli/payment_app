@@ -27,7 +27,9 @@ class PaymentService {
       void>.broadcast();
 
   static Stream<void> get syncStream => _syncController.stream;
-  static bool _isSyncing = false;  // Flag to track if sync is in progress
+  static bool _isSyncing = false; // Flag to prevent concurrent syncs
+  static Completer<void>? _syncCompleter;
+
 
 
   static void _cancelNetworkTimer() {
@@ -131,34 +133,36 @@ class PaymentService {
   static void startPeriodicNetworkTest(BuildContext context) {
     _cancelNetworkTimer();
 
-    _networkTimer = Timer.periodic(Duration(seconds: 5), (Timer timer) async {
-      await testNetwork(context);
+    _networkTimer = Timer.periodic(Duration(seconds: 6), (Timer timer) async {
+      await _checkNetworkAndSync(context);
     });
   }
 
-  static Future<void> testNetwork(BuildContext context) async {
-    var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult == ConnectivityResult.none) {
-      print(connectivityResult);
+  // Check network and start sync if connected
+  static Future<void> _checkNetworkAndSync(BuildContext context) async {
+    if (_isSyncing) return; // Skip if a sync is already in progress
+
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult != ConnectivityResult.none) {
+      await syncPayments(context); // Trigger sync if network is available
     }
-    else {
-      print(connectivityResult);
-      PaymentService.syncPayments(context);
-    }
+    else print(connectivityResult);
   }
 
   static Future<void> syncPayments(BuildContext context) async {
-    // Check if a sync operation is already in progress
     if (_isSyncing) {
-      print("Sync is already in progress, skipping this sync cycle.");
+      print("Sync in progress, skipping this attempt.");
       return;
     }
-    _isSyncing = true;  // Set syncing flag to true to prevent re-entry
+    _isSyncing = true;
+    _cancelNetworkTimer(); // Stop timer during sync
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? tokenID = prefs.getString('token');
     if (tokenID == null) {
+      _isSyncing = false;
+      startPeriodicNetworkTest(context);
       print('Token not found');
-      _isSyncing = false;  // Reset syncing flag after operation
       return;
     }
     String fullToken = "Barer ${tokenID}";
@@ -218,7 +222,9 @@ class PaymentService {
       }
     }
 
-    _isSyncing = false;  // Ensure the syncing flag is reset after operation
+    // Reset flags and restart network check
+    _isSyncing = false;
+    startPeriodicNetworkTest(context);
     _syncController.add(null);
   }
 

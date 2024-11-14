@@ -292,7 +292,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
         fileName: fileName,
         file: pdfFile,
         emailDetailsJson: emailDetailsJson,
-      ).timeout(Duration(seconds: 4));
+      ).timeout(Duration(seconds: 7));
 
       if (response == 200) {
         CustomPopups.showCustomResultPopup(

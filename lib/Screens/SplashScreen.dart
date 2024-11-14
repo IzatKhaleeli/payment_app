@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ooredoo_app/Screens/printUI.dart';
 import 'package:provider/provider.dart';
 import '../Services/LocalizationService.dart';
 import 'DashboardScreen.dart';
 import 'LoginScreen.dart';
 import '../Models/LoginState.dart';
-import 'flutter_scan_bluetooth_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   @override

@@ -47,7 +47,7 @@ class LoginState with ChangeNotifier {
 
   Future<Map<String, dynamic>> login(String username, String password) async {
     Map<String, dynamic> map = {
-      "username": username,
+      "username": username.trim(),  // Trim whitespace from username
       "password": password,
     };
     print("Attempting login with username, password: $map");

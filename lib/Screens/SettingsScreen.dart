@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:ooredoo_app/Screens/printerService/PrinterSettingScreen.dart';
 import 'package:ooredoo_app/Services/apiConstants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -119,6 +120,28 @@ class SettingsScreen extends StatelessWidget {
                      //   _handleChangeLanguage(context,localizationService);
                       }, localizationService: localizationService),
                     ], localizationService),
+
+                    _buildSettingSection('printer', [
+                      _buildSettingOption(Icons.print, 'printerSettings', onTap: () {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            transitionDuration: Duration(milliseconds: 300), // Adjust as necessary
+                            pageBuilder: (context, animation, secondaryAnimation) {
+                              return SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: Offset(1.0, 0.0), // From right to left
+                                  end: Offset.zero,
+                                ).animate(animation),
+                                child: PrinterSettingScreen(),
+                              );
+                            },
+                          ),
+                        );
+                      }, localizationService: localizationService),
+
+                    ], localizationService),
+
                     _buildSettingSection('Other', [
                       _buildSettingOption(Icons.info_outline, 'aboutHelp', onTap: () async {
                         showDialog(
