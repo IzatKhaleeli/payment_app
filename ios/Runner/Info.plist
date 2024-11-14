@@ -61,10 +61,20 @@
     <string>Your app needs Face ID (or Touch ID) to authenticate user.</string>
 
     <!-- Bluetooth Support -->
-    <key>NSBluetoothAlwaysUsageDescription</key>
+        <key>NSBluetoothAlwaysUsageDescription</key>
     	<string>We need access to Bluetooth to connect to printers.</string>
+
     	<key>NSBluetoothPeripheralUsageDescription</key>
     	<string>We need access to Bluetooth to connect to printers.</string>
+
+    	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+        <string> Need Location permission</string>
+
+        <key>NSLocationAlwaysUsageDescription</key>
+        <string>Need Location permission</string>
+
+        <key>NSLocationWhenInUseUsageDescription</key>
+        <string>We need your location for Bluetooth scanning.</string>
 
     	<key>UIBackgroundModes</key>
     	<array>

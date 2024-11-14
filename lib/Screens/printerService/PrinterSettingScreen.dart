@@ -15,12 +15,14 @@ import 'androidBluetoothFeaturesScreen.dart';
   }
 
   class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
-    BlueThermalPrinter printer = BlueThermalPrinter.instance;
-    List<BluetoothDevice> pairedDevices = [];
     String? defaultDeviceLabel;
     String? defaultDeviceAddress;
     bool isLoading = false;
     bool isConnected = false;
+    //for android
+    BlueThermalPrinter printer = BlueThermalPrinter.instance;
+    List<BluetoothDevice> pairedDevices = [];
+    
 
     @override
     void initState() {
