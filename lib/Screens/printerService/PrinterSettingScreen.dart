@@ -140,7 +140,8 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Padding(
+                          if(defaultDeviceLabel != null && defaultDeviceAddress != null)
+                          ...[Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12.0),
                             child: Padding(
                               padding: const EdgeInsets.only(right: 10, left: 10, top: 20),
@@ -155,42 +156,43 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
                               ),
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
-                            child: Card(
-                              elevation: 3.0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0), // Rounded corners for the Card
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: ListTile(
-                                  title: Text(
-                                    defaultDeviceLabel! ,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFFC62828), // Highlight default device
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
+                              child: Card(
+                                elevation: 3.0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0), // Rounded corners for the Card
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(3.0),
+                                  child: ListTile(
+                                    title: Text(
+                                      defaultDeviceLabel?? '',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFC62828), // Highlight default device
+                                      ),
                                     ),
-                                  ),
-                                  subtitle: Text(
-                                    defaultDeviceAddress ?? '',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.normal,
+                                    subtitle: Text(
+                                      defaultDeviceAddress ?? '',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal,
+                                      ),
                                     ),
-                                  ),
-                                  trailing: ElevatedButton(
-                                    onPressed: null, // Default device button is disabled
-                                    child: Container(
-                                      width: 90, // Fixed width for button
-                                      height: 30,
-                                      child: Center(
-                                        child: Text(
-                                          Provider.of<LocalizationService>(context, listen: false)
-                                              .getLocalizedString("default"),
-                                          style: TextStyle(fontSize: 12),
-                                          textAlign: TextAlign.center,
+                                    trailing: ElevatedButton(
+                                      onPressed: null, // Default device button is disabled
+                                      child: Container(
+                                        width: 90, // Fixed width for button
+                                        height: 30,
+                                        child: Center(
+                                          child: Text(
+                                            Provider.of<LocalizationService>(context, listen: false)
+                                                .getLocalizedString("default"),
+                                            style: TextStyle(fontSize: 12),
+                                            textAlign: TextAlign.center,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -198,13 +200,13 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
                                 ),
                               ),
                             ),
-                          ),
-                          Divider(
-                            color: Colors.grey,
-                            thickness: 1.0,
-                            indent: 12.0,
-                            endIndent: 12.0,
-                          ),
+                            Divider(
+                              color: Colors.grey,
+                              thickness: 1.0,
+                              indent: 12.0,
+                              endIndent: 12.0,
+                            ),],
+
                           ListView.builder(
                             shrinkWrap: true, // Ensures it takes only the space it needs
                             physics: NeverScrollableScrollPhysics(), // Avoid nested scrolling issues

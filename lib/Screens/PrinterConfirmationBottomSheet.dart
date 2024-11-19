@@ -154,16 +154,16 @@ class _PrinterConfirmationBottomSheetState
                     ),
                   ],
                 ),
-                SizedBox(height: 15),
+                SizedBox(height: 10),
 
                 // Display the PDF preview
                 Container(
-                  height: 400, // Set a fixed height for the PDF preview
+                  height: 480, // Set a fixed height for the PDF preview
                   child: PDFView(
                     filePath: widget.pdfFilePath, // Pass the file path to the PDF viewer
                   ),
                 ),
-                SizedBox(height: 15),
+                SizedBox(height: 10),
                 // Buttons Row (Print and Cancel)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -298,13 +298,9 @@ class _PrinterConfirmationBottomSheetState
         }
         else {
           print("Already connected to the device.");
-          // If connected, disconnect first
           await AndroidBluetoothFeatures.disconnect();
-          // bool secondConnected = await BluetoothService.checkConnection();
-          // print(secondConnected);
-          // if(!secondConnected){
-            await AndroidBluetoothFeatures.connect();
-          // }
+
+          await AndroidBluetoothFeatures.connect();
           print("Disconnected from the device.");
         }
       }

@@ -14,7 +14,7 @@ class PdfConverter {
       print("page is one");
 
       // Set higher resolution (DPI - dots per inch)
-      final dpi = 300;  // Set the DPI you need (higher DPI = better quality)
+      final dpi = 352;  // Set the DPI you need (higher DPI = better quality)
       final width = dpi * page.width / 72; // 72 is the default PDF DPI
       final height = dpi * page.height / 72;
 

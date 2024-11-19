@@ -455,7 +455,11 @@ class ShareScreenOptions {
                             width: 2,              // Set the border width to 2
                           ),                          color: PdfColors.white,
                         ),
-                        child:pw.Image(imageLogo, height: 50),
+
+                        child:pw.Padding(
+                          padding: const pw.EdgeInsets.only(top:5), // Example padding
+                          child: pw.Image(imageLogo, height: 50),
+                        ),
                       ),
                       pw.Container(
                         alignment: pw.Alignment.center,
