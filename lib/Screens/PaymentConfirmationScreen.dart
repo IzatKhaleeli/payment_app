@@ -446,22 +446,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                                 ShareScreenOptions.showLanguageSelectionAndShare(context, widget.paymentId,ShareOption.print);
                             }
                             else if(Platform.isAndroid){
-                              bool isBluetoothOn = await AndroidBluetoothFeatures.isBluetoothOn();
-                              if(!isBluetoothOn){
-                                CustomPopups.showCustomResultPopup(
-                                  context: context,
-                                  icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-                                  message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("bluetooth_off_message"),
-                                  buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-                                  onPressButton: () {
-                                    // Define what happens when the button is pressed
-                                    print('bluetooth is not powered ..');
-                                    return ;
-                                  },
-                                );
-                              }
-                              else
-                                ShareScreenOptions.showLanguageSelectionAndShare(context, widget.paymentId,ShareOption.print);
+
+                              ShareScreenOptions.showLanguageSelectionAndShare(context, widget.paymentId,ShareOption.print);
                             }
 
                           }

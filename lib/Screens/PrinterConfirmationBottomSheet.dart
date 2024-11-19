@@ -11,6 +11,7 @@ import '../Custom_Widgets/CustomPopups.dart';
 import '../Services/LocalizationService.dart';
 import 'printerService/androidBluetoothFeaturesScreen.dart';
 import 'printerService/convertPdfToImage.dart'; // For SharedPreferences
+import '../Screens/printerService/iosMethods.dart' as iosPlat;
 
 class PrinterConfirmationBottomSheet extends StatefulWidget {
   final String pdfFilePath; // File path to the PDF to preview
@@ -77,11 +78,11 @@ class _PrinterConfirmationBottomSheetState
   Future<void> _convertPdfToImage(String pdfPath) async {
     img.Image image = await PdfConverter.convertPdfToImage(pdfPath); // Convert the PDF to an image
     if (image.length>1) {
-    if(Platform.isAndroid){
-      print("Sent image data to anroid started.");
-      AndroidBluetoothFeatures.loadAndPrintImages(image);
-    }
-    else if(Platform.isIOS){
+      if(Platform.isAndroid){
+        print("Sent image data to anroid started.");
+        AndroidBluetoothFeatures.loadAndPrintImages(image);
+      }
+      else if(Platform.isIOS){
         print("Sent image data to iOS started.");
         await BluetoothService.loadImages(image);
         //        Navigator.push(
@@ -175,8 +176,23 @@ class _PrinterConfirmationBottomSheetState
                         child: ElevatedButton(
                           onPressed: () async {
                             if(Platform.isIOS){
+                              bool isBluetoothOn = await iosPlat.BluetoothService.isBluetoothPoweredOn();
                               bool connected = await BluetoothService.checkConnection();
-                              if (!connected)
+
+                              if(!isBluetoothOn){
+                                CustomPopups.showCustomResultPopup(
+                                  context: context,
+                                  icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
+                                  message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("bluetooth_off_message"),
+                                  buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+                                  onPressButton: () {
+                                    // Define what happens when the button is pressed
+                                    print('bluetooth is not powered ..');
+                                    return ;
+                                  },
+                                );
+                              }
+                              else if(!connected){
                                 CustomPopups.showCustomResultPopup(
                                   context: context,
                                   icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
@@ -188,6 +204,8 @@ class _PrinterConfirmationBottomSheetState
                                     return ;
                                   },
                                 );
+                              }
+
                               else
                                 _convertPdfToImage(widget.pdfFilePath); // Convert the PDF to an image on init
                             }

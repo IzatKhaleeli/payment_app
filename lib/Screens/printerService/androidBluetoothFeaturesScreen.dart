@@ -5,25 +5,9 @@ import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
-import 'package:flutter_blue/flutter_blue.dart' as blue;
 
 class AndroidBluetoothFeatures {
   static final BlueThermalPrinter _printer = BlueThermalPrinter.instance;
-
-  /// Check if Bluetooth is on using `flutter_blue`
-  static Future<bool> isBluetoothOn() async {
-    try {
-      // Get the current Bluetooth state
-      blue.BluetoothState state = await blue.FlutterBlue.instance.state.first;
-
-      // Check if the state is `on`
-      print("Bluetooth state: $state");
-      return state == blue.BluetoothState.on;
-    } catch (e) {
-      print("Failed to check Bluetooth state: $e");
-      return false;
-    }
-  }
 
   /// Start scanning for available Bluetooth devices.
   static Future<List<BluetoothDevice>> startScan() async {

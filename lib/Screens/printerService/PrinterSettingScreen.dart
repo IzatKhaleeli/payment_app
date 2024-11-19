@@ -103,9 +103,80 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
       ((Platform.isAndroid && pairedDevices.isEmpty) ||
           (Platform.isIOS && discoveredDevices.isEmpty)) ?
       Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(0.0),
         child: Column(
           children: [
+          Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if(defaultDeviceLabel != null && defaultDeviceAddress != null)
+              ...[Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 10, left: 10, top: 20),
+                  child: Text(
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString("defaultPrinter"),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+              ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
+                  child: Card(
+                    elevation: 3.0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0), // Rounded corners for the Card
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: ListTile(
+                        title: Text(
+                          defaultDeviceLabel?? '',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFC62828), // Highlight default device
+                          ),
+                        ),
+                        subtitle: Text(
+                          defaultDeviceAddress ?? '',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                        trailing: ElevatedButton(
+                          onPressed: null, // Default device button is disabled
+                          child: Container(
+                            width: 90, // Fixed width for button
+                            height: 30,
+                            child: Center(
+                              child: Text(
+                                Provider.of<LocalizationService>(context, listen: false)
+                                    .getLocalizedString("default"),
+                                style: TextStyle(fontSize: 12),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Divider(
+                  color: Colors.grey,
+                  thickness: 1.0,
+                  indent: 12.0,
+                  endIndent: 12.0,
+                ),],
+            ],
+          ),
             Center(
               child: Text(
                 Provider.of<LocalizationService>(context, listen: false)
@@ -130,7 +201,6 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
       ):
       Column(
         children: [
-
           // Make sure this ListView.builder is in the correct position inside the Column
           Expanded(
             child: SingleChildScrollView(
@@ -544,20 +614,6 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
 
   /// Retrieve paired Bluetooth devices and update the state.
   void android_getPairedDevices() async {
-    bool bluetoothStatus = await android_checkBluetoothStatus();
-    if(!bluetoothStatus){
-      CustomPopups.showCustomResultPopup(
-        context: context,
-        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-        message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("bluetooth_off_message"),
-        buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-        onPressButton: () {
-          // Define what happens when the button is pressed
-          print('bluetooth is not powered ..');
-          return ;
-        },
-      );
-    }
     setState(() {
       isLoading = true;
       pairedDevices.clear();  // Clear the device list before new scan
@@ -575,16 +631,4 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
       });
     }
   }
-
-  Future<bool> android_checkBluetoothStatus() async {
-    bool isBluetoothOn = await AndroidBluetoothFeatures.isBluetoothOn();
-    if (isBluetoothOn) {
-      print("Bluetooth is powered on.");
-      return true;
-    } else {
-      print("Bluetooth is not powered on.");
-      return false;
-    }
-  }
-
 }
