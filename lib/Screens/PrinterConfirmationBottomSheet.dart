@@ -1,13 +1,13 @@
+import 'dart:io';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart'; // PDF Viewer package
-import 'package:ooredoo_app/Screens/preview_test.dart';
+import 'package:ooredoo_app/Screens/printerService/iosMethods.dart';
 import 'package:provider/provider.dart';
-import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image/image.dart' as img;
+import '../Custom_Widgets/CustomPopups.dart';
 import '../Services/LocalizationService.dart';
 import 'printerService/androidBluetoothFeaturesScreen.dart';
 import 'printerService/convertPdfToImage.dart'; // For SharedPreferences
@@ -40,8 +40,10 @@ class _PrinterConfirmationBottomSheetState
   @override
   void initState() {
     super.initState();
+
     _getPrinterInfo(); // Fetch the default printer info when the bottom sheet opens
     _loadSavedLanguageCode();
+    _checkAndConnectToPrinter(); // Check connection and connect if not connected
   }
 
   Future<void> _loadSavedLanguageCode() async {
@@ -71,23 +73,30 @@ class _PrinterConfirmationBottomSheetState
     return _emailJson![key] ?? '** $key not found';
   }
 
-  // Function to simulate printing (for now just prints a test message to terminal)
-  void _printTest() {
-    print("Printing test... PDF Path: ${widget.pdfFilePath}");
-    // You can replace this with actual printing functionality later
-  }
-
   // Function to load and convert PDF to image using PdfConverter
   Future<void> _convertPdfToImage(String pdfPath) async {
     img.Image image = await PdfConverter.convertPdfToImage(pdfPath); // Convert the PDF to an image
-    print("image returned here");
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => ImageView(image: image),
-    //   ),
-    // );
-    AndroidBluetoothFeatures.loadAndPrintImages(image);
+    if (image.length>1) {
+    if(Platform.isAndroid){
+      print("Sent image data to anroid started.");
+      AndroidBluetoothFeatures.loadAndPrintImages(image);
+    }
+    else if(Platform.isIOS){
+        print("Sent image data to iOS started.");
+        await BluetoothService.loadImages(image);
+        //        Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => ImageView(image: image),
+        //   ),
+        // );
+        print("Sent image data to iOS success.");
+      } else {
+        print("Error: No image data to send.");
+      }
+
+    }
+
   }
 
   @override
@@ -143,31 +152,9 @@ class _PrinterConfirmationBottomSheetState
                         ),
                       ],
                     ),
-                    SizedBox(height: 8), // Space between the rows
-
-                    // MAC Address info
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("mac")}: ', // Title
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold, // Bold title
-                          ),
-                        ),
-                        Text(
-                          '$printerAddress', // Value
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.normal, // Normal value
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 15),
 
                 // Display the PDF preview
                 Container(
@@ -176,8 +163,7 @@ class _PrinterConfirmationBottomSheetState
                     filePath: widget.pdfFilePath, // Pass the file path to the PDF viewer
                   ),
                 ),
-                SizedBox(height: 20),
-
+                SizedBox(height: 15),
                 // Buttons Row (Print and Cancel)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -187,9 +173,41 @@ class _PrinterConfirmationBottomSheetState
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10.0), // Padding between buttons
                         child: ElevatedButton(
-                          onPressed: () {
-                            _printTest(); // Call the print function (currently printing to terminal)
-                            _convertPdfToImage(widget.pdfFilePath); // Convert the PDF to an image on init
+                          onPressed: () async {
+                            if(Platform.isIOS){
+                              bool connected = await BluetoothService.checkConnection();
+                              if (!connected)
+                                CustomPopups.showCustomResultPopup(
+                                  context: context,
+                                  icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
+                                  message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("theDefaultDeviceNotConnected"),
+                                  buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+                                  onPressButton: () {
+                                    // Define what happens when the button is pressed
+                                    print('theDefaultDeviceNotConnected ..');
+                                    return ;
+                                  },
+                                );
+                              else
+                                _convertPdfToImage(widget.pdfFilePath); // Convert the PDF to an image on init
+                            }
+                            else if(Platform.isAndroid){
+                              bool connected = await AndroidBluetoothFeatures.isConnected();
+                              if (!connected)
+                                CustomPopups.showCustomResultPopup(
+                                  context: context,
+                                  icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
+                                  message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("theDefaultDeviceNotConnected"),
+                                  buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+                                  onPressButton: () {
+                                    // Define what happens when the button is pressed
+                                    print('theDefaultDeviceNotConnected ..');
+                                    return ;
+                                  },
+                                );
+                              else
+                                _convertPdfToImage(widget.pdfFilePath); // Convert the PDF to an image on init
+                            }
                             Navigator.pop(context); // Close the bottom sheet after printing
                           },
                           child: Text(
@@ -224,4 +242,76 @@ class _PrinterConfirmationBottomSheetState
   }
 
 
+  Future<void> _checkAndConnectToPrinter() async {
+    if(Platform.isIOS){
+      try {
+        print("_checkAndConnectToPrinter started");
+        // Check if the device is already connected
+        bool connected = await BluetoothService.checkConnection();
+        if (!connected) {
+          print("device not connected");
+          // If not connected, fetch the saved device address and attempt to connect
+          final prefs = await SharedPreferences.getInstance();
+          String? deviceAddress = prefs.getString('default_device_address');
+
+          if (deviceAddress != null && deviceAddress.isNotEmpty) {
+            print("Connecting to device with address: $deviceAddress");
+            await BluetoothService.connectToDevice();
+            print("Connected to the device successfully.");
+            print("_checkAndConnectToPrinter finished");
+          } else {
+            print("No saved device address found.");
+          }
+        }
+        else {
+          print("Already connected to the device.");
+          // If connected, disconnect first
+          await BluetoothService.disconnectDevice();
+          bool secondConnected = await BluetoothService.checkConnection();
+          print(secondConnected);
+          if(!secondConnected){
+            await BluetoothService.connectToDevice();
+          }
+          print("Disconnected from the device.");
+        }
+      } catch (e) {
+        print("Failed to check connection or connect ios: $e");
+      }
+    }
+    else if(Platform.isAndroid){
+      try {
+        bool connected = await AndroidBluetoothFeatures.isConnected();
+        if (!connected){
+          print("device not connected");
+          // If not connected, fetch the saved device address and attempt to connect
+          final prefs = await SharedPreferences.getInstance();
+          String? deviceAddress = prefs.getString('default_device_address');
+
+          if (deviceAddress != null && deviceAddress.isNotEmpty) {
+            print("Connecting to device with address: $deviceAddress");
+            await AndroidBluetoothFeatures.connect();
+            print("Connected to the device successfully.");
+            print("_checkAndConnectToPrinter finished");
+          } else {
+            print("No saved device address found.");
+          }
+        }
+        else {
+          print("Already connected to the device.");
+          // If connected, disconnect first
+          await AndroidBluetoothFeatures.disconnect();
+          // bool secondConnected = await BluetoothService.checkConnection();
+          // print(secondConnected);
+          // if(!secondConnected){
+            await AndroidBluetoothFeatures.connect();
+          // }
+          print("Disconnected from the device.");
+        }
+      }
+      catch (e) {
+        print("Failed to check connection or connect android: $e");
+      }
+    }
+
+  }
 }

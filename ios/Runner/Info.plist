@@ -82,6 +82,14 @@
         <string>bluetooth-central</string>
         </array>
 
+		<key>NSBonjourServices</key>
+		<array>
+    	<string>_dartobservatory._tcp</string>
+		</array>
+
+		<key>NSLocalNetworkUsageDescription</key>
+		<string>Allow local network access for debugging purposes.</string>
+
     <!-- File Sharing and Document Support -->
     <key>UIFileSharingEnabled</key>
     <true/>
@@ -95,3 +103,6 @@
     </dict>
 </dict>
 </plist>
+
+
+

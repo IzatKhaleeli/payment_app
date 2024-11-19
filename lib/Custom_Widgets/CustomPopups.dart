@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
 import '../Services/LocalizationService.dart';
 
 class CustomPopups {
@@ -56,59 +55,6 @@ class CustomPopups {
                 Navigator.of(context).pop();
                 onPressButton();
 
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-
-  static Future<void> showConfirmDialog(BuildContext context, VoidCallback onConfirm) {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Confirm Payment',
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          content: Text(
-            'Are you sure you want to confirm this payment?',
-            style: TextStyle(
-              fontSize: 16.sp,
-              color: Colors.black54,
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  color: Colors.black,
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(
-                'Confirm',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  color: Colors.blue,
-                ),
-              ),
-              onPressed: () {
-                onConfirm();
-                Navigator.of(context).pop();
               },
             ),
           ],
@@ -266,6 +212,96 @@ class CustomPopups {
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+
+
+
+
+
+  static void showTwoButtonPopup({
+    required BuildContext context,
+    required Icon icon,
+    required String message,
+    required String firstButtonText,
+    required VoidCallback onFirstButtonPressed,
+    required String secondButtonText,
+    required VoidCallback onSecondButtonPressed,
+  }) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          backgroundColor: Colors.white, // Background for the dialog
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              icon,
+              SizedBox(height: 20),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black, // Black text color for readability
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey.shade300, // Light grey button
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  ),
+                  child: Text(
+                    firstButtonText,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black, // Text color for button
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close dialog
+                    onFirstButtonPressed(); // Trigger callback
+                  },
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red, // Red button
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  ),
+                  child: Text(
+                    secondButtonText,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white, // Text color for button
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close dialog
+                    onSecondButtonPressed(); // Trigger callback
+                  },
+                ),
+              ],
+            ),
+          ],
         );
       },
     );

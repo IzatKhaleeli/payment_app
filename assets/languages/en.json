@@ -256,5 +256,11 @@
   "scan": "Scan",
   "setDeviceAsDefault": "Set Device as Default",
   "label": "Label",
-  "labelValidation": "Label is mandatory"
+  "labelValidation": "Label is mandatory",
+  "bluetooth_off_message": "Bluetooth is currently turned off, Please enable it to continue.",
+  "noBluetoothDevicesFound": "No Bluetooth devices found",
+  "defaultPrinter": "Default Printer",
+  "noDefaultDeviceSetBody": "No default printer is set. Please go to the printer settings to select or set up a default printer before proceeding.",
+  "theDefaultDeviceNotConnected": "The Bluetooth device is either turned off or not ready to connect. Please ensure the device is powered on and try again."
+
 }

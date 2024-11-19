@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,9 +9,10 @@ import '../../Custom_Widgets/CustomPopups.dart';
 import '../../Services/LocalizationService.dart';
 
 class SetAsDefaultBottomSheet extends StatefulWidget {
-  final BluetoothDevice device;
+  final String deviceName; // Make this parameter optional
+  final String deviceAddress; // Make this parameter optional
 
-  SetAsDefaultBottomSheet({required this.device});
+  SetAsDefaultBottomSheet({required this.deviceName,  required this.deviceAddress});
 
   @override
   State<SetAsDefaultBottomSheet> createState() => _SetAsDefaultBottomSheetState();
@@ -19,11 +22,11 @@ class _SetAsDefaultBottomSheetState extends State<SetAsDefaultBottomSheet> {
   String? _errorText;
 
   // Save the selected device as default in SharedPreferences
-  void _setAsDefault(BuildContext context, BluetoothDevice device, String label) async {
+  void _setAsDefault(BuildContext context, String deviceAddress , String deviceName, String label) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('default_device_address', device.address ?? '');
+    await prefs.setString('default_device_address', deviceAddress ?? '');
     await prefs.setString('default_device_label', label);
-    print("Device set as default: ${device.address}, Label: $label");
+    print("Device set as default: ${deviceName}, Label: $label");
 
     // Fetch localized strings safely
     String successMessage = Provider.of<LocalizationService>(context, listen: false).getLocalizedString("printerSetAsDefaultSuccess");
@@ -39,6 +42,9 @@ class _SetAsDefaultBottomSheetState extends State<SetAsDefaultBottomSheet> {
         // Define what happens when the button is pressed
         print('Success acknowledged');
         Navigator.pop(context); // Close the bottom sheet after the popup is shown
+        Navigator.pop(context); // Close printerSettingScreen
+        Navigator.pop(context); // Close settingScreen
+
       },
     );
   }
@@ -63,14 +69,24 @@ class _SetAsDefaultBottomSheetState extends State<SetAsDefaultBottomSheet> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 15),
 
               // Device Address (non-editable)
-              Text(
-                  "${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("mac")}: ${widget.device.address}",
-                style: TextStyle(fontSize: 14),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
+                children: [
+                  Text(
+                    "${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("mac")}",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold), // Title style
+                  ),
+                  SizedBox(height: 4), // Add some space between the title and value
+                  Text(
+                    widget.deviceAddress,
+                    style: TextStyle(fontSize: 14, color: Colors.grey), // Value style
+                  ),
+                ],
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 15),
 
               // Label Field
               TextField(
@@ -105,12 +121,12 @@ class _SetAsDefaultBottomSheetState extends State<SetAsDefaultBottomSheet> {
                   ElevatedButton(
                     onPressed: () {
                       if (labelController.text.isNotEmpty) {
-                        _setAsDefault(context, widget.device, labelController.text);
+                        _setAsDefault(context, widget.deviceAddress,widget.deviceName , labelController.text);
                       }
                       else {
                         setState(() {
-                            _errorText = Provider.of<LocalizationService>(context, listen: false).getLocalizedString("labelValidation");
-                         });
+                          _errorText = Provider.of<LocalizationService>(context, listen: false).getLocalizedString("labelValidation");
+                        });
                       }
                     },
                     child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString("setAsDefault")),

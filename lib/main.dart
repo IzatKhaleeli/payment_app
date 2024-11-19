@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+
 import '../Models/LoginState.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -9,23 +11,34 @@ import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LocalizationService localizeService = LocalizationService();
-
-  // Check for jailbreak status
-  bool isJailbroken = await FlutterJailbreakDetection.jailbroken;;
+  bool isJailbroken=false;
+  bool developerMode=false;
+  try {
+    // Check for jailbreak status
+    isJailbroken = await FlutterJailbreakDetection.jailbroken;
+    developerMode = await FlutterJailbreakDetection.developerMode;
+    print("developer mode :${developerMode} : isJailbroken :${isJailbroken}");
+  }
+  on PlatformException{
+    isJailbroken = true;
+    developerMode = true;
+  }
+  catch (e) {
+    print("Error localization Jailbroken: $e");
+    // Handle initialization error as needed
+  }
 
   if (isJailbroken) {
     runApp(MyApp(isJailbroken: true));
   }
   else {
-    print("Device is not jailbroken.");
+    try {
+      await localizeService.initLocalization();
+    } catch (e) {
+      print("Error initializing localization: $e");
+      // Handle initialization error as needed
+    }
 
-
-  try {
-    await localizeService.initLocalization();
-  } catch (e) {
-    print("Error initializing localization: $e");
-    // Handle initialization error as needed
-  }
   runApp(
     MultiProvider(
       providers: [
@@ -37,7 +50,6 @@ void main() async {
   );
   }
 }
-
 
 class MyApp extends StatelessWidget {
   final bool isJailbroken;

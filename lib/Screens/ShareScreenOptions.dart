@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:ooredoo_app/Screens/printerService/PrinterSettingScreen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,9 +35,9 @@ class ShareScreenOptions {
         break;
       case ShareOption.print:
         _showLanguageSelectionDialog(context, (String languageCode) async {
-          final file = await sharePdf(context, id, languageCode,header2Size:26 ,header3Size:24 ,header4Size: 22);
+          final file = await sharePdf(context, id, languageCode,header2Size:24 ,header3Size:20 ,header4Size: 18);
           if (file != null && await file.exists()) {
-           // _openPrintPreview(file.path);
+            // _openPrintPreview(file.path);
             _shareViaPrint(context, file.path);
 
           } else {
@@ -105,11 +106,11 @@ class ShareScreenOptions {
                 : 'تم استلام دفعه ${Provider.of<LocalizationService>(context, listen: false).getLocalizedString(payment.paymentMethod.toLowerCase())} بقيمة ${amount} ${appearedCurrency} من مدير حسابكم ${storedUsername}\nرقم الحركة: ${payment.voucherSerialNumber}';
             print("print stmt before send whats");
             await Share.shareFiles(
-                [file.path],
-                mimeTypes: ['application/pdf'],
-                text: WhatsappText,
+              [file.path],
+              mimeTypes: ['application/pdf'],
+              text: WhatsappText,
             );
-           } else {
+          } else {
             CustomPopups.showCustomResultPopup(
               context: context,
               icon: Icon(Icons.error, color: Colors.red, size: 40),
@@ -139,16 +140,8 @@ class ShareScreenOptions {
         return PrinterConfirmationBottomSheet(pdfFilePath: path); // Pass the file path
       },
     );
-    // final file = await sharePdf(context, id, 'en');
-    // if (file != null) {
-    //   // File is not null, open the PrinterConfirmationBottomSheet
-    //
-    // }
-    // else {
-    //   print("Error generating PDF");
-    // }
 
-    }
+  }
   static Future<void> _shareViaEmail(BuildContext context, int id) async {
     // Fetch payment details from the database
     final paymentMap = await DatabaseProvider.getPaymentById(id);
@@ -173,7 +166,7 @@ class ShareScreenOptions {
 
     // Create a Payment instance from the fetched map
     final payment = Payment.fromMap(paymentMap);
-print("smssss");
+    print("smssss");
     showSmsBottomSheet(context,payment);
   }
 
@@ -338,7 +331,7 @@ print("smssss");
   }
 
 
-  static Future<File?> sharePdf(BuildContext context, int id, String languageCode ,{double header2Size = 24, double header3Size = 20, double header4Size = 18}) async {
+  static Future<File?> sharePdf(BuildContext context, int id, String languageCode ,{double header2Size = 22, double header3Size = 21, double header4Size = 19}) async {
     try {
       // Get the current localization service without changing the app's locale
       final localizationService = Provider.of<LocalizationService>(context, listen: false);
@@ -415,10 +408,9 @@ print("smssss");
       String additionalDetails = localizedStrings['additionalDetails'];
 
       List<Map<String, String>> paymentDetails=[];
-
       if(payment.paymentMethod.toLowerCase() == 'cash' || payment.paymentMethod.toLowerCase() == 'كاش')
         paymentDetails = [
-          {'title': localizedStrings['paymentMethod'], 'value': payment.paymentMethod},
+          {'title': localizedStrings['paymentMethod'], 'value': localizedStrings[payment.paymentMethod.toLowerCase()] },
           {'title': localizedStrings['currency'], 'value': languageCode =='ar' ? currency!["arabicName"] ?? '' : currency!["englishName"]},
           {'title': localizedStrings['amount'], 'value': payment.amount.toString()},
         ];
@@ -458,18 +450,22 @@ print("smssss");
                       pw.Container(
                         alignment: pw.Alignment.center,
                         decoration: pw.BoxDecoration(
-                          border: pw.Border.all(color: PdfColors.grey),
-                          color: PdfColors.white,
+                          border: pw.Border.all(
+                            color: PdfColors.black, // Set the border color to black
+                            width: 2,              // Set the border width to 2
+                          ),                          color: PdfColors.white,
                         ),
-                        child:pw.Image(imageLogo, height: 60),
+                        child:pw.Image(imageLogo, height: 50),
                       ),
                       pw.Container(
                         alignment: pw.Alignment.center,
                         padding: pw.EdgeInsets.all(3), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.black,
-                          border: pw.Border.all(color: PdfColors.black),
-                        ),
+                          border: pw.Border.all(
+                            color: PdfColors.black, // Set the border color to black
+                            width: 2,              // Set the border width to 2
+                          ),                        ),
                         child: pw.Text(
                           receiptVoucher,
                           style: pw.TextStyle(
@@ -485,8 +481,10 @@ print("smssss");
                         padding: pw.EdgeInsets.all(3), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.grey300,
-                          border: pw.Border.all(color: PdfColors.black),
-                        ),
+                          border: pw.Border.all(
+                            color: PdfColors.black, // Set the border color to black
+                            width: 2,              // Set the border width to 2
+                          ),                        ),
                         child: pw.Text(
                           customersDetail,
                           style: pw.TextStyle(
@@ -502,8 +500,10 @@ print("smssss");
                         padding: pw.EdgeInsets.all(3), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.grey300,
-                          border: pw.Border.all(color: PdfColors.black),
-                        ),
+                          border: pw.Border.all(
+                            color: PdfColors.black, // Set the border color to black
+                            width: 2,              // Set the border width to 2
+                          ),                        ),
                         child: pw.Text(
                           paymentDetail,
                           style: pw.TextStyle(
@@ -519,8 +519,10 @@ print("smssss");
                         padding: pw.EdgeInsets.all(3), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.grey300,
-                          border: pw.Border.all(color: PdfColors.black),
-                        ),
+                          border: pw.Border.all(
+                            color: PdfColors.black, // Set the border color to black
+                            width: 2,              // Set the border width to 2
+                          ),                        ),
                         child: pw.Text(
                           additionalDetails,
                           style: pw.TextStyle(
@@ -536,8 +538,10 @@ print("smssss");
                         padding: pw.EdgeInsets.all(2), // Add padding here
                         decoration: pw.BoxDecoration(
                           color: PdfColors.white,
-                          border: pw.Border.all(color: PdfColors.black),
-                        ),
+                          border: pw.Border.all(
+                            color: PdfColors.black, // Set the border color to black
+                            width: 2,              // Set the border width to 2
+                          ),                        ),
                         child: pw.Text(
                           footerPdf,
                           style: pw.TextStyle(
@@ -586,11 +590,13 @@ print("smssss");
   // Build info table with dynamic localization
   static pw.Widget _buildInfoTableDynamic(List<Map<String, String>> rowData, pw.Font fontEnglish, pw.Font fontArabic, bool isEnglish,double header3Size) {
     return pw.Table(
-      border: pw.TableBorder.all(),
-      columnWidths: {
-        0: pw.FlexColumnWidth(2), // Adjust as needed
-        1: pw.FlexColumnWidth(2), // Adjust as needed
-      },
+      border: pw.TableBorder.all(
+        color: PdfColors.black, // Ensure the color is black or any visible color
+        width: 2.0,             // Increase the width (e.g., 1.0 or higher)
+      ),      columnWidths: {
+      0: pw.FlexColumnWidth(2), // Adjust as needed
+      1: pw.FlexColumnWidth(2), // Adjust as needed
+    },
       children: rowData.map((row) => _buildTableRowDynamic(row['title']!, row['value']!, fontEnglish, fontArabic, isEnglish,header3Size)).toList().cast<pw.TableRow>(),
     );
   }
@@ -611,7 +617,12 @@ print("smssss");
       children: isEnglish
           ? [
         pw.Container(
-          padding: pw.EdgeInsets.all(3),
+          decoration: pw.BoxDecoration(
+            border: pw.Border(
+              right: pw.BorderSide(color: PdfColors.black, width: 1.0), // Add a right border
+            ),
+          ),
+          padding: pw.EdgeInsets.symmetric(vertical: 4, horizontal: 8), // Add horizontal padding here
           alignment: pw.Alignment.centerLeft,
           child: pw.Text(
             title,
@@ -620,7 +631,7 @@ print("smssss");
           ),
         ),
         pw.Container(
-          padding: pw.EdgeInsets.all(3),
+          padding: pw.EdgeInsets.symmetric(vertical: 4, horizontal: 8), // Add horizontal padding here
           alignment: pw.Alignment.centerRight,
           child: pw.Directionality(
             textDirection: textDirectionForValue,
@@ -633,7 +644,12 @@ print("smssss");
       ]
           : [
         pw.Container(
-          padding: pw.EdgeInsets.all(3),
+          decoration: pw.BoxDecoration(
+            border: pw.Border(
+              right: pw.BorderSide(color: PdfColors.black, width: 1.0), // Add a right border
+            ),
+          ),
+          padding: pw.EdgeInsets.symmetric(vertical: 4, horizontal: 8), // Add horizontal padding here
           alignment: pw.Alignment.centerLeft,
           child: pw.Directionality(
             textDirection: textDirectionForValue,
@@ -644,7 +660,7 @@ print("smssss");
           ),
         ),
         pw.Container(
-          padding: pw.EdgeInsets.all(3),
+          padding: pw.EdgeInsets.symmetric(vertical: 4, horizontal: 8), // Add horizontal padding here
           alignment: pw.Alignment.centerRight,
           child: pw.Text(
             title,
