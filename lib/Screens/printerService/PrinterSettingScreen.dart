@@ -373,12 +373,7 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
                                   padding: const EdgeInsets.all(3.0),
                                   child: ListTile(
                                     title: Text(
-                                      discoveredDevices.firstWhere(
-                                            (device) => device['address'] == defaultDeviceAddress,
-                                        orElse: () => {'name': 'Unknown Device'},
-                                      )['name'] ??
-                                          Provider.of<LocalizationService>(context, listen: false)
-                                              .getLocalizedString("unknown"),
+                                      defaultDeviceLabel?? '',
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
