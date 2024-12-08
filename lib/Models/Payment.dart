@@ -17,6 +17,7 @@ class Payment {
   DateTime? lastUpdatedDate;
   String? cancelReason;
   DateTime? cancellationDate;
+  int isDepositChecked;
 
   Payment({
     this.transactionDate,
@@ -36,7 +37,8 @@ class Payment {
     this.paymentInvoiceFor,
     required this.status,
     this.cancelReason= '',
-    this.cancellationDate
+    this.cancellationDate,
+    required this.isDepositChecked
   })
   {
   }
@@ -61,7 +63,7 @@ class Payment {
       paymentInvoiceFor: (map['paymentInvoiceFor'] !=null && map.containsKey('paymentInvoiceFor'))?map['paymentInvoiceFor']: null,
       cancelReason: (map['cancelReason'] != null && map.containsKey('cancelReason')) ? map['cancelReason'] : null,
       cancellationDate:(map['cancellationDate'] != 'null' && map['cancellationDate'] != '' &&  map['cancellationDate'] != null) ? DateTime.parse(map['cancellationDate']) : null,
-
+      isDepositChecked:map['isDepositChecked'],
     );
   }
   // delete vougher serial number duplicate
@@ -85,6 +87,7 @@ class Payment {
       'lastUpdatedDate': lastUpdatedDate?.toIso8601String(),
       'cancelReason': cancelReason,
       'cancellationDate': cancellationDate?.toIso8601String(),
+      'isDepositChecked': isDepositChecked,
     };
   }
 

@@ -261,6 +261,9 @@
   "noBluetoothDevicesFound": "No Bluetooth devices found",
   "defaultPrinter": "Default Printer",
   "noDefaultDeviceSetBody": "No default printer is set. Please go to the printer settings to select or set up a default printer before proceeding.",
-  "theDefaultDeviceNotConnected": "The Bluetooth device is either turned off or not ready to connect. Please ensure the device is powered on and try again."
-
+  "theDefaultDeviceNotConnected": "The Bluetooth device is either turned off or not ready to connect. Please ensure the device is powered on and try again.",
+  "deposit": "Deposit",
+  "no": "No",
+  "yes": "Yes",
+  "amountFormatter": "Amount must follow the format XXX.XX (e.g., 123.45)."
 }

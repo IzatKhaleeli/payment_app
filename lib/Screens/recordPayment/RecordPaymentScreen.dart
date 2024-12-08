@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Custom_Widgets/CustomPopups.dart';
-import '../Models/Bank.dart';
-import '../Models/Currency.dart';
-import '../Services/database.dart';
+import '../../Custom_Widgets/CustomPopups.dart';
+import '../../Models/Bank.dart';
+import '../../Models/Currency.dart';
+import '../../Services/database.dart';
 import 'package:provider/provider.dart';
-import 'PaymentConfirmationScreen.dart';
-import '../Models/Payment.dart';
-import '../Services/LocalizationService.dart';
+import '../../Utils/DecimalInputFormatter.dart';
+import '../PaymentConfirmationScreen.dart';
+import '../../Models/Payment.dart';
+import '../../Services/LocalizationService.dart';
 import 'package:intl/intl.dart';
+import 'record_payment_widgets.dart' as record_widgets;
 
 class RecordPaymentScreen extends StatefulWidget {
   final int? id;
@@ -43,6 +45,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   List<String> _paymentMethods = ['cash', 'check'];
   late AnimationController _animationController;
   late Animation<double> _buttonScaleAnimation;
+  bool isDepositChecked = false;
 
   String? _selectedCurrencyDB;
   List<Currency> _currenciesDB = [];
@@ -178,8 +181,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             _selectedBankDB=payment.bankBranch;
           });
         }
-
-          _customerNameController.text = payment.customerName;
+        _customerNameController.text = payment.customerName;
         _msisdnController.text = payment.msisdn ?? '';
         _prNumberController.text = payment.prNumber?? '' ;
         _amountController.text = payment.amount.toString()?? '';
@@ -211,32 +213,25 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             _selectedBankDB=paymentParams["bankBranch"];
           });
         }
-        print("check3");
-
 
         _customerNameController.text = paymentParams["customerName"];
-        print("check4");
 
         _msisdnController.text = paymentParams["msisdn"]?? '';
-        print("check5");
 
         _prNumberController.text = paymentParams["prNumber"]?? '' ;
-        print("check6");
 
         _amountController.text = paymentParams["amount"].toString()?? '';
-        print("check7");
 
         _amountCheckController.text = paymentParams["amountCheck"].toString()?? '';
-        print("check8");
 
         _checkNumberController.text = paymentParams["checkNumber"].toString()?? '';
-        print("check9");
 
         _paymentInvoiceForController.text = paymentParams["paymentInvoiceFor"]?? '';
-        print("check10");
 
         _dueDateCheckController.text = paymentParams["dueDateCheck"].toString()?? '';
-        print("check11");
+
+        isDepositChecked = paymentParams["isDepositChecked"] == 0 ? false :true ;
+        print("isDepositChecked initialzation :${isDepositChecked}");
 
       }
     }
@@ -270,7 +265,6 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
   @override
   Widget build(BuildContext context) {
-    print("check12");
 
     ScreenUtil.init(context, designSize: Size(360, 690));
 
@@ -343,7 +337,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                         amount, null ,
                         focusNode: _amountFocusNode,
                           required:true,
-                          isNumeric : true
+                          isNumeric : true,
+                          isDecimal: true
                       ),
                       _buildDropdownCurrencyDynamic(currency, _currenciesDB,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true),
                     ],
@@ -356,7 +351,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                         null ,
                         focusNode: _amountCheckFocusNode,
                           required:true,
-                          isNumeric : true
+                          isNumeric : true,
+                          isDecimal: true
                       ),
                       _currenciesDB.isEmpty
                           ? Center(child: CircularProgressIndicator()):
@@ -379,6 +375,16 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                           required:true
                       ),
                     ],
+                  record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
+                    isChecked: isDepositChecked,  // Bind to the state variable
+                    onChanged: (newValue) {
+                      setState(() {
+                        isDepositChecked = newValue ?? false;  // Update the state variable
+                      });
+                    },
+                    required: true,
+                    context: context ,  // Optional, mark as required if needed
+                  ),
                   _buildTextField(
                     _paymentInvoiceForController,
                     paymentInvoiceFor,
@@ -503,7 +509,12 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         bool required = false,
         bool isDate = false,
         bool isNumeric = false,
+        bool isDecimal = false, // New flag to handle decimal input
       }) {
+    // Add a listener for numeric and decimal inputs
+    if (isDecimal) {
+      print("amount validators");
+    }
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 16.w),
       child: Column(
@@ -536,6 +547,11 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             maxLines: maxLines,
             readOnly: isDate,
             keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+            inputFormatters: isDecimal
+                ? [
+              DecimalInputFormatter(), // Use custom formatter for decimal input
+            ]
+                : null,
             decoration: InputDecoration(
               prefixIcon: icon != null
                   ? Padding(
@@ -654,7 +670,6 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         bool required = false,
       }) {
     // Find the Currency object with the id matching _selectedCurrencyDB
-    print("check22");
 
     Currency? initialCurrency;
     if (_selectedCurrencyDB != null && items.isNotEmpty) {
@@ -662,8 +677,6 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             (currency) => currency.id == _selectedCurrencyDB,
 
       );
-      print("check23");
-
     }
     else if (items.any((currency) => currency.id == 'ILS')) {
       initialCurrency = items.firstWhere((currency) => currency.id == 'ILS');
@@ -1105,7 +1118,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             backgroundColor: Colors.red,
           ),
         );
-        return Payment(customerName: '', paymentMethod: '', status: '');
+        return Payment(customerName: '', paymentMethod: '', status: '',isDepositChecked: 0);
       }
     }
     else if (_selectedPaymentMethod!.toLowerCase() == 'check' || _selectedPaymentMethod!.toLowerCase() == 'شيك') {
@@ -1118,7 +1131,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             backgroundColor: Colors.red,
           ),
         );
-        return Payment(customerName: '', paymentMethod: '', status: '');
+        return Payment(customerName: '', paymentMethod: '', status: '', isDepositChecked: 0,);
       }
 
       if (_selectedPaymentMethod!.toLowerCase() == 'check' || _selectedPaymentMethod!.toLowerCase() == 'شيك') {
@@ -1142,6 +1155,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       dueDateCheck: parseDueDate , // Formatting the date
       id:widget.id !=null ? widget.id : null,
       status: status,
+      isDepositChecked:isDepositChecked == false ? 0:1
     );
     return paymentDetail;
   }
@@ -1185,15 +1199,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
           'bankBranch': paymentDetails.bankBranch ,
           'dueDateCheck':  paymentDetails.dueDateCheck.toString(),
           'paymentInvoiceFor': paymentDetails.paymentInvoiceFor ,
+          'isDepositChecked':paymentDetails.isDepositChecked,
         });
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('paymentSavedSuccess')),
-        //     backgroundColor: Colors.green, // Set the background color to green
-        //     behavior: SnackBarBehavior.floating, // Optional: Makes the Snackbar float above the content
-        //     duration: Duration(seconds: 2), // Optional: Duration for how long the Snackbar will be visible
-        //   ),
-        // );
          }
       else {
         print("id , update exist payment :");
@@ -1214,16 +1221,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
           'bankBranch': paymentDetails.bankBranch,
           'dueDateCheck': paymentDetails.dueDateCheck.toString(),
           'paymentInvoiceFor': paymentDetails.paymentInvoiceFor,
-
+          'isDepositChecked':paymentDetails.isDepositChecked,
         });
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('paymentUpdateSuccess')),
-        //     backgroundColor: Colors.green, // Set the background color to green
-        //     behavior: SnackBarBehavior.floating, // Optional: Makes the Snackbar float above the content
-        //     duration: Duration(seconds: 2), // Optional: Duration for how long the Snackbar will be visible
-        //   ),
-        // );
       }
       print("_agreedPaymentMethodFinished");
       Navigator.pop(context); // pop the dialog

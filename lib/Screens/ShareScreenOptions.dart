@@ -461,25 +461,25 @@ class ShareScreenOptions {
                           child: pw.Image(imageLogo, height: 50),
                         ),
                       ),
-                      pw.Container(
-                        alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(3), // Add padding here
-                        decoration: pw.BoxDecoration(
-                          color: PdfColors.black,
-                          border: pw.Border.all(
-                            color: PdfColors.black, // Set the border color to black
-                            width: 2,              // Set the border width to 2
-                          ),                        ),
-                        child: pw.Text(
-                          receiptVoucher,
-                          style: pw.TextStyle(
-                            color: PdfColors.white,
-                            fontSize: header2Size,
-                            fontWeight: pw.FontWeight.bold,
-                            font: font,
-                          ),
-                        ),
-                      ),
+                      // pw.Container(
+                      //   alignment: pw.Alignment.center,
+                      //   padding: pw.EdgeInsets.all(3), // Add padding here
+                      //   decoration: pw.BoxDecoration(
+                      //     color: PdfColors.black,
+                      //     border: pw.Border.all(
+                      //       color: PdfColors.black, // Set the border color to black
+                      //       width: 2,              // Set the border width to 2
+                      //     ),                        ),
+                      //   child: pw.Text(
+                      //     receiptVoucher,
+                      //     style: pw.TextStyle(
+                      //       color: PdfColors.white,
+                      //       fontSize: header2Size,
+                      //       fontWeight: pw.FontWeight.bold,
+                      //       font: font,
+                      //     ),
+                      //   ),
+                      // ),
                       pw.Container(
                         alignment: pw.Alignment.center,
                         padding: pw.EdgeInsets.all(3), // Add padding here

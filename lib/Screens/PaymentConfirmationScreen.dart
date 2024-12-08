@@ -18,7 +18,7 @@ import '../Utils/Enum.dart';
 import 'PaymentCancellationScreen.dart';
 import 'PaymentHistoryScreen.dart';
 import '../Custom_Widgets/CustomPopups.dart';
-import '../Screens/RecordPaymentScreen.dart';
+import 'recordPayment/RecordPaymentScreen.dart';
 import '../Screens/ShareScreenOptions.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../Screens/printerService/iosMethods.dart' as iosPlat;
@@ -41,6 +41,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   String dueDateCheck = "";
   String amount = "";
   String currency = "";
+  String deposit = "";
   String viewPayment = '';
   String confirmPayment = '';
   String savePayment = '';
@@ -101,6 +102,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     dueDateCheck = localizationService.getLocalizedString('dueDateCheck') ?? 'Confirm Payment';
     amount = localizationService.getLocalizedString('amount') ?? 'Confirm Payment';
     currency = localizationService.getLocalizedString('currency') ?? 'Confirm Payment';
+    deposit = localizationService.getLocalizedString('deposit') ?? 'Confirm Payment';
     cancellationDate = localizationService.getLocalizedString('cancellationDate') ?? 'Confirm Payment';
 
     ok = localizationService.getLocalizedString('ok') ?? 'Confirm Payment';
@@ -154,9 +156,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
             AppearedBank = 'Unknown Bank';
           }
         });
-
-        // print(AppearedCurrency);
-        // print(AppearedBank);
 
       } else {
         print('No payment details found for ID ${widget.paymentId}');
@@ -330,6 +329,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                     : NumberToWordsEnglish.convert(paymentDetails['amount'] != null ? (paymentDetails['amount'] as double).toInt() : 0),
                 Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
           ],
+          _divider(),
+          _detailItem(deposit,paymentDetails['isDepositChecked'] == 0 ? Provider.of<LocalizationService>(context, listen: false).getLocalizedString('no') : Provider.of<LocalizationService>(context, listen: false).getLocalizedString('yes')),
           _divider(),
           _detailNoteItem(paymentInvoiceFor, paymentDetails['paymentInvoiceFor']?.toString() ?? '',Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
         ],

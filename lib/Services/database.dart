@@ -7,7 +7,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseProvider {
   static const _databaseName = 'payments.db';
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 2;
 
   // Singleton instance of the database
   static Database? _database;
@@ -29,7 +29,17 @@ class DatabaseProvider {
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade, // Handle database schema upgrades
     );
+  }
+
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 3) {
+      // Add the new column for version 2
+      await db.execute('''
+      ALTER TABLE payments ADD COLUMN isDepositChecked BOOLEAN DEFAULT 0;
+    ''');
+    }
   }
 
   // Create tables in the database
@@ -54,7 +64,8 @@ class DatabaseProvider {
         lastUpdatedDate TEXT,
         transactionDate TEXT,
         cancellationDate TEXT,
-        userId TEXT
+        userId ,
+        isDepositChecked BOOLEAN DEFAULT 0
       )
       
       
@@ -344,8 +355,6 @@ class DatabaseProvider {
       DateTime? fromDate,
       DateTime? toDate,
       List<String>? statuses ,String userId) async {
-    //print("getPaymentsWithDateFilter method, database.dart");
-    //print("from date: $fromDate, to date: $toDate, statuses: $statuses");
 
     Database db = await database;
 

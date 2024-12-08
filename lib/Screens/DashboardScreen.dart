@@ -11,7 +11,7 @@ import '../Services/apiConstants.dart';
 import '../Services/networking.dart';
 import 'LoginScreen.dart';
 import 'PaymentHistoryScreen.dart';
-import 'RecordPaymentScreen.dart';
+import 'recordPayment/RecordPaymentScreen.dart';
 import 'SettingsScreen.dart';
 
 class DashboardScreen extends StatefulWidget {

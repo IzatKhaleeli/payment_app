@@ -2,9 +2,8 @@ import 'dart:io';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:ooredoo_app/Screens/printerService/PrinterSettingScreen.dart';
-import 'package:ooredoo_app/Screens/printerService/androidBluetoothFeaturesScreen.dart';
 import '../Screens/PaymentCancellationScreen.dart';
-import '../Screens/RecordPaymentScreen.dart';
+import 'recordPayment/RecordPaymentScreen.dart';
 import '../Screens/ShareScreenOptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -137,7 +136,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           } else {
             transactionDate = null;
           }
-
+          print("payment :${payment}");
           return Payment(
               id:payment['id'],
               transactionDate:transactionDate,
@@ -156,7 +155,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               status: payment['status'],
               voucherSerialNumber:serialNumber,
               cancelReason:payment['cancelReason'],
-              cancellationDate:cancellationDate
+              cancellationDate:cancellationDate,
+              isDepositChecked:payment['isDepositChecked']
           );
         }).toList();
         _paymentRecords.sort((a, b) {
@@ -224,11 +224,17 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         padding: EdgeInsets.all(12.w),
         child: Column(
           children: [
-            _buildDateFilterSection(),
-            SizedBox(height: 10.h),
-            _buildSearchButton(),
-            SizedBox(height: 5.h),
+            _buildFilterSection(),
             _buildSelectedStatuses(),
+            SizedBox(height: 10.h),
+            Divider(
+              color: Colors.grey[400],
+              height: 3,
+              thickness: 2, // This will make the divider line thicker
+              indent: 8,  // Optional: You can adjust the left margin if needed
+              endIndent: 8,  // Optional: You can adjust the right margin if needed
+            ),
+            SizedBox(height: 10.h),
             Container(
               margin: EdgeInsets.only(bottom: 50.h), // Margin from the bottom button
               child: _buildPaymentRecordsList(),
@@ -254,43 +260,65 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  Widget _buildDateFilterSection() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildDateField(
-            context,
-            label: from,
-            controller: _fromDateController,
-            onDateSelected: (date) {
-              setState(() => _selectedFromDate = date);
-            },
+  Widget _buildFilterSection() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildDateField(
+              context,
+              label: from,
+              controller: _fromDateController,
+              onDateSelected: (date) {
+                setState(() => _selectedFromDate = date);
+                _fetchPayments();
+              },
+            ),
           ),
-        ),
-        SizedBox(width: 10.w),
-        Expanded(
-          child: _buildDateField(
-            context,
-            label: to,
-            controller: _toDateController,
-            onDateSelected: (date) {
-              setState(() => _selectedToDate = date);
-            },
+          SizedBox(width: 10.w),
+          Expanded(
+            child: _buildDateField(
+              context,
+              label: to,
+              controller: _toDateController,
+              onDateSelected: (date) {
+                setState(() => _selectedToDate = date);
+                _fetchPayments();
+              },
+            ),
           ),
-        ),
-      ],
+          SizedBox(width: 10.w),
+          Container(
+            height: 40.h,
+            decoration: BoxDecoration(
+              color: Color(0xFFC62828),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.filter_list, color: Colors.white),
+              onPressed: () {
+                _showFilterDialog();
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildDateField(BuildContext context, {required String label, required TextEditingController controller, required Function(DateTime) onDateSelected}) {
     return TextField(
       controller: controller,
+      style: TextStyle(fontSize: 12),  // Set font size smaller here
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: TextStyle(fontSize: 12), // Set the label text size to match the input text size
         suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFC62828)),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         fillColor: Colors.white,
         filled: true,
+        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), // Adjust padding inside the TextField
       ),
       readOnly: true,
       onTap: () async {
@@ -301,6 +329,17 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           lastDate: DateTime(2100),
         );
         if (picked != null && picked != _selectedFromDate) {
+          // Check if picked date is valid based on "From" and "To" date logic
+          if (label == from && _selectedToDate != null && picked.isAfter(_selectedToDate!)) {
+            // If "From" date is selected and it is after the "To" date, reset the "To" date
+            _toDateController.clear();
+            _selectedToDate = null;
+          } else if (label == to && _selectedFromDate != null && picked.isBefore(_selectedFromDate!)) {
+            // If "To" date is selected and it is before the "From" date, show a warning or reset
+            _fromDateController.clear();
+            _selectedFromDate = null;
+          }
+
           controller.text = DateFormat('yyyy-MM-dd').format(picked);
           onDateSelected(picked);
         }
@@ -322,7 +361,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0), // Padding inside the chip
             decoration: BoxDecoration(
-              color: Colors.grey[200],  // Background color
+              color: Colors.grey[200], // Background color
               borderRadius: BorderRadius.circular(10.0),
               border: Border.all(
                 color: Colors.transparent, // No visible border
@@ -364,46 +403,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  Widget _buildSearchButton() {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            icon: Icon(Icons.search, color: Colors.white),
-            label: Text(
-              search,
-              style: TextStyle(fontSize: 14.sp, fontFamily: 'NotoSansUI'),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFC62828),
-              minimumSize: Size(double.infinity, 40.h),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: () async {
-              //print("from date: $_selectedFromDate : $_selectedToDate");
-              _fetchPayments();
-              // Add any post-operation logic if needed
-            },
-          ),
-        ),
-        SizedBox(width: 10.w), // Add spacing between the button and the icon
-        Container(
-          height: 40.h,
-          decoration: BoxDecoration(
-            color: Color(0xFFC62828),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: IconButton(
-            icon: Icon(Icons.filter_list, color: Colors.white),
-            onPressed: () {
-              _showFilterDialog();
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
   void _showFilterDialog() {
     showDialog(
       context: context,
@@ -416,7 +415,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: <String>['Confirmed', 'Synced', 'cancelPending', 'Cancelled']
+                children: <String>['Confirmed', 'Synced', 'CancelPending', 'Cancelled']
                     .map((String status) {
                   return CheckboxListTile(
                     title: Text(
@@ -428,6 +427,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                     onChanged: (bool? value) {
                       setState(() {
                         if (value == true) {
+                          print("sss :${status}");
                           _selectedStatuses.add(status);
                         } else {
                           _selectedStatuses.remove(status);
@@ -572,19 +572,24 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('amount'), record.amount.toString()),
             if (record.paymentMethod.toLowerCase() == 'check')
               _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('amount'), record.amountCheck.toString()),
+
             _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('currency'), record.currency.toString()),
-            if (record.paymentMethod.toLowerCase() == 'check')
+
+            if (record.paymentMethod.toLowerCase() == 'check')...[
               _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('checkNumber'), record.checkNumber.toString()),
-            if (record.paymentMethod.toLowerCase() == 'check')
               _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('bankBranchCheck'), record.bankBranch.toString()),
-            if (record.paymentMethod.toLowerCase() == 'check')
               _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('dueDateCheck'), _formatDate(record.dueDateCheck)),
+             ],
+
             if(record.status.toLowerCase() == 'canceldpending' || record.status.toLowerCase() == 'cancelled' ) ...[
               _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancellationDate'), formatDate((record.cancellationDate!)).toString()),
               _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancellationTime'), formatTime((record.cancellationDate!)).toString()),
               _detailNoteItem(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancelReason'), (record.cancelReason!),Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
               //lll
             ],
+
+            _detailNoteItem(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('deposit'), record.isDepositChecked == 0 ? Provider.of<LocalizationService>(context, listen: false).getLocalizedString('no') : Provider.of<LocalizationService>(context, listen: false).getLocalizedString('yes') ,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
+
             if (record.paymentInvoiceFor != null && record.paymentInvoiceFor!.isNotEmpty)
               _detailNoteItem(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('paymentInvoiceFor'), record.paymentInvoiceFor.toString(),Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
             SizedBox(height: 10.h),

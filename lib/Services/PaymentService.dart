@@ -19,115 +19,23 @@ import '../Screens/LoginScreen.dart';
 import '../Screens/SMS_Service.dart';
 import 'LocalizationService.dart';
 import 'apiConstants.dart';
+import 'package:mutex/mutex.dart';
 
 
 class PaymentService {
   static Timer? _networkTimer; // Reference to the Timer
+
   static final StreamController<void> _syncController = StreamController<
       void>.broadcast();
-
   static Stream<void> get syncStream => _syncController.stream;
-  static bool _isSyncing = false; // Flag to prevent concurrent syncs
-  static Completer<void>? _syncCompleter;
 
-
+  static final Mutex _syncMutex = Mutex();
 
   static void _cancelNetworkTimer() {
     if (_networkTimer != null) {
       _networkTimer!.cancel();
       _networkTimer = null;
     }
-  }
-
-  static Future<void> showLoadingAndNavigate(BuildContext context) async {
-    // Show custom loading indicator
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return Center(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10.r),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(
-                width: 130.w,
-                height: 100.h,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2), // Semi-transparent white for glass effect
-                  borderRadius: BorderRadius.circular(10.r),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
-                    width: 1.5,
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SpinKitFadingCircle(
-                      itemBuilder: (BuildContext context, int index) {
-                        return DecoratedBox(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: index.isEven
-                                ? Colors.white
-                                : Colors.grey[300], // Adjust color for effect
-                          ),
-                        );
-                      },
-                    ),
-                    SizedBox(height: 10.h), // Reduced space between spinner and text
-                    Text(
-                      Provider.of<LocalizationService>(context, listen: false).getLocalizedString('pleaseWait'),
-                      style: TextStyle(
-                        decoration: TextDecoration.none,
-                        color: Colors.white,
-                        fontFamily: 'NotoSansUI',
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-
-    // Ensure the loading dialog is displayed for at least 1 second
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Clear user data
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
-    await prefs.remove('language_code');
-    await prefs.setString('language_code', 'ar'); // Set default language
-    await prefs.remove('usernameLogin');
-    _cancelNetworkTimer();
-
-    // Dismiss the loading dialog
-    Navigator.of(context).pop(); // Dismiss the progress indicator dialog
-
-    // Navigate to the login screen
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-          (route) => false, // This disables popping the LoginScreen route
-    );
-  }
-
-  static String convertAmountToWords(dynamic amount) {
-    if (amount == null) {
-      return ''; // Handle the case where amount is null
-    }
-
-    // Convert to int if amount is a double
-    int amountInt = (amount is double) ? amount.toInt() : amount as int;
-
-    return NumberToWordsEnglish.convert(amountInt);
   }
 
   static void startPeriodicNetworkTest(BuildContext context) {
@@ -140,8 +48,6 @@ class PaymentService {
 
   // Check network and start sync if connected
   static Future<void> _checkNetworkAndSync(BuildContext context) async {
-    if (_isSyncing) return; // Skip if a sync is already in progress
-
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult != ConnectivityResult.none) {
       await syncPayments(context); // Trigger sync if network is available
@@ -150,82 +56,93 @@ class PaymentService {
   }
 
   static Future<void> syncPayments(BuildContext context) async {
-    if (_isSyncing) {
-      print("Sync in progress, skipping this attempt.");
+    if (_syncMutex.isLocked) {
+      print("Sync already in progress, skipping.");
       return;
     }
-    _isSyncing = true;
-    _cancelNetworkTimer(); // Stop timer during sync
+    await _syncMutex.acquire(); // Acquire lock
+    try {
+      _cancelNetworkTimer(); // Stop the network timer
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? tokenID = prefs.getString('token');
-    if (tokenID == null) {
-      _isSyncing = false;
-      startPeriodicNetworkTest(context);
-      print('Token not found');
-      return;
-    }
-    String fullToken = "Barer ${tokenID}";
-
-    Map<String, String> headers = {
-      'Content-Type': 'application/json',
-      'tokenID': fullToken,
-    };
-    // Retrieve all confirmed payments
-    List<Map<String,
-        dynamic>> ConfirmedAndCancelledPendingPayments = await DatabaseProvider
-        .getConfirmedOrCancelledPendingPayments();
-    List<Map<String, dynamic>> confirmedPayments = [];
-    List<Map<String, dynamic>> cancelledPendingPayments = [];
-
-    // Iterate through the results and separate them based on status
-    for (var payment in ConfirmedAndCancelledPendingPayments) {
-      if (payment['status'] == 'Confirmed') {
-        confirmedPayments.add(payment);
-      } else if (payment['status'] == 'CancelPending') {
-        cancelledPendingPayments.add(payment);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? tokenID = prefs.getString('token');
+      if (tokenID == null) {
+        print('Token not found');
+        return;
       }
-    }
+      String fullToken = "Barer ${tokenID}";
 
-    for (var payment in confirmedPayments) {
-      PaymentService.syncPayment(payment, apiUrl, headers,context);
-    }
-
-    for (var p in cancelledPendingPayments) {
-      Map<String, String> body = {
-        "voucherSerialNumber": p["voucherSerialNumber"],
-        "cancelReason": p["cancelReason"].toString(),
-        "cancelTransactionDate": p["cancellationDate"] ,
+      Map<String, String> headers = {
+        'Content-Type': 'application/json',
+        'tokenID': fullToken,
       };
-      print(body);
-      try {
-        final response = await http.delete(
-          Uri.parse(apiUrlCancel),
-          headers: headers,
-          body: json.encode(body),
-        );
-        if (response.statusCode == 200) {
-          print("inside status code 200 of cancel api");
-          await DatabaseProvider.updatePaymentStatus(p["id"], 'Cancelled');
-          _syncController.add(null);
-          String amount = p["paymentMethod"].toString().toLowerCase() == 'cash'
-              ? (p["amount"]?.toString() ?? '0')
-              : (p["amountCheck"]?.toString() ?? '0');
+      // Retrieve all confirmed payments
+      List<Map<String,
+          dynamic>> ConfirmedAndCancelledPendingPayments = await DatabaseProvider
+          .getConfirmedOrCancelledPendingPayments();
+      List<Map<String, dynamic>> confirmedPayments = [];
+      List<Map<String, dynamic>> cancelledPendingPayments = [];
 
-          await SmsService.sendSmsRequest(context, p["msisdn"], 'ar', amount, p["currency"], p["voucherSerialNumber"], p["paymentMethod"].toString().toLowerCase()=='cash' ? 'كاش' : 'شيك' ,isCancel: true);
-        } else {
-          print('Failed to cancel payment: ${response.body}');
+      // Iterate through the results and separate them based on status
+      for (var payment in ConfirmedAndCancelledPendingPayments) {
+        if (payment['status'] == 'Confirmed') {
+          confirmedPayments.add(payment);
+        } else if (payment['status'] == 'CancelPending') {
+          cancelledPendingPayments.add(payment);
         }
-      } catch (e) {
-        // Handle exceptions
-        print('Error syncing payment: $e');
+      }
+
+      for (var payment in confirmedPayments) {
+        PaymentService.syncPayment(payment, apiUrl, headers, context);
+      }
+
+      for (var p in cancelledPendingPayments) {
+        Map<String, String> body = {
+          "voucherSerialNumber": p["voucherSerialNumber"],
+          "cancelReason": p["cancelReason"].toString(),
+          "cancelTransactionDate": p["cancellationDate"],
+        };
+        print(body);
+        try {
+          final response = await http.delete(
+            Uri.parse(apiUrlCancel),
+            headers: headers,
+            body: json.encode(body),
+          );
+          if (response.statusCode == 200) {
+            print("inside status code 200 of cancel api");
+            await DatabaseProvider.updatePaymentStatus(p["id"], 'Cancelled');
+            _syncController.add(null);
+            String amount = p["paymentMethod"].toString().toLowerCase() ==
+                'cash'
+                ? (p["amount"]?.toString() ?? '0')
+                : (p["amountCheck"]?.toString() ?? '0');
+
+            await SmsService.sendSmsRequest(
+                context,
+                p["msisdn"],
+                'ar',
+                amount,
+                p["currency"],
+                p["voucherSerialNumber"],
+                p["paymentMethod"].toString().toLowerCase() == 'cash'
+                    ? 'كاش'
+                    : 'شيك',
+                isCancel: true);
+          } else {
+            print('Failed to cancel payment: ${response.body}');
+          }
+        } catch (e) {
+          // Handle exceptions
+          print('Error syncing payment: $e');
+        }
       }
     }
-
-    // Reset flags and restart network check
-    _isSyncing = false;
-    startPeriodicNetworkTest(context);
-    _syncController.add(null);
+    finally {
+      _syncMutex.release(); // Release lock
+      startPeriodicNetworkTest(context); // Restart periodic checks
+      _syncController.add(null); // Notify listeners
+    }
   }
 
   static Future <void> syncPayment(Map<String, dynamic> payment, String apiUrl,
@@ -251,7 +168,8 @@ class PaymentService {
           payment['dueDateCheck'] != 'null'
           ? DateTime.parse(payment['dueDateCheck']).toIso8601String()
           : null,
-      'theSumOf': theSumOf
+      'theSumOf': theSumOf,
+      'isDeposit': payment['isDepositChecked'] == 0 ? false :true
     };
     print(body);
 
@@ -489,4 +407,97 @@ class PaymentService {
     }
 
   }
+
+
+  static Future<void> showLoadingAndNavigate(BuildContext context) async {
+    // Show custom loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10.r),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Container(
+                width: 130.w,
+                height: 100.h,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2), // Semi-transparent white for glass effect
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SpinKitFadingCircle(
+                      itemBuilder: (BuildContext context, int index) {
+                        return DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: index.isEven
+                                ? Colors.white
+                                : Colors.grey[300], // Adjust color for effect
+                          ),
+                        );
+                      },
+                    ),
+                    SizedBox(height: 10.h), // Reduced space between spinner and text
+                    Text(
+                      Provider.of<LocalizationService>(context, listen: false).getLocalizedString('pleaseWait'),
+                      style: TextStyle(
+                        decoration: TextDecoration.none,
+                        color: Colors.white,
+                        fontFamily: 'NotoSansUI',
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    // Ensure the loading dialog is displayed for at least 1 second
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Clear user data
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('language_code');
+    await prefs.setString('language_code', 'ar'); // Set default language
+    await prefs.remove('usernameLogin');
+    _cancelNetworkTimer();
+
+    // Dismiss the loading dialog
+    Navigator.of(context).pop(); // Dismiss the progress indicator dialog
+
+    // Navigate to the login screen
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+          (route) => false, // This disables popping the LoginScreen route
+    );
+  }
+
+  static String convertAmountToWords(dynamic amount) {
+    if (amount == null) {
+      return ''; // Handle the case where amount is null
+    }
+
+    // Convert to int if amount is a double
+    int amountInt = (amount is double) ? amount.toInt() : amount as int;
+
+    return NumberToWordsEnglish.convert(amountInt);
+  }
+
 }
