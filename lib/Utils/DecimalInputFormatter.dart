@@ -13,23 +13,23 @@ class DecimalInputFormatter extends TextInputFormatter {
       return newValue; // Allow valid input
     } else {
       // Show a SnackBar for invalid input
-      _showSnackBar();
+     // _showSnackBar();
       return oldValue; // Reject invalid input
     }
   }
 
-  void _showSnackBar() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = WidgetsBinding.instance.focusManager.primaryFocus?.context;
-      if (context != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('amountFormatter')),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    });
-  }
+  // void _showSnackBar() {
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     final context = WidgetsBinding.instance.focusManager.primaryFocus?.context;
+  //     if (context != null) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('amountFormatter')),
+  //           backgroundColor: Colors.red,
+  //           duration: Duration(seconds: 2),
+  //         ),
+  //       );
+  //     }
+  //   });
+  // }
 }

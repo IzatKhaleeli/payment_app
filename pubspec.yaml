@@ -92,3 +92,9 @@ flutter:
     - family: Arial
       fonts:
         - asset: assets/fonts/Arial.ttf
+
+#Build release mode apk
+  # flutter build apk --release
+
+#download the build release apk
+# adb install build/app/outputs/flutter-apk/app-release.apk
