@@ -62,7 +62,7 @@ class PaymentService {
     }
     await _syncMutex.acquire(); // Acquire lock
     try {
-      _cancelNetworkTimer(); // Stop the network timer
+      // _cancelNetworkTimer(); // Stop the network timer
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? tokenID = prefs.getString('token');
@@ -140,7 +140,7 @@ class PaymentService {
     }
     finally {
       _syncMutex.release(); // Release lock
-      startPeriodicNetworkTest(context); // Restart periodic checks
+      // startPeriodicNetworkTest(context); // Restart periodic checks
       _syncController.add(null); // Notify listeners
     }
   }
@@ -174,6 +174,9 @@ class PaymentService {
     print(body);
 
     try {
+      if(payment["status"].toLowreCase() == "synced")
+        return;
+      print("the payment :${payment['transactionDate']} stats to sync is :${payment["status"]}");
       print("before send sync api");
       // Make POST request
       final response = await http.post(
@@ -294,7 +297,7 @@ class PaymentService {
 
        if (loginSuccessful["status"] == 200) {
         print("Re-login successful");
-          await syncPayments(context); // Retry the sync with new token
+          // await syncPayments(context); // Retry the sync with new token
       }
        else if(loginSuccessful["status"] == 503){
            print("Re-login failed.credentials error Unable to sync payment.");

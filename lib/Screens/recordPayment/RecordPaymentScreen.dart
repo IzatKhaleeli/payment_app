@@ -546,12 +546,12 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             focusNode: focusNode,
             maxLines: maxLines,
             readOnly: isDate,
-            keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+            keyboardType: isNumeric ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
             inputFormatters: isDecimal
                 ? [
-              DecimalInputFormatter(), // Use custom formatter for decimal input
-            ]
-                : null,
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')), // Allow digits and dot
+              DecimalInputFormatter(), // Ensure proper handling of decimal inputs
+            ]   : null,
             decoration: InputDecoration(
               prefixIcon: icon != null
                   ? Padding(
