@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import '../Services/secure_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -24,11 +23,9 @@ import 'package:mutex/mutex.dart';
 
 class PaymentService {
   static Timer? _networkTimer; // Reference to the Timer
-
   static final StreamController<void> _syncController = StreamController<
       void>.broadcast();
   static Stream<void> get syncStream => _syncController.stream;
-
   static final Mutex _syncMutex = Mutex();
 
   static void _cancelNetworkTimer() {
@@ -38,13 +35,13 @@ class PaymentService {
     }
   }
 
-  static void startPeriodicNetworkTest(BuildContext context) {
-    _cancelNetworkTimer();
-
-    _networkTimer = Timer.periodic(Duration(seconds: 6), (Timer timer) async {
-      await _checkNetworkAndSync(context);
-    });
-  }
+  static Future<void> startPeriodicNetworkTest(BuildContext context) async {
+      _cancelNetworkTimer(); // Cancel the existing timer if any.
+      // Start the periodic timer after ensuring sync has completed.
+      _networkTimer = Timer.periodic(Duration(seconds: 6), (Timer timer) async {
+        await _checkNetworkAndSync(context);
+      });
+    }
 
   // Check network and start sync if connected
   static Future<void> _checkNetworkAndSync(BuildContext context) async {
@@ -61,8 +58,9 @@ class PaymentService {
       return;
     }
     await _syncMutex.acquire(); // Acquire lock
+
     try {
-      // _cancelNetworkTimer(); // Stop the network timer
+      _cancelNetworkTimer(); // Stop the network timer
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? tokenID = prefs.getString('token');
@@ -97,12 +95,17 @@ class PaymentService {
       }
 
       for (var p in cancelledPendingPayments) {
+        if (p['status'] != 'CancelPending') {
+          continue; // Skip this payment if it's not in 'CancelPending' status
+        }
+
         Map<String, String> body = {
           "voucherSerialNumber": p["voucherSerialNumber"],
           "cancelReason": p["cancelReason"].toString(),
           "cancelTransactionDate": p["cancellationDate"],
         };
         print(body);
+
         try {
           final response = await http.delete(
             Uri.parse(apiUrlCancel),
@@ -134,13 +137,13 @@ class PaymentService {
           }
         } catch (e) {
           // Handle exceptions
-          print('Error syncing payment: $e');
+          print('Error syncing confirm or cancel payment: $e');
         }
       }
     }
     finally {
       _syncMutex.release(); // Release lock
-      // startPeriodicNetworkTest(context); // Restart periodic checks
+       startPeriodicNetworkTest(context); // Restart periodic checks
       _syncController.add(null); // Notify listeners
     }
   }
@@ -174,7 +177,7 @@ class PaymentService {
     print(body);
 
     try {
-      if(payment["status"].toLowreCase() == "synced")
+      if(payment["status"].toString().toLowerCase() == "synced")
         return;
       print("the payment :${payment['transactionDate']} stats to sync is :${payment["status"]}");
       print("before send sync api");
@@ -215,7 +218,7 @@ class PaymentService {
         }
       }
     } catch (e) {
-      print('Error syncing payment: $e');
+      print('Error syncing payment exc: $e');
     }
   }
 

@@ -136,7 +136,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           } else {
             transactionDate = null;
           }
-          print("payment :${payment}");
+          // print("payment :${payment}");
           return Payment(
               id:payment['id'],
               transactionDate:transactionDate,
