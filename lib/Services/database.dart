@@ -2,12 +2,12 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DatabaseProvider {
   static const _databaseName = 'payments.db';
-  static const _databaseVersion = 2;
+  static const _databaseVersion = 3;
 
   // Singleton instance of the database
   static Database? _database;
@@ -34,10 +34,10 @@ class DatabaseProvider {
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+
     if (oldVersion < 3) {
-      // Add the new column for version 2
       await db.execute('''
-      ALTER TABLE payments ADD COLUMN isDepositChecked BOOLEAN DEFAULT 0;
+      ALTER TABLE payments ADD COLUMN transactionId TEXT;
     ''');
     }
   }
@@ -65,9 +65,9 @@ class DatabaseProvider {
         transactionDate TEXT,
         cancellationDate TEXT,
         userId ,
-        isDepositChecked BOOLEAN DEFAULT 0
+        isDepositChecked BOOLEAN DEFAULT 0,
+        transactionId TEXT
       )
-      
       
     ''');
 
@@ -261,12 +261,15 @@ class DatabaseProvider {
       paymentData['lastUpdatedDate'] = formatDateTimeWithMilliseconds(DateTime.now());
     }
 
+    // Generate transactionId
+    var uuid = Uuid();
+    paymentData['transactionId'] = uuid.v4();
+
     // Insert the payment data into the database and return the ID of the new row
     int id = await db.insert('payments', paymentData);
     print("the id of new payment is to return : ${id}");
     Map<String, dynamic>? newPayment = await getPaymentById(id);
-    print("the new payment after saved to db :");
-    print(newPayment);
+    print("the new payment after saved to db : $newPayment");
     print("savePayment method in database.dart finished");
 
     return id;

@@ -156,6 +156,7 @@ class PaymentService {
 
     print("pp :${payment}");
     Map<String, dynamic> body = {
+      'transactionId': payment['transactionId'],
       'transactionDate': payment['transactionDate'],
       'accountName': payment['customerName'],
       'msisdn': payment['msisdn'],
