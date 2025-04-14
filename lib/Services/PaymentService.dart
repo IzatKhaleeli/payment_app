@@ -38,7 +38,7 @@ class PaymentService {
   static Future<void> startPeriodicNetworkTest(BuildContext context) async {
       _cancelNetworkTimer(); // Cancel the existing timer if any.
       // Start the periodic timer after ensuring sync has completed.
-      _networkTimer = Timer.periodic(Duration(seconds: 6), (Timer timer) async {
+      _networkTimer = Timer.periodic(Duration(seconds: 4), (Timer timer) async {
         await _checkNetworkAndSync(context);
       });
     }

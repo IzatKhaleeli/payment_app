@@ -4,20 +4,11 @@ import 'dart:io';
 import '../Screens/ShareScreenOptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Custom_Widgets/CustomPopups.dart';
 import '../Models/Payment.dart';
 import '../Services/LocalizationService.dart'; // Adjust import if needed
-import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as path;
-
-import 'package:http_parser/http_parser.dart';
-
 import '../Services/PaymentService.dart';
 import '../Services/apiConstants.dart';
 import '../Services/networking.dart';
@@ -80,6 +71,189 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
       return '** $key not found';
     }
     return _emailJson![key] ?? '** $key not found';
+  }
+
+  Future<void> sendPdfFileViaApi(BuildContext context,File pdfFile, String toEmail, String subject,String fileName,String languageCode,String transactionDate,) async {
+    try {
+
+
+      // Add headers
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? tokenID = prefs.getString('token');
+      if (tokenID == null) {
+        print('Token not found');
+        return;
+      }
+      String fullToken = "Barer ${tokenID}";
+      print(fullToken);
+      Map<String, String> headers = {
+        'tokenID': fullToken,
+      };
+      Map<String, String> emailDetails = {
+        'to': toEmail,
+        'transactionDate': transactionDate,
+        'languageCode': _selectedLanguage,
+      };
+
+      NetworkHelper networkHelper = NetworkHelper(
+          url: apiUrlEmail, // Replace with your API URL
+          headers: headers
+      );
+
+      print("emailDetails :${emailDetails}");
+      String emailDetailsJson = jsonEncode(emailDetails);
+      print("file name before send : ${fileName}");
+      dynamic response = await networkHelper.uploadFile(
+        fileName: fileName,
+        file: pdfFile,
+        emailDetailsJson: emailDetailsJson,
+      ).timeout(Duration(seconds: 7));
+
+      if (response == 200) {
+        CustomPopups.showCustomResultPopup(
+          context: context,
+          icon: Icon(Icons.check_circle, color: Colors.green, size: 40),
+          message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailOk"),
+          buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+          onPressButton: () {
+            // Define what happens when the button is pressed
+            print('Success acknowledged');
+          },
+        );
+      }
+      else if (response.statusCode == 429) {
+        CustomPopups.showCustomResultPopup(
+          context: context,
+          icon: Icon(Icons.error, color: Colors.red, size: 40),
+          message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("exceedNumberOfRequest"),
+          buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+          onPressButton: () {
+            print('Exceed number of request');
+          },
+        );
+      }
+      else if(response == 401){
+        int responseNumber = await PaymentService.attemptReLogin(context);
+        print("the response number from get expend the session is :${responseNumber}");
+        if(responseNumber == 200 ){
+          print("relogin successfully");
+          tokenID = prefs.getString('token');
+          if (tokenID == null) {
+            print('Token not found');
+            return;
+          }
+          fullToken = "Barer ${tokenID}";
+          headers = {
+            'tokenID': fullToken,
+          };
+          networkHelper = NetworkHelper(
+              url: apiUrlEmail, // Replace with your API URL
+              headers: headers
+          );
+
+          dynamic reloginResponse = await networkHelper.uploadFile(
+            fileName: fileName,
+            file: pdfFile,
+            emailDetailsJson: emailDetailsJson,
+          );
+          if (reloginResponse == 200) {
+            CustomPopups.showCustomResultPopup(
+              context: context,
+              icon: Icon(Icons.check_circle, color: Colors.green, size: 40),
+              message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailOk"),
+              buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+              onPressButton: () {
+                // Define what happens when the button is pressed
+                print('Success acknowledged');
+              },
+            );
+          }
+          else if (response.statusCode == 429) {
+            CustomPopups.showCustomResultPopup(
+              context: context,
+              icon: Icon(Icons.error, color: Colors.red, size: 40),
+              message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("exceedNumberOfRequest"),
+              buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+              onPressButton: () {
+                print('Exceed number of request');
+              },
+            );
+          }
+          else {
+            CustomPopups.showCustomResultPopup(
+              context: context,
+              icon: Icon(Icons.error, color: Colors.red, size: 40),
+              message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $reloginResponse.statusCode',
+              buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+              onPressButton: () {
+                print('Failed to upload file. Status code: ${reloginResponse.statusCode}');
+              },
+            );
+          }
+
+
+
+        }
+      }
+      else if (response.statusCode == 408) {
+        CustomPopups.showCustomResultPopup(
+          context: context,
+          icon: Icon(Icons.error, color: Colors.red, size: 40),
+          message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkTimeoutError"),
+          buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+          onPressButton: () {
+            print('Error timeout');
+          },
+        );
+      }
+      else {
+        print(response.statusCode);
+        print(response.reasonPhrase);
+
+        CustomPopups.showCustomResultPopup(
+          context: context,
+          icon: Icon(Icons.error, color: Colors.red, size: 40),
+          message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $response.statusCode',
+          buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+          onPressButton: () {
+            print('Failed to upload file. Status code: ${response.statusCode}');
+          },
+        );
+      }
+    }
+    on SocketException catch (e) {
+      CustomPopups.showCustomResultPopup(
+        context: context,
+        icon: Icon(Icons.error, color: Colors.red, size: 40),
+        message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkError"),
+        buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+        onPressButton: () {
+          print('Network error acknowledged');
+        },
+      );
+    } on TimeoutException catch (e) {
+      CustomPopups.showCustomResultPopup(
+        context: context,
+        icon: Icon(Icons.error, color: Colors.red, size: 40),
+        message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkTimeoutError"),
+        buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+        onPressButton: () {
+          print('Timeout error acknowledged');
+        },
+      );
+    }
+    catch (e) {
+      CustomPopups.showCustomResultPopup(
+        context: context,
+        icon: Icon(Icons.error, color: Colors.red, size: 40),
+        message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}',
+        buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+        onPressButton: () {
+// Define what happens when the button is pressed
+          print('Error: $e');
+        },
+      );
+    }
   }
 
   @override
@@ -256,189 +430,6 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
         ),
       ),
     );
-  }
-
-  Future<void> sendPdfFileViaApi(BuildContext context,File pdfFile, String toEmail, String subject,String fileName,String languageCode,String transactionDate,) async {
-    try {
-
-
-      // Add headers
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? tokenID = prefs.getString('token');
-      if (tokenID == null) {
-        print('Token not found');
-        return;
-      }
-      String fullToken = "Barer ${tokenID}";
-      print(fullToken);
-      Map<String, String> headers = {
-        'tokenID': fullToken,
-      };
-      Map<String, String> emailDetails = {
-        'to': toEmail,
-        'transactionDate': transactionDate,
-        'languageCode': _selectedLanguage,
-      };
-
-      NetworkHelper networkHelper = NetworkHelper(
-        url: apiUrlEmail, // Replace with your API URL
-        headers: headers
-      );
-
-      print("emailDetails :${emailDetails}");
-      String emailDetailsJson = jsonEncode(emailDetails);
-      print("file name before send : ${fileName}");
-      dynamic response = await networkHelper.uploadFile(
-        fileName: fileName,
-        file: pdfFile,
-        emailDetailsJson: emailDetailsJson,
-      ).timeout(Duration(seconds: 7));
-
-      if (response == 200) {
-        CustomPopups.showCustomResultPopup(
-          context: context,
-          icon: Icon(Icons.check_circle, color: Colors.green, size: 40),
-          message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailOk"),
-          buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-          onPressButton: () {
-            // Define what happens when the button is pressed
-            print('Success acknowledged');
-          },
-        );
-      }
-      else if (response.statusCode == 429) {
-        CustomPopups.showCustomResultPopup(
-          context: context,
-          icon: Icon(Icons.error, color: Colors.red, size: 40),
-          message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("exceedNumberOfRequest"),
-          buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-          onPressButton: () {
-            print('Exceed number of request');
-          },
-        );
-      }
-      else if(response == 401){
-        int responseNumber = await PaymentService.attemptReLogin(context);
-        print("the response number from get expend the session is :${responseNumber}");
-        if(responseNumber == 200 ){
-          print("relogin successfully");
-          tokenID = prefs.getString('token');
-          if (tokenID == null) {
-            print('Token not found');
-            return;
-          }
-          fullToken = "Barer ${tokenID}";
-          headers = {
-            'tokenID': fullToken,
-          };
-          networkHelper = NetworkHelper(
-              url: apiUrlEmail, // Replace with your API URL
-              headers: headers
-          );
-
-          dynamic reloginResponse = await networkHelper.uploadFile(
-            fileName: fileName,
-            file: pdfFile,
-            emailDetailsJson: emailDetailsJson,
-          );
-          if (reloginResponse == 200) {
-            CustomPopups.showCustomResultPopup(
-              context: context,
-              icon: Icon(Icons.check_circle, color: Colors.green, size: 40),
-              message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailOk"),
-              buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-              onPressButton: () {
-                // Define what happens when the button is pressed
-                print('Success acknowledged');
-              },
-            );
-          }
-          else if (response.statusCode == 429) {
-            CustomPopups.showCustomResultPopup(
-              context: context,
-              icon: Icon(Icons.error, color: Colors.red, size: 40),
-              message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("exceedNumberOfRequest"),
-              buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-              onPressButton: () {
-                print('Exceed number of request');
-              },
-            );
-          }
-          else {
-            CustomPopups.showCustomResultPopup(
-              context: context,
-              icon: Icon(Icons.error, color: Colors.red, size: 40),
-              message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $reloginResponse.statusCode',
-              buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-              onPressButton: () {
-                print('Failed to upload file. Status code: ${reloginResponse.statusCode}');
-              },
-            );
-          }
-
-
-
-        }
-      }
-      else if (response.statusCode == 408) {
-        CustomPopups.showCustomResultPopup(
-          context: context,
-          icon: Icon(Icons.error, color: Colors.red, size: 40),
-          message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkTimeoutError"),
-          buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-          onPressButton: () {
-            print('Error timeout');
-          },
-        );
-      }
-      else {
-        print(response.statusCode);
-        print(response.reasonPhrase);
-
-        CustomPopups.showCustomResultPopup(
-          context: context,
-          icon: Icon(Icons.error, color: Colors.red, size: 40),
-          message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $response.statusCode',
-          buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-          onPressButton: () {
-            print('Failed to upload file. Status code: ${response.statusCode}');
-          },
-        );
-      }
-    }
-    on SocketException catch (e) {
-      CustomPopups.showCustomResultPopup(
-        context: context,
-        icon: Icon(Icons.error, color: Colors.red, size: 40),
-        message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkError"),
-        buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-        onPressButton: () {
-          print('Network error acknowledged');
-        },
-      );
-    } on TimeoutException catch (e) {
-      CustomPopups.showCustomResultPopup(
-        context: context,
-        icon: Icon(Icons.error, color: Colors.red, size: 40),
-        message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkTimeoutError"),
-        buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-        onPressButton: () {
-          print('Timeout error acknowledged');
-        },
-      );
-    }
-    catch (e) {
-      CustomPopups.showCustomResultPopup(
-        context: context,
-        icon: Icon(Icons.error, color: Colors.red, size: 40),
-        message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}',
-        buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-        onPressButton: () {
-// Define what happens when the button is pressed
-          print('Error: $e');
-        },
-      );
-    }
   }
 
   Widget _buildLanguageButton(
