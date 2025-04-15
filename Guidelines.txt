@@ -1,0 +1,13 @@
+To Create IPA version on ios :
+
+1- git clone https://github.com/ezatkh/payment_app.git
+2- cd payment_app
+3- flutter pub get
+4- cd ios
+5- open the pod fie and uncommit then edit the version to 13
+6- pod install
+7- open Runner.xcworkspace
+8- Runner -> General -> min deployments edit to 13
+9- Runner -> signing & capabilities -> choose team and bundle identifier
+10- from tabs above -> Product -> Archive
+11- Choose archive -> Click Distribute App - > Release Testing - > click distribute -> then export
