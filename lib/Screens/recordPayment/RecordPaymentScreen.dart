@@ -1229,8 +1229,13 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       Navigator.pop(context); // pop the dialog
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PaymentConfirmationScreen(paymentId: idPaymentStored))); // Navigate to view payment screen after agreed
     }catch (e) {
-      print('Error saving payment: $e');
-      // Handle error scenario
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving payment: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
