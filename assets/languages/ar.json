@@ -250,6 +250,7 @@
   "deposit": "إيداع",
   "no": "لا",
   "yes": "نعم",
-  "amountFormatter": "يجب أن يكون المبلغ بصيغة XXX.XX (مثل 123.45)"
+  "amountFormatter": "يجب أن يكون المبلغ بصيغة XXX.XX (مثل 123.45)",
+  "unexpectedError": "خطأ غير متوقع"
 
 }

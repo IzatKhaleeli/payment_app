@@ -265,5 +265,6 @@
   "deposit": "Deposit",
   "no": "No",
   "yes": "Yes",
-  "amountFormatter": "Amount must follow the format XXX.XX (e.g., 123.45)."
+  "amountFormatter": "Amount must follow the format XXX.XX (e.g., 123.45).",
+  "unexpectedError": "Unexpected Error"
 }

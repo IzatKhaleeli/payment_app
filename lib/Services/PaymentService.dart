@@ -268,7 +268,6 @@ class PaymentService {
           await SmsService.sendSmsRequest(context, paymentToCancel["msisdn"],'ar', amount, paymentToCancel["currency"], paymentToCancel["voucherSerialNumber"], paymentToCancel["paymentMethod"].toString().toLowerCase()=='cash' ? 'كاش' : 'شيك',isCancel: true);
 
         }
-
         else {
           Map<String, dynamic> errorResponse = json.decode(response.body);
           print("failed to sync heres the body of response: ${response.body}");
@@ -277,6 +276,7 @@ class PaymentService {
             await DatabaseProvider.cancelPayment(
                 paymentToCancel["voucherSerialNumber"], reason, cancelDateTime,
                 'CancelPending');
+            _syncController.add(null);
             await _attemptReLoginAndRetrySync(context);
           } else {
             print('^ Failed to cancel/sync payment: ${response.body}');

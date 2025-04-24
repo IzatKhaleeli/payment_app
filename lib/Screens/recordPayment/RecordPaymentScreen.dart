@@ -1230,11 +1230,14 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PaymentConfirmationScreen(paymentId: idPaymentStored))); // Navigate to view payment screen after agreed
     }catch (e) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saving payment: $e'),
-          backgroundColor: Colors.red,
-        ),
+      CustomPopups.showCustomResultPopup(
+        context: context,
+        icon: Icon(Icons.check_circle, color: Colors.green, size: 40),
+        message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("unexpectedError")}: $e',
+        buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+        onPressButton: () {
+          print('errorSavingPayment');
+        },
       );
     }
   }
