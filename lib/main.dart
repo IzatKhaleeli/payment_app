@@ -114,7 +114,7 @@ class MyApp extends StatelessWidget {
           body: Center(
             child: Text(
               'This application cannot be run on jailbroken devices.',
-              style: TextStyle(color: Colors.red, fontSize: 18),
+              style: TextStyle(color: Color(0xFFC62828), fontSize: 18),
               textAlign: TextAlign.center,
             ),
           ),

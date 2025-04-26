@@ -43,7 +43,7 @@ class ShareScreenOptions {
           } else {
             CustomPopups.showCustomResultPopup(
               context: context,
-              icon: Icon(Icons.error, color: Colors.red, size: 40),
+              icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
               message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("printFailed")}: Failed to load PDF',
               buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
               onPressButton: () {
@@ -71,7 +71,7 @@ class ShareScreenOptions {
 
             CustomPopups.showCustomResultPopup(
               context: context,
-              icon: Icon(Icons.error, color: Colors.red, size: 40),
+              icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
               message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentWhatsFailed")}: Failed to upload file',
               buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
               onPressButton: () {
@@ -113,7 +113,7 @@ class ShareScreenOptions {
           } else {
             CustomPopups.showCustomResultPopup(
               context: context,
-              icon: Icon(Icons.error, color: Colors.red, size: 40),
+              icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
               message: '${Provider.of<LocalizationService>(
                   context, listen: false).getLocalizedString(
                   "paymentSentWhatsFailed")}: Failed to upload file',

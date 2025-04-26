@@ -124,7 +124,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
       else if (response.statusCode == 429) {
         CustomPopups.showCustomResultPopup(
           context: context,
-          icon: Icon(Icons.error, color: Colors.red, size: 40),
+          icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
           message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("exceedNumberOfRequest"),
           buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
           onPressButton: () {
@@ -171,7 +171,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
           else if (response.statusCode == 429) {
             CustomPopups.showCustomResultPopup(
               context: context,
-              icon: Icon(Icons.error, color: Colors.red, size: 40),
+              icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
               message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("exceedNumberOfRequest"),
               buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
               onPressButton: () {
@@ -182,7 +182,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
           else {
             CustomPopups.showCustomResultPopup(
               context: context,
-              icon: Icon(Icons.error, color: Colors.red, size: 40),
+              icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
               message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $reloginResponse.statusCode',
               buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
               onPressButton: () {
@@ -198,7 +198,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
       else if (response.statusCode == 408) {
         CustomPopups.showCustomResultPopup(
           context: context,
-          icon: Icon(Icons.error, color: Colors.red, size: 40),
+          icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
           message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkTimeoutError"),
           buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
           onPressButton: () {
@@ -212,7 +212,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
 
         CustomPopups.showCustomResultPopup(
           context: context,
-          icon: Icon(Icons.error, color: Colors.red, size: 40),
+          icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
           message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $response.statusCode',
           buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
           onPressButton: () {
@@ -224,7 +224,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     on SocketException catch (e) {
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.error, color: Colors.red, size: 40),
+        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
         message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkError"),
         buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
         onPressButton: () {
@@ -234,7 +234,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     } on TimeoutException catch (e) {
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.error, color: Colors.red, size: 40),
+        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
         message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkTimeoutError"),
         buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
         onPressButton: () {
@@ -245,7 +245,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     catch (e) {
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.error, color: Colors.red, size: 40),
+        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
         message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}',
         buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
         onPressButton: () {
@@ -305,7 +305,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                     labelText: appLocalization.getLocalizedString('to'),
                     labelStyle: TextStyle(fontSize: 14, color: Colors.grey[700]),
                     errorText: _errorText,
-                    errorStyle: TextStyle(color: Colors.red, fontSize: 14),
+                    errorStyle: TextStyle(color: Color(0xFFC62828), fontSize: 14),
                     filled: true,
                     fillColor: Colors.white,
                     contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),

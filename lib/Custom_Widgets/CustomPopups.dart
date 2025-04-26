@@ -281,7 +281,7 @@ class CustomPopups {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red, // Red button
+                    backgroundColor: Color(0xFFC62828), // Red button
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

@@ -20,8 +20,12 @@ import 'LocalizationService.dart';
 import 'apiConstants.dart';
 import 'package:mutex/mutex.dart';
 
+import 'globalError.dart';
+
 
 class PaymentService {
+  static bool _isErrorShowing = false;
+
   static Timer? _networkTimer; // Reference to the Timer
   static final StreamController<void> _syncController = StreamController<
       void>.broadcast();
@@ -91,7 +95,7 @@ class PaymentService {
       }
 
       for (var payment in confirmedPayments) {
-        PaymentService.syncPayment(payment, apiUrl, headers, context);
+        await PaymentService.syncPayment(payment, apiUrl, headers, context);
       }
 
       for (var p in cancelledPendingPayments) {
@@ -150,11 +154,11 @@ class PaymentService {
 
   static Future <void> syncPayment(Map<String, dynamic> payment, String apiUrl,
       Map<String, String> headers, BuildContext context) async {
+    try{
     String theSumOf = payment['paymentMethod'].toLowerCase() == 'cash'
         ? convertAmountToWords(payment['amount'])
         : convertAmountToWords(payment['amountCheck']);
 
-    print("pp :${payment}");
     Map<String, dynamic> body = {
       'transactionId': payment['transactionId'],
       'transactionDate': payment['transactionDate'],
@@ -175,21 +179,27 @@ class PaymentService {
       'theSumOf': theSumOf,
       'isDeposit': payment['isDepositChecked'] == 0 ? false :true
     };
-    print(body);
+    print("body payment to sync :${body}");
 
-    try {
+
       if(payment["status"].toString().toLowerCase() == "synced")
         return;
       print("the payment :${payment['transactionDate']} stats to sync is :${payment["status"]}");
       print("before send sync api");
       // Make POST request
-      final response = await http.post(
+     http.Response? response;
+
+    try {
+      response = await http.post(
         Uri.parse(apiUrl),
         headers: headers,
         body: json.encode(body),
       ).timeout(Duration(seconds: 4));
-
-      if (response.statusCode == 200) {
+    }
+    catch (e) {
+      GlobalErrorNotifier.showError("Error: $e");
+    }
+      if (response!.statusCode == 200) {
         print("inside status code 200 of sync api");
 
         // Parse the response
@@ -218,9 +228,13 @@ class PaymentService {
 
         }
       }
+      print("sync payment try");
+
     } catch (e) {
-      print('Error syncing payment exc: $e');
+      print("sync payment error :${e}");
+
     }
+
   }
 
 
@@ -301,7 +315,6 @@ class PaymentService {
 
        if (loginSuccessful["status"] == 200) {
         print("Re-login successful");
-          // await syncPayments(context); // Retry the sync with new token
       }
        else if(loginSuccessful["status"] == 503){
            print("Re-login failed.credentials error Unable to sync payment.");
@@ -506,5 +519,84 @@ class PaymentService {
 
     return NumberToWordsEnglish.convert(amountInt);
   }
+
+  // Show only loading (no logout logic)
+  static void showLoadingOnly(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10.r),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Container(
+                width: 130.w,
+                height: 100.h,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SpinKitFadingCircle(
+                      itemBuilder: (BuildContext context, int index) {
+                        return DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: index.isEven
+                                ? Colors.white
+                                : Colors.grey[300],
+                          ),
+                        );
+                      },
+                    ),
+                    SizedBox(height: 10.h),
+                    Text(
+                      Provider.of<LocalizationService>(context, listen: false).getLocalizedString('pleaseWait'),
+                      style: TextStyle(
+                        decoration: TextDecoration.none,
+                        color: Colors.white,
+                        fontFamily: 'NotoSansUI',
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+// When logout is done
+  static Future<void> completeLogout(BuildContext context) async {
+    await Future.delayed(const Duration(milliseconds: 500)); // small delay for UX feel
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('language_code');
+    await prefs.setString('language_code', 'ar');
+    await prefs.remove('usernameLogin');
+    _cancelNetworkTimer();
+
+    Navigator.of(context).pop(); // Dismiss loading dialog
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+          (route) => false,
+    );
+  }
+
 
 }

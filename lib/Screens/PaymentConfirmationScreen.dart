@@ -33,6 +33,7 @@ class PaymentConfirmationScreen extends StatefulWidget {
 }
 
 class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
+  late LocalizationService _localizationService;
   String voucherNumber = "";
   String paymentInvoiceFor = "";
   String amountCheck = "";
@@ -77,12 +78,18 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
   @override
   void initState() {
-    _fetchPaymentDetails();
     super.initState();
-    _initializeLocalizationStrings();
+    _fetchPaymentDetails();
     _syncSubscription = PaymentService.syncStream.listen((_) {
       _fetchPaymentDetails();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _localizationService = Provider.of<LocalizationService>(context, listen: false);
+    _initializeLocalizationStrings();
   }
 
   @override
@@ -91,48 +98,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     super.dispose();
   }
 
-  void _initializeLocalizationStrings() {
-    final localizationService = Provider.of<LocalizationService>(context, listen: false);
-    languageCode = localizationService.selectedLanguageCode;
-    voucherNumber = localizationService.getLocalizedString('voucherNumber') ?? 'Voucher Number';
-    paymentInvoiceFor = localizationService.getLocalizedString('paymentInvoiceFor') ?? 'Confirm Payment';
-    amountCheck = localizationService.getLocalizedString('amountCheck') ?? 'Confirm Payment';
-    checkNumber = localizationService.getLocalizedString('checkNumber') ?? 'Confirm Payment';
-    bankBranch = localizationService.getLocalizedString('bankBranchCheck') ?? 'Confirm Payment';
-    dueDateCheck = localizationService.getLocalizedString('dueDateCheck') ?? 'Confirm Payment';
-    amount = localizationService.getLocalizedString('amount') ?? 'Confirm Payment';
-    currency = localizationService.getLocalizedString('currency') ?? 'Confirm Payment';
-    deposit = localizationService.getLocalizedString('deposit') ?? 'Confirm Payment';
-    cancellationDate = localizationService.getLocalizedString('cancellationDate') ?? 'Confirm Payment';
-
-    ok = localizationService.getLocalizedString('ok') ?? 'Confirm Payment';
-    status = localizationService.getLocalizedString('status') ?? '';
-    prNumber = localizationService.getLocalizedString('PR') ?? 'Confirm Payment';
-    msisdn = localizationService.getLocalizedString('MSISDN') ?? 'Confirm Payment';
-    theSumOf = localizationService.getLocalizedString('theSumOf') ?? 'Confirm Payment';
-
-    viewPayment = localizationService.getLocalizedString('viewPayment') ?? 'Confirm Payment';
-    savePayment = localizationService.getLocalizedString('savePayment') ?? 'Save Payment';
-    confirmPayment = localizationService.getLocalizedString('confirmPayment') ?? 'Confirm Payment';
-
-    paymentSummary = localizationService.getLocalizedString('paymentSummary') ?? 'Payment Summary';
-    customerName = localizationService.getLocalizedString('customerName') ?? 'Customer Name';
-    paymentMethod = localizationService.getLocalizedString('paymentMethod') ?? 'Payment Method';
-
-    confirm = localizationService.getLocalizedString('confirm') ?? 'Confirm';
-    paymentSuccessful = localizationService.getLocalizedString('paymentSuccessful') ?? 'Payment Successful';
-    paymentSuccessfulBody = localizationService.getLocalizedString('paymentSuccessfulBody') ?? 'Your payment was successful!';
-    cancel = localizationService.getLocalizedString('cancel') ?? 'Cancel';
-    cancelReason = localizationService.getLocalizedString('cancelReason') ?? 'Confirm Payment';
-
-    transactionDate = localizationService.getLocalizedString('transactionDate') ?? 'Confirm Payment';
-    transactionTime = localizationService.getLocalizedString('transactionTime') ?? 'Confirm Payment';
-    saved = localizationService.getLocalizedString('saved') ?? 'Confirm Payment';
-    synced = localizationService.getLocalizedString('synced') ?? 'Confirm Payment';
-    confirmed = localizationService.getLocalizedString('confirmed') ?? 'Confirm Payment';
-    cancelled = localizationService.getLocalizedString('cancelled') ?? 'Confirm Payment';
-    cancelPending = localizationService.getLocalizedString('cancelpending') ?? 'Confirm Payment';
-  }
 
   Future<void> _fetchPaymentDetails() async {
     try {
@@ -141,12 +106,14 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         String currencyId = widget.paymentDetails!['currency']?.toString() ?? '';
         // Fetch the currency by ID
         Map<String, dynamic>? currency = await DatabaseProvider.getCurrencyById(currencyId);
+        if (!mounted) return;
         setState(() {
           AppearedCurrency = Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode == 'ar' ? currency!["arabicName"] :  currency!["englishName"];
         });
 
         String bankId = widget.paymentDetails!['bankBranch']?.toString() ?? '';
         Map<String, dynamic>? bank = await DatabaseProvider.getBankById(bankId);
+        if (!mounted) return;
         setState(() {
           if (bank != null) {
             AppearedBank = Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode == 'ar'
@@ -226,6 +193,49 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         ),
       ),
     );
+  }
+
+  void _initializeLocalizationStrings() {
+    final localizationService = Provider.of<LocalizationService>(context, listen: false);
+    languageCode = localizationService.selectedLanguageCode;
+    voucherNumber = localizationService.getLocalizedString('voucherNumber') ?? 'Voucher Number';
+    paymentInvoiceFor = localizationService.getLocalizedString('paymentInvoiceFor') ?? 'Confirm Payment';
+    amountCheck = localizationService.getLocalizedString('amountCheck') ?? 'Confirm Payment';
+    checkNumber = localizationService.getLocalizedString('checkNumber') ?? 'Confirm Payment';
+    bankBranch = localizationService.getLocalizedString('bankBranchCheck') ?? 'Confirm Payment';
+    dueDateCheck = localizationService.getLocalizedString('dueDateCheck') ?? 'Confirm Payment';
+    amount = localizationService.getLocalizedString('amount') ?? 'Confirm Payment';
+    currency = localizationService.getLocalizedString('currency') ?? 'Confirm Payment';
+    deposit = localizationService.getLocalizedString('deposit') ?? 'Confirm Payment';
+    cancellationDate = localizationService.getLocalizedString('cancellationDate') ?? 'Confirm Payment';
+
+    ok = localizationService.getLocalizedString('ok') ?? 'Confirm Payment';
+    status = localizationService.getLocalizedString('status') ?? '';
+    prNumber = localizationService.getLocalizedString('PR') ?? 'Confirm Payment';
+    msisdn = localizationService.getLocalizedString('MSISDN') ?? 'Confirm Payment';
+    theSumOf = localizationService.getLocalizedString('theSumOf') ?? 'Confirm Payment';
+
+    viewPayment = localizationService.getLocalizedString('viewPayment') ?? 'Confirm Payment';
+    savePayment = localizationService.getLocalizedString('savePayment') ?? 'Save Payment';
+    confirmPayment = localizationService.getLocalizedString('confirmPayment') ?? 'Confirm Payment';
+
+    paymentSummary = localizationService.getLocalizedString('paymentSummary') ?? 'Payment Summary';
+    customerName = localizationService.getLocalizedString('customerName') ?? 'Customer Name';
+    paymentMethod = localizationService.getLocalizedString('paymentMethod') ?? 'Payment Method';
+
+    confirm = localizationService.getLocalizedString('confirm') ?? 'Confirm';
+    paymentSuccessful = localizationService.getLocalizedString('paymentSuccessful') ?? 'Payment Successful';
+    paymentSuccessfulBody = localizationService.getLocalizedString('paymentSuccessfulBody') ?? 'Your payment was successful!';
+    cancel = localizationService.getLocalizedString('cancel') ?? 'Cancel';
+    cancelReason = localizationService.getLocalizedString('cancelReason') ?? 'Confirm Payment';
+
+    transactionDate = localizationService.getLocalizedString('transactionDate') ?? 'Confirm Payment';
+    transactionTime = localizationService.getLocalizedString('transactionTime') ?? 'Confirm Payment';
+    saved = localizationService.getLocalizedString('saved') ?? 'Confirm Payment';
+    synced = localizationService.getLocalizedString('synced') ?? 'Confirm Payment';
+    confirmed = localizationService.getLocalizedString('confirmed') ?? 'Confirm Payment';
+    cancelled = localizationService.getLocalizedString('cancelled') ?? 'Confirm Payment';
+    cancelPending = localizationService.getLocalizedString('cancelpending') ?? 'Confirm Payment';
   }
 
   Widget _buildPaymentDetailCard() {
@@ -364,7 +374,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               Tooltip(
                 message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('openAsPdf'),
                 child: IconButton(
-                  icon: FaIcon(FontAwesomeIcons.filePdf, color: Colors.red),
+                  icon: FaIcon(FontAwesomeIcons.filePdf, color: Color(0xFFC62828)),
                   onPressed: () async{
                     ShareScreenOptions.showLanguageSelectionAndShare(context, widget.paymentId,ShareOption.OpenPDF);
                   },
@@ -378,15 +388,19 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                     message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancelPayment'),
                     child: IconButton(
                       icon: Icon(Icons.cancel, color: Colors.red),
-                      onPressed: () {
+                      onPressed: () async {
                         if (widget.paymentId != null) {
                           final int idToCancel = widget.paymentId!;
-                          showDialog(
+                          final result = await showDialog(
                             context: context,
                             builder: (BuildContext context) {
                               return PaymentCancellationScreen(id: idToCancel);
                             },
                           );
+                          if (result == true) {
+                            // If cancellation was successful, refresh the payment details
+                            _fetchPaymentDetails();
+                          }
                         }
                       },
                     ),
@@ -414,7 +428,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                                 print('Cancel button pressed');
 
                               },
-                              secondButtonText: 'printerSetting',
+                              secondButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("printerSettings"),
                               onSecondButtonPressed: () {
                                 // Handle confirm action
                                 print('Confirm button pressed');
@@ -515,10 +529,10 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                   Tooltip(
                     message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('deletePayment'),
                     child: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
+                      icon: Icon(Icons.delete, color: Color(0xFFC62828)),
                       onPressed: () {
                         CustomPopups.showCustomDialog(  context: context,
-                          icon: Icon(Icons.delete, size: 60, color: Colors.red),
+                          icon: Icon(Icons.delete, size: 60, color: Color(0xFFC62828)),
                           title: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('deletePayment'),
                           message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('deletePaymentBody'),
                           deleteButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('ok'),

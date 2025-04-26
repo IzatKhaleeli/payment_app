@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:ooredoo_app/Screens/printerService/PrinterSettingScreen.dart';
 import '../Screens/PaymentCancellationScreen.dart';
+import '../Services/globalError.dart';
 import 'recordPayment/RecordPaymentScreen.dart';
 import '../Screens/ShareScreenOptions.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +46,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
 
   void _fetchPayments() async {
     if (!mounted) return;
-
     if (_currencies ==null || _currencies.length<1){
       // print("no currency");
       List<Map<String, dynamic>> currencies = await DatabaseProvider.getAllCurrencies();
@@ -56,6 +56,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         String name = selectedCode == "ar" ? currency["arabicName"] : currency["englishName"];
         currencyMap[id] = name;
       }
+      if (!mounted) return;
       setState(() {
         _currencies=currencyMap;
       });
@@ -70,6 +71,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         String name = selectedCode == "ar" ? bank["arabicName"] : bank["englishName"];
         bankMap[id] = name;
       }
+      if (!mounted) return;
       setState(() {
         _banks=bankMap;
       });
@@ -195,6 +197,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   @override
   void dispose() {
     _syncSubscription.cancel();
+    GlobalErrorNotifier.clearError(); // Clear immediately
     super.dispose();
   }
 
@@ -220,27 +223,61 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         backgroundColor: Color(0xFFC62828),
 
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(12.w),
-        child: Column(
-          children: [
-            _buildFilterSection(),
-            _buildSelectedStatuses(),
-            SizedBox(height: 10.h),
-            Divider(
-              color: Colors.grey[400],
-              height: 3,
-              thickness: 2, // This will make the divider line thicker
-              indent: 8,  // Optional: You can adjust the left margin if needed
-              endIndent: 8,  // Optional: You can adjust the right margin if needed
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: EdgeInsets.all(12.w),
+            child: Column(
+              children: [
+                _buildFilterSection(),
+                _buildSelectedStatuses(),
+                SizedBox(height: 10.h),
+                Divider(
+                  color: Colors.grey[400],
+                  height: 3,
+                  thickness: 2, // This will make the divider line thicker
+                  indent: 8,  // Optional: You can adjust the left margin if needed
+                  endIndent: 8,  // Optional: You can adjust the right margin if needed
+                ),
+                SizedBox(height: 10.h),
+                Container(
+                  margin: EdgeInsets.only(bottom: 50.h), // Margin from the bottom button
+                  child: _buildPaymentRecordsList(),
+                ),
+              ],
             ),
-            SizedBox(height: 10.h),
-            Container(
-              margin: EdgeInsets.only(bottom: 50.h), // Margin from the bottom button
-              child: _buildPaymentRecordsList(),
-            ),
-          ],
-        ),
+          ),
+          ValueListenableBuilder<String?>(
+            valueListenable: GlobalErrorNotifier.errorTextNotifier,
+            builder: (context, errorText, _) {
+              if (errorText == null) return SizedBox.shrink();
+
+              return Positioned(
+                bottom: 60, // 👈 show above bottom a little
+                left: 8,
+                right: 8,
+                child: Material(
+                  elevation: 6,
+                  borderRadius: BorderRadius.circular(16),
+                  color: Color(0xFFC62828),
+                  child: ListTile(
+                    title: Text(
+                      errorText,
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(Icons.close, color: Colors.white),
+                      onPressed: () {
+                        GlobalErrorNotifier.clearError();
+                      },
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+
+        ],
       ),
       floatingActionButton: Align(
         alignment: Alignment.bottomCenter,
@@ -383,6 +420,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                   padding: const EdgeInsets.all(2.0), // Padding around the delete icon
                   child: GestureDetector(
                     onTap: () {
+                      if (!mounted) return;
                       setState(() {
                         _selectedStatuses.remove(status);
                         _fetchPayments();
@@ -427,7 +465,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                     onChanged: (bool? value) {
                       setState(() {
                         if (value == true) {
-                          print("sss :${status}");
                           _selectedStatuses.add(status);
                         } else {
                           _selectedStatuses.remove(status);
@@ -446,11 +483,12 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                 ),
                 ElevatedButton(
                   child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('ok')),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _fetchPayments();
-                    setState(() {}); // Update the state to reflect changes
-                  },
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _fetchPayments();
+                      setState(() {});
+                    }
+
                 ),
               ],
             );
@@ -502,11 +540,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         break;
       case 'cancelled':
         statusIcon = Icons.cancel;
-        statusColor = Colors.red;
+        statusColor = Color(0xFFC62828);
         break;
       case 'canceldpending':
         statusIcon = Icons.payment;
-        statusColor = Colors.red;
+        statusColor = Color(0xFFC62828);
 
         break;
       default:
@@ -626,7 +664,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                             Tooltip(
                               message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('openAsPdf'),
                               child: IconButton(
-                                icon: FaIcon(FontAwesomeIcons.filePdf, color: Colors.red ,size: 22,),
+                                icon: FaIcon(FontAwesomeIcons.filePdf, color: Color(0xFFC62828) ,size: 22,),
                                 onPressed: () async{
                                   ShareScreenOptions.showLanguageSelectionAndShare(context,record.id!,ShareOption.OpenPDF);
                                 },
@@ -642,11 +680,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                               Tooltip(
                                 message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('deletePayment'),
                                 child: IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  icon: Icon(Icons.delete, color: Color(0xFFC62828)),
                                   onPressed: () async {
                                     CustomPopups.showCustomDialog(
                                       context: context,
-                                      icon: Icon(Icons.delete, size: 60, color: Colors.red),
+                                      icon: Icon(Icons.delete, size: 60, color: Color(0xFFC62828)),
                                       title: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('deletePayment'),
                                       message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('deletePaymentBody'),
                                       deleteButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('delete'),
@@ -654,8 +692,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                         final int id = record.id!;
                                         await DatabaseProvider.deletePayment(id);
                                         _fetchPayments();
-                                        setState(() {
-                                        });
                                       },
                                     );
                                   },
@@ -680,7 +716,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                   onPressed: () async {
                                     CustomPopups.showCustomDialog(
                                       context: context,
-                                      icon: Icon(Icons.check_circle, size: 50, color: Colors.red), // Customize your icon as needed
+                                      icon: Icon(Icons.check_circle, size: 50, color: Color(0xFFC62828)), // Customize your icon as needed
                                       title: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('confirmPayment'),
                                       message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('confirmPaymentBody'),
                                       deleteButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('confirm'),
@@ -694,13 +730,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                           await DatabaseProvider.updatePaymentStatus(idToConfirm, 'Confirmed');
                                           await PaymentService.syncPayments(context);
 
-                                          // Ensure that the syncSubscription is properly set up
                                           _syncSubscription = PaymentService.syncStream.listen((_) {
-                                            _fetchPayments(); // Refresh payment records
-                                            for (Payment p in _paymentRecords) {
-                                              print("name: ${p.customerName} : status : ${p.status}");
-                                            }
-                                            setState(() {}); // Ensure the UI is updated
+                                            if (!mounted) return; // <- Add this safety check
+                                            _fetchPayments();
+                                            setState(() {});
                                           });
                                         }
                                       },
@@ -718,7 +751,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                 message:Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancelPayment') ,
 
                                 child: IconButton(
-                                  icon: Icon(Icons.cancel, color: Colors.red,size: 22),
+                                  icon: Icon(Icons.cancel, color: Color(0xFFC62828),size: 22),
                                   onPressed: () async {
                                     if (record.id != null) {
                                       final int idToCancel = record.id!;
@@ -730,10 +763,9 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                         },
                                       ) ?? false; // Default to false if dialog is dismissed
 
-                                      if (result) {
-                                        await PaymentService.syncPayments(context);
+                                      if (result == true) {
+                                        // If cancellation was successful, refresh the payment details
                                         _fetchPayments();
-                                        setState(() {});
                                       }
                                     }
                                   },
@@ -752,7 +784,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                     if(printerLabel == null || printerLabel.isEmpty || printerAddress == null || printerAddress.isEmpty){
                                       CustomPopups.showTwoButtonPopup(
                                         context: context,
-                                        icon: Icon(Icons.warning, size: 40, color: Colors.red),
+                                        icon: Icon(Icons.warning, size: 40, color: Color(0xFFC62828)),
                                         message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('noDefaultDeviceSetBody'),
                                         firstButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancel'),
                                         onFirstButtonPressed: () {
@@ -760,7 +792,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                           print('Cancel button pressed');
 
                                         },
-                                        secondButtonText: 'printerSetting',
+                                        secondButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("printerSettings"),
                                         onSecondButtonPressed: () {
                                           // Handle confirm action
                                           print('Confirm button pressed');

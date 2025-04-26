@@ -296,33 +296,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     context: context,
                     label: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('logout'),
                     onPressed: () async {
+                      PaymentService.showLoadingOnly(context);
+
                       var connectivityResult = await (Connectivity().checkConnectivity());
                       print("connectivityResult :${connectivityResult}");
                       if(connectivityResult.toString() != '[ConnectivityResult.none]'){
-                        print("logout have internet");
+                        try {
                         SharedPreferences prefs = await SharedPreferences.getInstance();
                         String? tokenID = prefs.getString('token');
                         print("logout token to delete :${tokenID}");
 
-                        if (tokenID == null) {
-                          print('Token not found');
-                          return;
-                        }
                         String finalLogout ="${apiUrlLogout}?token=${tokenID}";
-                        print("url :${finalLogout}");
-
                         NetworkHelper helper = NetworkHelper(url: finalLogout);
-                        try {
                           var logoutStatus = await helper.getData();
                           print("logout.status :${logoutStatus}");
                         }
                         catch (e) {
                           print("logout failed :${e}");
-                          return ;
+                          //PaymentService.completeLogout(context);
                         }
                       }
-                      PaymentService.showLoadingAndNavigate(context);
-                    },
+                      PaymentService.completeLogout(context);
+                      },
                     backgroundColor: Color(0xFFC62828), // Ooredoo theme color
                     textColor: Colors.white,
                   ),
@@ -379,7 +374,6 @@ class DashboardItem extends StatefulWidget {
 
 class _DashboardItemState extends State<DashboardItem> {
   bool isTapped = false;
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(

@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../Services/LocalizationService.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,10 +18,11 @@ class PaymentCancellationScreen extends StatefulWidget {
 }
 
 class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
+  static final StreamController<void> _syncController = StreamController<
+      void>.broadcast();
+  static Stream<void> get syncStream => _syncController.stream;
   final TextEditingController _reasonController = TextEditingController();
   String? _errorText;
-  bool _isLoading = false; // For loading indicator
-
 
   Future<Map<String, dynamic>?> _fetchPayment(int id) async {
     final payment = await DatabaseProvider.getPaymentById(id);
@@ -28,21 +32,23 @@ class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
   void _handleCancellation(BuildContext context, Map<String, dynamic> paymentToCancel, ) async {
     final reason = _reasonController.text.trim();
     if (reason.isEmpty) {
+      if (!mounted) return;
       setState(() {
         _errorText = '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('reasonCancellation')} ${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('isRequired')}';
       });
     } else {
+      if (!mounted) return;
       setState(() {
         _errorText = null;
-        _isLoading = true; // Show loading indicator
 
       });
-      // Show a loading indicator
-      await PaymentService.cancelPayment(paymentToCancel, reason,context);
-      setState(() {
-        _isLoading = false;
-      });
       Navigator.of(context).pop(true);
+      DateFormat formatter = DateFormat('yyyy-MM-ddTHH:mm:ss');
+      String cancelDateTime = formatter.format(DateTime.now());
+      await DatabaseProvider.cancelPayment(
+          paymentToCancel["voucherSerialNumber"], reason, cancelDateTime,
+          'CancelPending');
+      _syncController.add(null);
     }
   }
 
@@ -64,7 +70,6 @@ class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
             }
 
             final paymentToCancel = snapshot.data!;
-            print("payment to cancel is :${paymentToCancel}");
             return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,

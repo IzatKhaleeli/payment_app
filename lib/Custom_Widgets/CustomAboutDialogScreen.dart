@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../Services/LocalizationService.dart';
+import '../Services/apiConstants.dart';
 
 class CustomAboutDialogScreen extends StatelessWidget {
   @override
@@ -33,9 +34,18 @@ class CustomAboutDialogScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Text(
-                Provider.of<LocalizationService>(context, listen: false).getLocalizedString('aboutTitle'),
+                "${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('aboutTitle')} ",
                 style: TextStyle(fontSize: 22.sp, fontFamily: 'NotoSansUI', fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center,
+              ),
+              (baseUrl == 'https://b2bpayments.ooredoo.ps') ?
+                Text('1.1 P',
+                  style: TextStyle(fontSize: 14.sp, fontFamily: 'NotoSansUI'),
+                  textAlign: TextAlign.center,
+                ):
+              Text('1.1 T',
+              style: TextStyle(fontSize: 14.sp, fontFamily: 'NotoSansUI'),
+              textAlign: TextAlign.center,
               ),
               SizedBox(height: 15.h),
               Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('aboutBody'),

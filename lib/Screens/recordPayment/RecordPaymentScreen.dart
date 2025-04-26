@@ -473,7 +473,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       children: [
         Text(
           '* ',
-          style: TextStyle(color: Colors.red),
+          style: TextStyle(color: Color(0xFFC62828)),
         ),
         Text(
           requiredFields,
@@ -512,10 +512,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         bool isNumeric = false,
         bool isDecimal = false, // New flag to handle decimal input
       }) {
-    // Add a listener for numeric and decimal inputs
-    if (isDecimal) {
-      print("amount validators");
-    }
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 16.w),
       child: Column(
@@ -534,7 +531,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                   TextSpan(
                     text: ' *',
                     style: TextStyle(
-                      color: Colors.red,
+                      color: Color(0xFFC62828),
                       fontSize: 12.sp,
                     ),
                   ),
@@ -605,7 +602,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                   TextSpan(
                     text: ' *',
                     style: TextStyle(
-                      color: Colors.red,
+                      color: Color(0xFFC62828),
                       fontSize: 12.sp,
                     ),
                   ),
@@ -708,7 +705,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                   TextSpan(
                     text: ' *',
                     style: TextStyle(
-                      color: Colors.red,
+                      color: Color(0xFFC62828),
                       fontSize: 12.sp,
                     ),
                   ),
@@ -805,7 +802,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                   TextSpan(
                     text: ' *',
                     style: TextStyle(
-                      color: Colors.red,
+                      color: Color(0xFFC62828),
                       fontSize: 12.sp,
                     ),
                   ),
@@ -874,7 +871,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('customerName')} ${isRequired}'),
-          backgroundColor: Colors.red,
+          backgroundColor: Color(0xFFC62828),
         ),
       );
       return false;
@@ -884,7 +881,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('MSISDN')} ${isRequired}'),
-          backgroundColor: Colors.red,
+          backgroundColor: Color(0xFFC62828),
         ),
       );
       return false;
@@ -893,7 +890,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(maxLengthExceeded),
-          backgroundColor: Colors.red,
+          backgroundColor: Color(0xFFC62828),
         ),
       );
       return false;
@@ -904,7 +901,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('paymentMethod')} ${isRequired}'),
-          backgroundColor: Colors.red,
+          backgroundColor: Color(0xFFC62828),
         ),
       );
       return false;
@@ -917,7 +914,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(invalidMSISDN),
-            backgroundColor: Colors.red,
+            backgroundColor: Color(0xFFC62828),
           ),
         );
         return false;
@@ -929,7 +926,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('PR')} ${mustContainOnlyNumber}'),
-            backgroundColor: Colors.red,
+            backgroundColor: Color(0xFFC62828),
           ),
         );
         return false;
@@ -943,7 +940,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(fieldsMissedMessageError),
-            backgroundColor: Colors.red,
+            backgroundColor: Color(0xFFC62828),
           ),
         );
         return false;
@@ -953,7 +950,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('invalidAmount')),
-            backgroundColor: Colors.red,
+            backgroundColor: Color(0xFFC62828),
           ),
         );
         return false;
@@ -968,7 +965,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(fieldsMissedMessageError),
-            backgroundColor: Colors.red,
+            backgroundColor: Color(0xFFC62828),
           ),
         );
         return false;
@@ -979,7 +976,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('invalidAmount')),
-            backgroundColor: Colors.red,
+            backgroundColor: Color(0xFFC62828),
           ),
         );
         return false;
@@ -990,7 +987,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('checkNumber')} ${mustContainOnlyNumber}'),
-            backgroundColor: Colors.red,
+            backgroundColor: Color(0xFFC62828),
           ),
         );
         return false;
@@ -1116,7 +1113,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(fieldsMissedMessageError),
-            backgroundColor: Colors.red,
+            backgroundColor: Color(0xFFC62828),
           ),
         );
         return Payment(customerName: '', paymentMethod: '', status: '',isDepositChecked: 0);
@@ -1129,7 +1126,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(fieldsMissedMessageError),
-            backgroundColor: Colors.red,
+            backgroundColor: Color(0xFFC62828),
           ),
         );
         return Payment(customerName: '', paymentMethod: '', status: '', isDepositChecked: 0,);

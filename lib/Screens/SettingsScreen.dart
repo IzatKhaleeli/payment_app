@@ -276,23 +276,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     context: context,
                     label: localizationService.getLocalizedString('logout'),
                     onPressed: () async {
+                      // Immediately show loading
+                      PaymentService.showLoadingOnly(context);
+
                       var connectivityResult = await (Connectivity().checkConnectivity());
-                      print("connectivityResult :${connectivityResult}");
                       if(connectivityResult.toString() != '[ConnectivityResult.none]'){
+                        try {
                         print("logout have internet");
                         SharedPreferences prefs = await SharedPreferences.getInstance();
                         String? tokenID = prefs.getString('token');
-                        print("logout token to delete :${tokenID}");
 
-                        if (tokenID == null) {
-                          print('Token not found');
-                          return;
-                        }
                         String finalLogout ="${apiUrlLogout}?token=${tokenID}";
                         print("url :${finalLogout}");
 
                         NetworkHelper helper = NetworkHelper(url: finalLogout);
-                        try {
+
                           var logoutStatus = await helper.getData();
                           print("logout.status :${logoutStatus}");
                         }
@@ -300,7 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           print("logout failed :${e}");
                         }
                       }
-                      PaymentService.showLoadingAndNavigate(context);
+                      PaymentService.completeLogout(context);
                     },
                     backgroundColor: Color(0xFFC62828), // Ooredoo theme color
                     textColor: Colors.white,

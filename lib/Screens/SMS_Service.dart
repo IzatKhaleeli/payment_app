@@ -82,7 +82,7 @@ print("response.statusCode :${response.statusCode}");
       else if (response.statusCode == 429) {
         CustomPopups.showCustomResultPopup(
           context: context,
-          icon: Icon(Icons.error, color: Colors.red, size: 40),
+          icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
           message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("exceedNumberOfRequest"),
           buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
           onPressButton: () {
@@ -126,7 +126,7 @@ print("response.statusCode :${response.statusCode}");
           else if (response.statusCode == 429) {
             CustomPopups.showCustomResultPopup(
               context: context,
-              icon: Icon(Icons.error, color: Colors.red, size: 40),
+              icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
               message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("exceedNumberOfRequest"),
               buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
               onPressButton: () {
@@ -137,7 +137,7 @@ print("response.statusCode :${response.statusCode}");
           else {
             CustomPopups.showCustomResultPopup(
               context: context,
-              icon: Icon(Icons.error, color: Colors.red, size: 40),
+              icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
               message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentSmsFailed"),
               buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
               onPressButton: () {
@@ -151,7 +151,7 @@ print("response.statusCode :${response.statusCode}");
       } else if (response.statusCode == 408) {
         CustomPopups.showCustomResultPopup(
           context: context,
-          icon: Icon(Icons.error, color: Colors.red, size: 40),
+          icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
           message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkTimeoutError"),
           buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
           onPressButton: () {
@@ -161,7 +161,7 @@ print("response.statusCode :${response.statusCode}");
       } else {
         CustomPopups.showCustomResultPopup(
           context: context,
-          icon: Icon(Icons.error, color: Colors.red, size: 40),
+          icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
           message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentSmsFailed"),
           buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
           onPressButton: () {
@@ -175,7 +175,7 @@ print("response.statusCode :${response.statusCode}");
     on SocketException catch (e) {
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.error, color: Colors.red, size: 40),
+        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
         message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkError"),
         buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
         onPressButton: () {
@@ -186,7 +186,7 @@ print("response.statusCode :${response.statusCode}");
     on TimeoutException catch (e) {
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.error, color: Colors.red, size: 40),
+        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
         message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkTimeoutError"),
         buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
         onPressButton: () {
@@ -197,7 +197,7 @@ print("response.statusCode :${response.statusCode}");
     catch (e) {
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.error, color: Colors.red, size: 40),
+        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
         message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentSmsFailed")}: $e',
         buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
         onPressButton: () {

@@ -92,7 +92,7 @@ class _SmsBottomSheetState extends State<SmsBottomSheet> {
                         labelText: appLocalization.getLocalizedString('phoneNumber'),
                         labelStyle: TextStyle(fontSize: 14, color: Colors.grey[700]),
                         errorText: _errorText,
-                        errorStyle: TextStyle(color: Colors.red, fontSize: 14),
+                        errorStyle: TextStyle(color: Color(0xFFC62828), fontSize: 14),
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
