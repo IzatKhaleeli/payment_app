@@ -1229,8 +1229,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       Navigator.pop(context);
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.check_circle, color: Colors.green, size: 40),
-        message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("unexpectedError")}: $e',
+        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
+        message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("unexpectedError")}:\n $e',
         buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
         onPressButton: () {
           print('errorSavingPayment');

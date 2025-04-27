@@ -34,7 +34,11 @@ class DatabaseProvider {
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-
+    if (oldVersion < 2) {
+      await db.execute('''
+      ALTER TABLE payments ADD COLUMN isDepositChecked BOOLEAN DEFAULT 0;
+    ''');
+    }
     if (oldVersion < 3) {
       await db.execute('''
       ALTER TABLE payments ADD COLUMN transactionId TEXT;
