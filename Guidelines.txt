@@ -11,3 +11,11 @@ To Create IPA version on ios :
 9- Runner -> signing & capabilities -> choose team and bundle identifier
 10- from tabs above -> Product -> Archive
 11- Choose archive -> Click Distribute App - > Release Testing - > click distribute -> then export
+
+To Create APK version on Android :
+1- git clone https://github.com/ezatkh/payment_app.git
+2- cd payment_app
+3- flutter pub get
+4- flutter build apk --release   
+5- adb install build/app/outputs/flutter-apk/app-release.apk
+ 

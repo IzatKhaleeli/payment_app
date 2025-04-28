@@ -39,11 +39,11 @@ class CustomAboutDialogScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               (baseUrl == 'https://b2bpayments.ooredoo.ps') ?
-                Text('1.1 P',
+                Text('1.2 P',
                   style: TextStyle(fontSize: 14.sp, fontFamily: 'NotoSansUI'),
                   textAlign: TextAlign.center,
                 ):
-              Text('1.1 T',
+              Text('1.2 T',
               style: TextStyle(fontSize: 14.sp, fontFamily: 'NotoSansUI'),
               textAlign: TextAlign.center,
               ),
