@@ -2,11 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>UIBackgroundModes</key>
-    <array>
-        <string>fetch</string>
-        <!-- Add other background modes if needed -->
-    </array>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -29,6 +26,46 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>We need access to Bluetooth to connect to printers.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>We need access to Bluetooth to connect to printers.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_dartobservatory._tcp</string>
+	</array>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>We need access to your documents to save and share files.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Your app needs Face ID (or Touch ID) to authenticate user.</string>
+	<key>NSLibraryUsageDescription</key>
+	<string>We need access to your library to save and share files.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Allow local network access for debugging purposes.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string> Need Location permission</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Need Location permission</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location for Bluetooth scanning.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to save and share files.</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>bluetooth-central</string>
+	</array>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -46,63 +83,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-    <!-- Permissions for File Access -->
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>We need access to your photo library to save and share files.</string>
-    <key>NSDocumentsFolderUsageDescription</key>
-    <string>We need access to your documents to save and share files.</string>
-    <key>NSLibraryUsageDescription</key>
-    <string>We need access to your library to save and share files.</string>
-    <key>NSFaceIDUsageDescription</key>
-    <string>Your app needs Face ID (or Touch ID) to authenticate user.</string>
-
-    <!-- Bluetooth Support -->
-        <key>NSBluetoothAlwaysUsageDescription</key>
-    	<string>We need access to Bluetooth to connect to printers.</string>
-
-    	<key>NSBluetoothPeripheralUsageDescription</key>
-    	<string>We need access to Bluetooth to connect to printers.</string>
-
-    	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-        <string> Need Location permission</string>
-
-        <key>NSLocationAlwaysUsageDescription</key>
-        <string>Need Location permission</string>
-
-        <key>NSLocationWhenInUseUsageDescription</key>
-        <string>We need your location for Bluetooth scanning.</string>
-
-    	<key>UIBackgroundModes</key>
-    	<array>
-        <string>fetch</string>
-        <string>bluetooth-central</string>
-        </array>
-
-		<key>NSBonjourServices</key>
-		<array>
-    	<string>_dartobservatory._tcp</string>
-		</array>
-
-		<key>NSLocalNetworkUsageDescription</key>
-		<string>Allow local network access for debugging purposes.</string>
-
-    <!-- File Sharing and Document Support -->
-    <key>UIFileSharingEnabled</key>
-    <true/>
-    <key>LSSupportsOpeningDocumentsInPlace</key>
-    <true/>
-
-    <key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true/>
-    </dict>
 </dict>
 </plist>
-
-
-
