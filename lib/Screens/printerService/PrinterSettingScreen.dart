@@ -508,8 +508,7 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
             child: ElevatedButton(
               onPressed: isLoading ? null : onPressed, // Use the passed in callback function
               style: ElevatedButton.styleFrom(
-                primary: Color(0xFFC62828), // Button background color
-                onPrimary: Colors.white, // Text color
+                foregroundColor: Colors.white, backgroundColor: Color(0xFFC62828), // Text color
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12), // Rounded corners
                 ),

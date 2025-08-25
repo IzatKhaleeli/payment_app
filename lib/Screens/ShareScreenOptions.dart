@@ -105,11 +105,10 @@ class ShareScreenOptions {
                 ? '${amount} ${appearedCurrency} ${payment.paymentMethod.toLowerCase()} payment has been recieved by account manager ${storedUsername}\nTransaction reference: ${payment.voucherSerialNumber}'
                 : 'تم استلام دفعه ${Provider.of<LocalizationService>(context, listen: false).getLocalizedString(payment.paymentMethod.toLowerCase())} بقيمة ${amount} ${appearedCurrency} من مدير حسابكم ${storedUsername}\nرقم الحركة: ${payment.voucherSerialNumber}';
             print("print stmt before send whats");
-            await Share.shareFiles(
-              [file.path],
-              mimeTypes: ['application/pdf'],
-              text: WhatsappText,
-            );
+              await Share.shareXFiles(
+                [XFile(file.path, mimeType: 'application/pdf')],
+                text: WhatsappText,
+              );
           } else {
             CustomPopups.showCustomResultPopup(
               context: context,
