@@ -13,10 +13,10 @@ import 'package:flutter/material.dart';
       try {
         // Fetch remote currencies
         List<Currency> remoteCurrencies = await LovApiService.fetchCurrencies();
-
+        print("currencies \n${remoteCurrencies}");
         // Convert remote currencies to a list of maps
         List<Map<String, dynamic>> remoteCurrenciesData = remoteCurrencies.map((currency) => currency.toMap()).toList();
-
+        print("remoteCurrenciesData \n${remoteCurrenciesData}");
         // Clear local currencies
          await DatabaseProvider.clearAllCurrencies();
 

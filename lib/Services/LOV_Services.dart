@@ -25,6 +25,8 @@ class LovApiService {
 
     if (response != null) {
       print('finished load $listName');
+      print('fetchList|response  $response');
+
     } else {
       throw Exception('Failed to load $listName');
     }

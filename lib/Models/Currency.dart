@@ -12,13 +12,16 @@ class Currency {
   });
 
   static String decodeArabicString(String encodedString) {
-    // Convert the encoded string to a list of bytes
-    List<int> bytes = encodedString.codeUnits;
+    // print(" encodedString: $encodedString");
+    // // Convert the encoded string to a list of bytes
+    // List<int> bytes = encodedString.codeUnits;
+    //     print(" bytes: $bytes");
 
-    // Decode the bytes to a proper UTF-8 string
-    String decodedString = utf8.decode(bytes);
+    // // Decode the bytes to a proper UTF-8 string
+    // String decodedString = utf8.decode(bytes);
+    //     print(" decodedString: $decodedString");
 
-    return decodedString;
+      return encodedString;
   }
 
 

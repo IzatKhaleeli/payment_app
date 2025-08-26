@@ -98,7 +98,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context)  {
     ScreenUtil.init(context, designSize: Size(360, 690));
     final screenSize = MediaQuery.of(context).size;
-    final aspectRatio = screenSize.width / (screenSize.height-180);
+    final aspectRatio = screenSize.width / (screenSize.height-200);
 
     return Scaffold(
       appBar: AppBar(
@@ -190,7 +190,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // Add some spacing between the message and the GridView
           Expanded(
             child: GridView.builder(
-              padding: EdgeInsets.all(10.w),
+              padding: EdgeInsets.all(17.w),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 1,
                 crossAxisSpacing: 10.w,

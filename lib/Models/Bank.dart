@@ -12,13 +12,12 @@ class Bank {
   });
 
   static String decodeArabicString(String encodedString) {
-    // Convert the encoded string to a list of bytes
-    List<int> bytes = encodedString.codeUnits;
+    // // Convert the encoded string to a list of bytes
+    // List<int> bytes = encodedString.codeUnits;
 
-    // Decode the bytes to a proper UTF-8 string
-    String decodedString = utf8.decode(bytes);
-
-    return decodedString;
+    // // Decode the bytes to a proper UTF-8 string
+    // String decodedString = utf8.decode(bytes);
+    return encodedString;
   }
 
   factory Bank.fromMapArabic(Map<String, dynamic> json) {

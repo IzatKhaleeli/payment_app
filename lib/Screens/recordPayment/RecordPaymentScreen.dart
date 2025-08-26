@@ -356,7 +356,9 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                           isDecimal: true
                       ),
                       _currenciesDB.isEmpty
-                          ? Center(child: CircularProgressIndicator()):
+                          ?                       
+                          _buildDropdownCurrencyDynamic(currency, [],Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true)
+:
                       _buildDropdownCurrencyDynamic(currency, _currenciesDB,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true),
                       _buildTextField(
                         _checkNumberController,
@@ -771,17 +773,15 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       }) {
     // Find the Bank object with the id matching _selectedBankDB
     Bank? initialBank;
-    if (items.isEmpty) {
-      // Handle the empty case, e.g., show a message or return a default value
-      return DropdownButton<String>(
-        items: [],
-        onChanged: null, // Disable the dropdown if there are no banks
-      );
-    }
-    if (_selectedBankDB != null) {
-      initialBank = items.firstWhere(
-            (bank) => bank.id == _selectedBankDB,
-      );
+
+if (items.isNotEmpty && _selectedBankDB != null) {
+      try {
+        initialBank = items.firstWhere(
+          (bank) => bank.id == _selectedBankDB,
+        );
+      } catch (e) {
+        initialBank = null; 
+      }
     }
 
     return Padding(
@@ -838,12 +838,14 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               filled: true,
               fillColor: Colors.white,
             ),
-            onChanged: (Bank? newValue) {
+            onChanged: items.isEmpty ? null : (Bank? newValue) {
               setState(() {
                 _selectedBankDB = newValue?.id;
               });
             },
-            items: items.map<DropdownMenuItem<Bank>>((Bank bank) {
+            items: items.isEmpty
+                ? []
+                :items.map<DropdownMenuItem<Bank>>((Bank bank) {
               return DropdownMenuItem<Bank>(
                 value: bank,
                 child: Text(
