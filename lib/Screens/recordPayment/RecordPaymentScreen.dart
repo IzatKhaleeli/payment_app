@@ -78,16 +78,11 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
   Future<void> _loadCurrencies() async {
     try {
-      // Fetch the currency data from the database
       List<Map<String, dynamic>> currencyMaps = await DatabaseProvider.getAllCurrencies();
-
-      // Convert the list of maps to a list of Currency objects
       List<Currency> currencies = currencyMaps.map((map) => Currency.fromMap(map)).toList();
-      // Print raw data from database
       setState(() {
         _currenciesDB = currencies;
       });
-
     } catch (e) {
       print('Error loading currencies: $e');
     }
@@ -95,22 +90,15 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
   Future<void> _loadBanks() async {
     try {
-      // Fetch the bank data from the database
       List<Map<String, dynamic>> bankMaps = await DatabaseProvider.getAllBanks();
-
-      // Convert the list of maps to a list of Bank objects
       List<Bank> banks = bankMaps.map((map) => Bank.fromMap(map)).toList();
-
-      // Store the list of banks in the state
       setState(() {
         _banksDB = banks;
       });
-
     } catch (e) {
       print('Error loading banks: $e');
     }
   }
-
 
   @override
   void initState() {
@@ -128,6 +116,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
   }
+  
   void _initializeLocalizationStrings(){
     final localizationService =
     Provider.of<LocalizationService>(context, listen: false);
@@ -163,8 +152,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
   void _initializeFields() async {
     if (widget.id != null) {
-      print("the id from parameter not null ");
-      int id = widget.id!; // Ensure id is not null
+      int id = widget.id!;
       Map<String, dynamic>? paymentToEdit = await DatabaseProvider.getPaymentById(id);
       print("the paymentToEdit from db is :${paymentToEdit} ");
       if (paymentToEdit != null) {
@@ -241,6 +229,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       _selectedPaymentMethod=cash;
     }
   }
+  
   @override
   void dispose() {
     _animationController.dispose();
@@ -266,14 +255,15 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
   @override
   Widget build(BuildContext context) {
-
     ScreenUtil.init(context, designSize: Size(360, 690));
+    final size = MediaQuery.of(context).size;
+    final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
 
     return Scaffold(
       appBar: AppBar(
         elevation: 4,
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(4.0),
+          preferredSize: const Size.fromHeight(4.0),
           child: Container(
             color: Colors.white.withOpacity(0.2),
             height: 1.0,
@@ -282,23 +272,25 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         title: Text(recordPayment,
             style: TextStyle(
                 color: Colors.white,
-                fontSize: 20.sp,
+                fontSize: 22*scale,
                 fontFamily: 'NotoSansUI')),
-        backgroundColor: Color(0xFFC62828),
+        backgroundColor: const Color(0xFFC62828),
       ),
       body: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
         },
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(15.w),
+          padding: EdgeInsets.all(15*scale),
           child: Column(
             children: [
               _buildExpandableSection(
+                scale: scale,
                 title: customerDetails,
                 iconData: Icons.account_circle,
                 children: [
                   _buildTextField(
+                    scale,
                     _customerNameController,
                     customerName,
                     Icons.person_outline,
@@ -306,6 +298,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                       required:true,
                   ),
                   _buildTextField(
+                    scale,
                     _msisdnController,
                     MSISDN,
                     Icons.phone_android,
@@ -314,6 +307,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                       required:true
                   ),
                   _buildTextField(
+                    scale,
                     _prNumberController,
                     PR,
                     Icons.numbers_sharp,
@@ -326,14 +320,16 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                 },
               ),
               _buildExpandableSection(
+                scale: scale,
                 title: paymentInformation,
                 iconData: Icons.payment,
                 children: [
                   //
-                  _buildDropdown(paymentMethod, _paymentMethods,required: true),
+                  _buildDropdown(scale,paymentMethod, _paymentMethods,required: true),
                   if (_selectedPaymentMethod == cash)
                     ...[
                       _buildTextField(
+                        scale,
                         _amountController,
                         amount, null ,
                         focusNode: _amountFocusNode,
@@ -341,12 +337,13 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                           isNumeric : true,
                           isDecimal: true
                       ),
-                      _buildDropdownCurrencyDynamic(currency, _currenciesDB,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true),
+                      _buildDropdownCurrencyDynamic(scale,currency, _currenciesDB,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true),
                     ],
 
                   if (_selectedPaymentMethod == check)
                     ...[
                       _buildTextField(
+                        scale,
                         _amountCheckController,
                         amountCheck,
                         null ,
@@ -357,10 +354,11 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                       ),
                       _currenciesDB.isEmpty
                           ?                       
-                          _buildDropdownCurrencyDynamic(currency, [],Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true)
+                          _buildDropdownCurrencyDynamic(scale,currency, [],Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true)
 :
-                      _buildDropdownCurrencyDynamic(currency, _currenciesDB,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true),
+                      _buildDropdownCurrencyDynamic(scale,currency, _currenciesDB,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true),
                       _buildTextField(
+                        scale,
                         _checkNumberController,
                         checkNumber,
                         Icons.receipt_long_outlined,
@@ -368,8 +366,10 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                           required:true,
                           isNumeric : true
                       ),
-                      _buildDropdownBankDynamic(bankBranchCheck, _banksDB,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true),
+                      _buildDropdownBankDynamic(
+                        scale,bankBranchCheck, _banksDB,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true),
                       _buildTextField(
+                        scale,
                         _dueDateCheckController,
                         dueDateCheck,
                         Icons.date_range_outlined,
@@ -379,6 +379,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                       ),
                     ],
                   record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
+                    scale: scale,
                     isChecked: isDepositChecked,  // Bind to the state variable
                     onChanged: (newValue) {
                       setState(() {
@@ -389,6 +390,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                     context: context ,  // Optional, mark as required if needed
                   ),
                   _buildTextField(
+                    scale,
                     _paymentInvoiceForController,
                     paymentInvoiceFor,
                     Icons.receipt,
@@ -413,7 +415,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                 children: [
                   // Expanded(child: _buildSaveButton()), // Takes full width
                   // SizedBox(width: 16.w), // Adjust spacing between buttons
-                  Expanded(child: _buildConfirmedButton()), // Takes full width
+                  Expanded(child: _buildConfirmedButton(scale)), // Takes full width
                 ],
               ),
             ],
@@ -424,6 +426,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   }
 
   Widget _buildExpandableSection({
+    required double scale,
     required String title,
     required IconData iconData,
     required List<Widget> children,
@@ -436,32 +439,32 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       margin: EdgeInsets.symmetric(vertical: 3.h),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
-        padding: EdgeInsets.all(10.w),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(iconData, size: 22.sp, color: iconColor),
-                SizedBox(width: 10.w),
+                Icon(iconData, size: 24*scale, color: iconColor),
+                const SizedBox(width: 12),
                 Text(
                   title,
                   style: TextStyle(
                     fontFamily: 'NotoSansUI',
-                    fontSize: 14.sp,
+                    fontSize: 14*scale,
                     fontWeight: FontWeight.bold,
                     color: iconColor,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: 15),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ...children,
-                SizedBox(height: 8.h),
-                _buildRequiredFieldsIndicator(checkIfFilled),
+                SizedBox(height: 10),
+                _buildRequiredFieldsIndicator(scale,checkIfFilled),
               ],
             ),
           ],
@@ -470,18 +473,18 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
     );
   }
 
-  Widget _buildRequiredFieldsIndicator(bool Function() checkIfFilled) {
+  Widget _buildRequiredFieldsIndicator(double scale,bool Function() checkIfFilled) {
     return Row(
       children: [
         Text(
           '* ',
-          style: TextStyle(color: Color(0xFFC62828)),
+          style: TextStyle(color: const Color(0xFFC62828)),
         ),
         Text(
           requiredFields,
           style: TextStyle(
             color: Colors.grey[600],
-            fontSize: 12.sp,
+            fontSize: 12*scale,
           ),
         ),
       ],
@@ -504,6 +507,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   }
 
   Widget _buildTextField(
+      double scale,
       TextEditingController controller,
       String labelText,
       IconData? icon, {
@@ -516,7 +520,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       }) {
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 16.w),
+      padding: EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -525,7 +529,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               text: labelText,
               style: TextStyle(
                 fontFamily: 'NotoSansUI',
-                fontSize: 12.sp,
+                fontSize: 12*scale,
                 color: Colors.grey[500],
               ),
               children: <TextSpan>[
@@ -534,13 +538,13 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                     text: ' *',
                     style: TextStyle(
                       color: Color(0xFFC62828),
-                      fontSize: 12.sp,
+                      fontSize: 12*scale,
                     ),
                   ),
               ],
             ),
           ),
-          SizedBox(height: 4), // Adjust spacing between label and text field
+          const SizedBox(height: 5), // Adjust spacing between label and text field
           TextField(
             controller: controller,
             focusNode: focusNode,
@@ -555,7 +559,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             decoration: InputDecoration(
               prefixIcon: icon != null
                   ? Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4.w),
+                padding: EdgeInsets.symmetric(horizontal: 7),
                 child: Icon(icon, color: Color(0xFFC62828)),
               )
                   : null,
@@ -576,7 +580,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               fillColor: Colors.white,
               filled: true,
             ),
-            style: TextStyle(fontSize: 14.sp, color: Colors.black),
+            style: TextStyle(fontSize: 14*scale, color: Colors.black),
             onTap: isDate ? () => _selectDate(context, controller) : null,
           ),
         ],
@@ -585,9 +589,9 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   }
 
 
-  Widget _buildDropdown(String label, List<String> items, {bool required = false}) {
+  Widget _buildDropdown(double scale,String label, List<String> items, {bool required = false}) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 16.w),
+      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -596,7 +600,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               text: label,
               style: TextStyle(
                 fontFamily: 'NotoSansUI',
-                fontSize: 12.sp,
+                fontSize: 12*scale,
                 color: Colors.grey[500],
               ),
               children: <TextSpan>[
@@ -605,13 +609,13 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                     text: ' *',
                     style: TextStyle(
                       color: Color(0xFFC62828),
-                      fontSize: 12.sp,
+                      fontSize: 12*scale,
                     ),
                   ),
               ],
             ),
           ),
-          SizedBox(height: 4), // Adjust spacing between label and dropdown
+          const SizedBox(height: 4), // Adjust spacing between label and dropdown
           DropdownButtonFormField<String>(
             decoration: InputDecoration(
               contentPadding: EdgeInsets.symmetric(horizontal: 12.w),
@@ -624,7 +628,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Color(0xFFC62828),
                   width: 1.5,
                 ),
@@ -652,7 +656,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                 child: Text(
                   value,
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: 12*scale,
                   ),
                 ),
               );
@@ -664,6 +668,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   }
 
   Widget _buildDropdownCurrencyDynamic(
+    double scale,
       String label,
       List<Currency> items,
       String languageCode, {
@@ -690,7 +695,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
     }
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 16.w),
+      padding: EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -699,7 +704,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               text: label,
               style: TextStyle(
                 fontFamily: 'NotoSansUI',
-                fontSize: 12.sp,
+                fontSize: 12*scale,
                 color: Colors.grey[500],
               ),
               children: <TextSpan>[
@@ -708,17 +713,17 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                     text: ' *',
                     style: TextStyle(
                       color: Color(0xFFC62828),
-                      fontSize: 12.sp,
+                      fontSize: 12*scale,
                     ),
                   ),
               ],
             ),
           ),
-          SizedBox(height: 4), // Adjust spacing between label and dropdown
+          SizedBox(height: 5), // Adjust spacing between label and dropdown
           DropdownButtonFormField<Currency>(
             value: initialCurrency, // Set the initial value
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 12.w),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 15),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
@@ -728,7 +733,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Color(0xFFC62828),
                   width: 1.5,
                 ),
@@ -754,7 +759,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                 child: Text(
                   languageCode == 'ar' ? currency.arabicName! : currency.englishName!,
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: 12*scale,
                   ),
                 ),
               );
@@ -766,6 +771,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   }
 
   Widget _buildDropdownBankDynamic(
+    double scale,
       String label,
       List<Bank> items,
       String languageCode, {
@@ -785,7 +791,7 @@ if (items.isNotEmpty && _selectedBankDB != null) {
     }
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 16.w),
+      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -794,7 +800,7 @@ if (items.isNotEmpty && _selectedBankDB != null) {
               text: label,
               style: TextStyle(
                 fontFamily: 'NotoSansUI',
-                fontSize: 12.sp,
+                fontSize: 12*scale,
                 color: Colors.grey[500],
               ),
               children: <TextSpan>[
@@ -803,17 +809,17 @@ if (items.isNotEmpty && _selectedBankDB != null) {
                     text: ' *',
                     style: TextStyle(
                       color: Color(0xFFC62828),
-                      fontSize: 12.sp,
+                      fontSize: 12*scale,
                     ),
                   ),
               ],
             ),
           ),
-          SizedBox(height: 4), // Adjust spacing between label and dropdown
+          const SizedBox(height: 5), // Adjust spacing between label and dropdown
           DropdownButtonFormField<Bank>(
             value: initialBank, // Set the initial value
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 12.w),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 15),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
@@ -823,7 +829,7 @@ if (items.isNotEmpty && _selectedBankDB != null) {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Color(0xFFC62828),
                   width: 1.5,
                 ),
@@ -851,7 +857,7 @@ if (items.isNotEmpty && _selectedBankDB != null) {
                 child: Text(
                   languageCode == 'ar' ? bank.arabicName! : bank.englishName!,
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: 12*scale,
                   ),
                 ),
               );
@@ -999,7 +1005,7 @@ if (items.isNotEmpty && _selectedBankDB != null) {
     return true;
   }
 
-  Widget _buildConfirmedButton() {
+  Widget _buildConfirmedButton(double scale) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 3.h),
       child: GestureDetector(
@@ -1021,7 +1027,7 @@ if (items.isNotEmpty && _selectedBankDB != null) {
                 confirmPayment,
                 style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14.sp,
+                    fontSize: 14*scale,
                     fontFamily: 'NotoSansUI'),
               ),
             ),
@@ -1031,9 +1037,9 @@ if (items.isNotEmpty && _selectedBankDB != null) {
     );
   }
 
-  Widget _buildSaveButton() {
+  Widget _buildSaveButton(double scale) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 3.h),
+      padding: EdgeInsets.all(15),
       child: GestureDetector(
         onTapDown: (_) => _animationController.forward(),
         onTapUp: (_) => _animationController.reverse(),
@@ -1044,7 +1050,7 @@ if (items.isNotEmpty && _selectedBankDB != null) {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFC62828),
-                padding: EdgeInsets.symmetric(vertical: 12.h),
+                padding: EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15)),
               ),
@@ -1053,7 +1059,7 @@ if (items.isNotEmpty && _selectedBankDB != null) {
                 savePayment,
                 style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14.sp,
+                    fontSize: 14*scale,
                     fontFamily: 'NotoSansUI'),
               ),
             ),

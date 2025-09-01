@@ -430,22 +430,24 @@ class PaymentService {
 
 
   static Future<void> showLoadingAndNavigate(BuildContext context) async {
-    // Show custom loading indicator
+    final size = MediaQuery.of(context).size;
+    final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return Center(
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(10.r),
+            borderRadius: BorderRadius.circular(14),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                width: 130.w,
-                height: 100.h,
+                width: 130*scale,
+                height: 100*scale,
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2), // Semi-transparent white for glass effect
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: Colors.white.withOpacity(0.2),
                     width: 1.5,
@@ -467,14 +469,14 @@ class PaymentService {
                         );
                       },
                     ),
-                    SizedBox(height: 10.h), // Reduced space between spinner and text
+                    const SizedBox(height: 12),
                     Text(
                       Provider.of<LocalizationService>(context, listen: false).getLocalizedString('pleaseWait'),
                       style: TextStyle(
                         decoration: TextDecoration.none,
                         color: Colors.white,
                         fontFamily: 'NotoSansUI',
-                        fontSize: 14.sp,
+                        fontSize: 12*scale,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -487,10 +489,8 @@ class PaymentService {
       },
     );
 
-    // Ensure the loading dialog is displayed for at least 1 second
     await Future.delayed(const Duration(seconds: 1));
 
-    // Clear user data
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('language_code');

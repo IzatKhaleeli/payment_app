@@ -204,11 +204,14 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: Size(360, 690));
+    final size = MediaQuery.of(context).size;
+    final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
+
     return Scaffold(
       appBar: AppBar(
         elevation: 4,
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(4.0),
+          preferredSize: const Size.fromHeight(4.0),
           child: Container(
             color: Colors.white.withOpacity(0.2),
             height: 1.0,
@@ -217,10 +220,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         title: Text(paymentHistory,
             style: TextStyle(
               color: Colors.white,
-              fontSize: 18.sp,
+              fontSize: 22*scale,
               fontFamily: 'NotoSansUI',
             )),
-        backgroundColor: Color(0xFFC62828),
+        backgroundColor: const Color(0xFFC62828),
 
       ),
       body: Stack(
@@ -229,20 +232,20 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             padding: EdgeInsets.all(12.w),
             child: Column(
               children: [
-                _buildFilterSection(),
-                _buildSelectedStatuses(),
+                _buildFilterSection(scale),
+                _buildSelectedStatuses(scale),
                 SizedBox(height: 10.h),
                 Divider(
                   color: Colors.grey[400],
                   height: 3,
-                  thickness: 2, // This will make the divider line thicker
-                  indent: 8,  // Optional: You can adjust the left margin if needed
-                  endIndent: 8,  // Optional: You can adjust the right margin if needed
+                  thickness: 2,
+                  indent: 8,
+                  endIndent: 8,
                 ),
                 SizedBox(height: 10.h),
                 Container(
-                  margin: EdgeInsets.only(bottom: 50.h), // Margin from the bottom button
-                  child: _buildPaymentRecordsList(),
+                  margin: EdgeInsets.only(bottom: 50.h),
+                  child: _buildPaymentRecordsList(scale),
                 ),
               ],
             ),
@@ -253,17 +256,17 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               if (errorText == null) return SizedBox.shrink();
 
               return Positioned(
-                bottom: 60, // 👈 show above bottom a little
+                bottom: 60, 
                 left: 8,
                 right: 8,
                 child: Material(
                   elevation: 6,
                   borderRadius: BorderRadius.circular(16),
-                  color: Color(0xFFC62828),
+                  color: const Color(0xFFC62828),
                   child: ListTile(
                     title: Text(
                       errorText,
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                     trailing: IconButton(
                       icon: Icon(Icons.close, color: Colors.white),
@@ -285,11 +288,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           padding: const EdgeInsets.all(2.0),
           child: FloatingActionButton(
             onPressed: () {
-              // Navigate to the RecordPaymentScreen to add a new payment
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => RecordPaymentScreen()));
             },
-            backgroundColor: Color(0xFFC62828),
-            child: Icon(Icons.add,color: Colors.white),
+            backgroundColor: const Color(0xFFC62828),
+            child: Icon(Icons.add,color: Colors.white,size: 24*scale,),
           ),
         ),
       ),
@@ -297,13 +299,14 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  Widget _buildFilterSection() {
+  Widget _buildFilterSection(double scale) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
         children: [
           Expanded(
             child: _buildDateField(
+              scale,
               context,
               label: from,
               controller: _fromDateController,
@@ -316,6 +319,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           SizedBox(width: 10.w),
           Expanded(
             child: _buildDateField(
+              scale,
               context,
               label: to,
               controller: _toDateController,
@@ -335,7 +339,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             child: IconButton(
               icon: Icon(Icons.filter_list, color: Colors.white),
               onPressed: () {
-                _showFilterDialog();
+                _showFilterDialog(scale);
               },
             ),
           ),
@@ -344,13 +348,13 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  Widget _buildDateField(BuildContext context, {required String label, required TextEditingController controller, required Function(DateTime) onDateSelected}) {
+  Widget _buildDateField(double scale,BuildContext context, {required String label, required TextEditingController controller, required Function(DateTime) onDateSelected}) {
     return TextField(
       controller: controller,
-      style: TextStyle(fontSize: 12),  // Set font size smaller here
+      style: TextStyle(fontSize: 14*scale),  // Set font size smaller here
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(fontSize: 12), // Set the label text size to match the input text size
+        labelStyle: TextStyle(fontSize: 14*scale), // Set the label text size to match the input text size
         suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFC62828)),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         fillColor: Colors.white,
@@ -389,14 +393,14 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  Widget _buildSelectedStatuses() {
+  Widget _buildSelectedStatuses(double scale) {
     return Wrap(
-      spacing: 5.0, // Horizontal spacing between chips
+      spacing: 5.0,
       children: _selectedStatuses.map((status) {
         return Padding(
-          padding: const EdgeInsets.only(top: 7.0), // Add margin to the top
+          padding: const EdgeInsets.only(top: 7.0), 
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0), // Padding inside the chip
+            padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
             decoration: BoxDecoration(
               color: Colors.grey[200], // Background color
               borderRadius: BorderRadius.circular(10.0),
@@ -410,14 +414,14 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                 Text(
                   Provider.of<LocalizationService>(context, listen: false).getLocalizedString(status.toLowerCase()),
                   style: TextStyle(
-                    fontSize: 12.0,  // Font size
-                    fontWeight: FontWeight.w300,  // Font weight
-                    color: Colors.grey[600],  // Text color
+                    fontSize: 12.0*scale,  
+                    fontWeight: FontWeight.w300, 
+                    color: Colors.grey[600],
                   ),
                 ),
-                SizedBox(width: 8.0), // Space between text and delete icon
+                const SizedBox(width: 8.0),
                 Padding(
-                  padding: const EdgeInsets.all(2.0), // Padding around the delete icon
+                  padding: const EdgeInsets.all(2.0),
                   child: GestureDetector(
                     onTap: () {
                       if (!mounted) return;
@@ -441,7 +445,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  void _showFilterDialog() {
+  void _showFilterDialog(double scale ){
     showDialog(
       context: context,
       builder: (context) {
@@ -449,7 +453,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           builder: (context, setState) {
             return AlertDialog(
               title: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('selectStatus'),
-                style: TextStyle(fontWeight: FontWeight.bold), // Make the text bold
+                style: TextStyle(fontWeight: FontWeight.bold,fontSize: 14*scale), // Make the text bold
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -458,10 +462,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                   return CheckboxListTile(
                     title: Text(
                       Provider.of<LocalizationService>(context, listen: false).getLocalizedString(status.toLowerCase()),
-                      style: TextStyle(color: Colors.black), // Set the title (status) text color to black
+                      style: TextStyle(color: Colors.black,fontSize: 16*scale), // Set the title (status) text color to black
                     ),
                     value: _selectedStatuses.contains(status),
-                    activeColor: Color(0xFFC62828),
+                    activeColor: const Color(0xFFC62828),
                     onChanged: (bool? value) {
                       setState(() {
                         if (value == true) {
@@ -498,7 +502,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  Widget _buildPaymentRecordsList() {
+  Widget _buildPaymentRecordsList(double scale) {
     return _paymentRecords.isEmpty
         ? Center(child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('noRecordsFound')))
         : ListView.builder(
@@ -506,7 +510,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
       physics: NeverScrollableScrollPhysics(),
       itemCount: _paymentRecords.length,
       itemBuilder: (context, index) {
-        return _buildPaymentRecordItem(_paymentRecords[index] );
+        return _buildPaymentRecordItem(scale,_paymentRecords[index] );
       },
     );
   }
@@ -519,7 +523,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     return DateFormat('HH:mm:ss').format(date);
   }
 
-  Widget _buildPaymentRecordItem(Payment record) {
+  Widget _buildPaymentRecordItem(double scale,Payment record) {
     IconData statusIcon;
     Color statusColor;
 
@@ -569,7 +573,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               Expanded(
                 child: Text(
                   record.customerName,
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: TextStyle(fontSize: 16*scale, fontWeight: FontWeight.bold, color: Colors.black87),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   softWrap: true,
@@ -578,58 +582,58 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               SizedBox(width: 8), // Add some space between name and date
               Text(
                 formatDate(record.transactionDate!).toString(), // Format and display the transaction date
-                style: TextStyle(fontSize: 14.sp, color: Colors.grey.shade600),
+                style: TextStyle(fontSize: 14*scale, color: Colors.grey.shade600),
               ),
             ],
           ),
           subtitle:
           Text("${record.amount != null ? record.amount.toString() : record.amountCheck.toString()} ${record.currency!.toLowerCase()}",
-              style: TextStyle(fontSize: 12.sp, color: Colors.grey.shade600)),
+              style: TextStyle(fontSize: 12*scale, color: Colors.grey.shade600)),
           childrenPadding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
           children: [
             if (record.status.toLowerCase() != 'saved' && record.status.toLowerCase() != 'confirmed')
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('voucherNumber'), record.voucherSerialNumber),
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('voucherNumber'), record.voucherSerialNumber),
 
             if(record.status.toLowerCase() == 'saved') ...[
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('transactionDate'), formatDate((record.lastUpdatedDate!)).toString()),
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('transactionTime'), formatTime((record.lastUpdatedDate!)).toString())
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('transactionDate'), formatDate((record.lastUpdatedDate!)).toString()),
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('transactionTime'), formatTime((record.lastUpdatedDate!)).toString())
             ]
             else ...[
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('transactionDate'), formatDate(record.transactionDate!).toString()),
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('transactionTime'), formatTime((record.transactionDate!)).toString())
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('transactionDate'), formatDate(record.transactionDate!).toString()),
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('transactionTime'), formatTime((record.transactionDate!)).toString())
 
             ],
 
-            _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('paymentMethod'),Provider.of<LocalizationService>(context, listen: false).getLocalizedString(record.paymentMethod.toLowerCase()) ),
-            _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('status'), Provider.of<LocalizationService>(context, listen: false).getLocalizedString(record.status.toLowerCase())),
+            _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('paymentMethod'),Provider.of<LocalizationService>(context, listen: false).getLocalizedString(record.paymentMethod.toLowerCase()) ),
+            _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('status'), Provider.of<LocalizationService>(context, listen: false).getLocalizedString(record.status.toLowerCase())),
             if (record.msisdn != null && record.msisdn!.isNotEmpty)
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('MSISDN'), record.msisdn.toString()),
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('MSISDN'), record.msisdn.toString()),
             if (record.prNumber != null && record.prNumber!.isNotEmpty)
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('PR'), record.prNumber.toString()),
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('PR'), record.prNumber.toString()),
             if (record.paymentMethod.toLowerCase() == 'cash')
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('amount'), record.amount.toString()),
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('amount'), record.amount.toString()),
             if (record.paymentMethod.toLowerCase() == 'check')
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('amount'), record.amountCheck.toString()),
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('amount'), record.amountCheck.toString()),
 
-            _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('currency'), record.currency.toString()),
+            _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('currency'), record.currency.toString()),
 
             if (record.paymentMethod.toLowerCase() == 'check')...[
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('checkNumber'), record.checkNumber.toString()),
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('bankBranchCheck'), record.bankBranch.toString()),
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('dueDateCheck'), _formatDate(record.dueDateCheck)),
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('checkNumber'), record.checkNumber.toString()),
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('bankBranchCheck'), record.bankBranch.toString()),
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('dueDateCheck'), _formatDate(record.dueDateCheck)),
              ],
 
             if(record.status.toLowerCase() == 'canceldpending' || record.status.toLowerCase() == 'cancelled' ) ...[
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancellationDate'), formatDate((record.cancellationDate!)).toString()),
-              _paymentDetailRow(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancellationTime'), formatTime((record.cancellationDate!)).toString()),
-              _detailNoteItem(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancelReason'), (record.cancelReason!),Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancellationDate'), formatDate((record.cancellationDate!)).toString()),
+              _paymentDetailRow(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancellationTime'), formatTime((record.cancellationDate!)).toString()),
+              _detailNoteItem(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancelReason'), (record.cancelReason!),Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
               //lll
             ],
 
-            _detailNoteItem(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('deposit'), record.isDepositChecked == 0 ? Provider.of<LocalizationService>(context, listen: false).getLocalizedString('no') : Provider.of<LocalizationService>(context, listen: false).getLocalizedString('yes') ,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
+            _detailNoteItem(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('deposit'), record.isDepositChecked == 0 ? Provider.of<LocalizationService>(context, listen: false).getLocalizedString('no') : Provider.of<LocalizationService>(context, listen: false).getLocalizedString('yes') ,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
 
             if (record.paymentInvoiceFor != null && record.paymentInvoiceFor!.isNotEmpty)
-              _detailNoteItem(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('paymentInvoiceFor'), record.paymentInvoiceFor.toString(),Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
+              _detailNoteItem(scale,Provider.of<LocalizationService>(context, listen: false).getLocalizedString('paymentInvoiceFor'), record.paymentInvoiceFor.toString(),Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
             SizedBox(height: 10.h),
             Wrap(
                 spacing: 8.0, // Add some spacing between the items
@@ -903,20 +907,20 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
       ),);
   }
 
-  Widget _paymentDetailRow(String title, String value) {
+  Widget _paymentDetailRow(double scale,String title, String value) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 3.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: TextStyle(fontSize: 14.sp,fontWeight: FontWeight.w400,color: Colors.grey.shade500)),
-          Text(value, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.black87)),
+          Text(title, style: TextStyle(fontSize: 14*scale,fontWeight: FontWeight.w400,color: Colors.grey.shade500)),
+          Text(value, style: TextStyle(fontSize: 14*scale, fontWeight: FontWeight.w600, color: Colors.black87)),
         ],
       ),
     );
   }
 
-  Widget _detailNoteItem(String title, String value, String locale) {
+  Widget _detailNoteItem(double scale,String title, String value, String locale) {
     // Determine if the locale is RTL
     bool isRtl = locale == 'ar'; // Assuming 'ar' is the locale for Arabic
 
@@ -934,7 +938,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                 title,
                 textAlign: isRtl ? TextAlign.right : TextAlign.left,
                 style: TextStyle(
-                  fontSize: 14.sp,
+                  fontSize: 14*scale,
                   fontWeight: FontWeight.w400,
                   color: Colors.grey.shade500,
                   // Text(value, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.black87)),
@@ -952,7 +956,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                 value,
                 textAlign: isRtl ? TextAlign.left : TextAlign.right,
                 style: TextStyle(
-                  fontSize: 14.sp,
+                  fontSize: 14*scale,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
                 ),

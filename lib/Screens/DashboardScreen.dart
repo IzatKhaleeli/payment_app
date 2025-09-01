@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:ooredoo_app/Screens/dashboard_item.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/LocalizationService.dart';
@@ -22,16 +23,15 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  List<DashboardItemModel> dashboardItems = []; // Initialize as empty list
-  late SharedPreferences prefs; // SharedPreferences instance
-  String? usernameLogin; // State variable to hold the username
-  Timer? _timer; // Timer instance
+  List<DashboardItemModel> dashboardItems = [];
+  late SharedPreferences prefs;
+  String? usernameLogin; 
+  Timer? _timer; 
 
 
 
   @override
   void initState() {
-    print("dashboard page");
     super.initState();
     _initializeLocalization();
     _getUsername();
@@ -40,25 +40,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _scheduleDailyTask() {
-    // Calculate the time until the next 12:30 PM
     final now = DateTime.now();
     final nextRun = DateTime(now.year, now.month, now.day, 23, 59);
 
-    // If it's already past 12:30 PM today, schedule for tomorrow
     if (now.isAfter(nextRun)) {
       nextRun.add(Duration(days: 1));
     }
 
-    // Calculate the duration until the next run
     final durationUntilNextRun = nextRun.difference(now);
 
-    // Schedule the timer to run daily
     _timer = Timer.periodic(
       durationUntilNextRun,
           (Timer timer) {
         PaymentService.getExpiredPaymentsNumber();
-        // Schedule next execution after 24 hours
-        _timer?.cancel(); // Cancel the previous timer
+        _timer?.cancel();
         _timer = Timer.periodic(Duration(days: 1), (Timer timer) {
           PaymentService.getExpiredPaymentsNumber();
         });
@@ -73,7 +68,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       usernameLogin = storedUsername;
     });
 
-    // Start the periodic network test with context
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (usernameLogin != null && usernameLogin!.isNotEmpty) {
         PaymentService.startPeriodicNetworkTest(context);
@@ -92,143 +86,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       DashboardItemModel(iconData: Icons.history, title: 'paymentHistory', onTap: () => _navigateTo(PaymentHistoryScreen())),
       DashboardItemModel(iconData: Icons.settings, title: 'settings', onTap: () => _navigateTo(SettingsScreen())),
     ];
-  }
-
-  @override
-  Widget build(BuildContext context)  {
-    ScreenUtil.init(context, designSize: Size(360, 690));
-    final screenSize = MediaQuery.of(context).size;
-    final aspectRatio = screenSize.width / (screenSize.height-200);
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(4.0),
-          child: Container(
-            color: Colors.grey[300],
-            height: 1.0,
-          ),
-        ),
-        leading: IconButton(
-          iconSize: 34,
-          icon: Icon(
-            Icons.logout_outlined,
-            color: Color(0xffd21816),
-          ),
-          onPressed: () {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext dialogContext) {
-                return WillPopScope(
-                  onWillPop: () async => false,
-                  child: Dialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.0),
-                    ),
-                    elevation: 0,
-                    backgroundColor: Colors.transparent,
-                    child: _buildLogoutDialogContent(dialogContext),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-        title: Image.asset(
-          'assets/images/logo_ooredoo.png',
-          fit: BoxFit.contain,
-          height: AppBar().preferredSize.height * 2,
-        ),
-        centerTitle: true,
-      ),
-
-      body:
-      Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(6.w),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12.r),
-
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.15),
-                    offset: Offset(0, 1),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.person,
-                    color: Color(0xFFC62828),
-                    size: 24.sp,
-                  ),
-                  SizedBox(width: 8.w),
-                  Text(
-                    '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('hello')} $usernameLogin',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontFamily: "NotoSansUI",
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFC62828),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-
-          // Add some spacing between the message and the GridView
-          Expanded(
-            child: GridView.builder(
-              padding: EdgeInsets.all(17.w),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 1,
-                crossAxisSpacing: 10.w,
-                mainAxisSpacing: 10.h,
-                childAspectRatio:  (aspectRatio*3),
-              ),
-              itemCount: dashboardItems.length,
-              itemBuilder: (context, index) {
-                return Consumer<LocalizationService>(
-                  builder: (context, localizationService, _) {
-                    return DashboardItem(
-                      iconData: dashboardItems[index].iconData,
-                      title: localizationService.getLocalizedString(dashboardItems[index].title),
-                      onTap: () async {
-                        switch (dashboardItems[index].title) {
-                          case 'recordPayment':
-                            _navigateTo(RecordPaymentScreen());
-                            break;
-                          case 'paymentHistory':
-                            _navigateTo(PaymentHistoryScreen());
-                            break;
-                          case 'settings':
-                            _navigateTo(SettingsScreen());
-                            break;
-
-                          default:
-                            break;
-                        }
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   void _navigateTo(Widget screen) {
@@ -251,8 +108,164 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+  
+  @override
+  Widget build(BuildContext context)  {
+    ScreenUtil.init(context, designSize: Size(360, 690));
+    final size = MediaQuery.of(context).size;
+    final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
 
-  Widget _buildLogoutDialogContent(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(4.0),
+          child: Container(
+            color: Colors.grey[300],
+            height: 1.0,
+          ),
+        ),
+        leading: IconButton(
+          iconSize: 34,
+          icon: const Icon(
+            Icons.logout_outlined,
+            color: Color(0xffd21816),
+          ),
+          onPressed: () {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext dialogContext) {
+                return WillPopScope(
+                  onWillPop: () async => false,
+                  child: Dialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.0),
+                    ),
+                    elevation: 0,
+                    backgroundColor: Colors.transparent,
+                    child: _buildLogoutDialogContent(dialogContext, scale),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+        title: Image.asset(
+          'assets/images/logo_ooredoo.png',
+          fit: BoxFit.contain,
+          height: AppBar().preferredSize.height * 2,
+        ),
+        centerTitle: true,
+      ),
+
+      body:
+      Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12.r),
+
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.15),
+                    offset: const Offset(0, 1),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.person,
+                    color: const Color(0xFFC62828),
+                    size: 24*scale,
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('hello')} $usernameLogin',
+                    style: TextStyle(
+                      fontSize: 16*scale,
+                      fontFamily: "NotoSansUI",
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFFC62828),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+Expanded(
+  child: LayoutBuilder(
+    builder: (context, constraints) {
+      // total available height inside Expanded
+      final double availableHeight = constraints.maxHeight;
+
+      // spacing between items
+      final double spacing = 10.h * (dashboardItems.length - 1);
+
+      // each item's height (equally divided space)
+      final double itemHeight =
+          (availableHeight - spacing - 32) / dashboardItems.length; // 32 for top+bottom padding
+
+      // item width = full width - left/right padding
+      final double itemWidth = constraints.maxWidth - 32;
+
+      // calculate aspect ratio
+      final double aspectRatio = itemWidth / itemHeight;
+
+      return GridView.builder(
+        padding: const EdgeInsets.all(20),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 1,
+          crossAxisSpacing: 10.w,
+          mainAxisSpacing: 10.h,
+          childAspectRatio: aspectRatio, // dynamic height
+        ),
+        itemCount: dashboardItems.length,
+        itemBuilder: (context, index) {
+          return Consumer<LocalizationService>(
+            builder: (context, localizationService, _) {
+              return DashboardItem(
+                scale: scale,
+                iconData: dashboardItems[index].iconData,
+                title: localizationService.getLocalizedString(dashboardItems[index].title),
+                onTap: () async {
+                  switch (dashboardItems[index].title) {
+                    case 'recordPayment':
+                      _navigateTo(RecordPaymentScreen());
+                      break;
+                    case 'paymentHistory':
+                      _navigateTo(PaymentHistoryScreen());
+                      break;
+                    case 'settings':
+                      _navigateTo(SettingsScreen());
+                      break;
+                    default:
+                      break;
+                  }
+                },
+              );
+            },
+          );
+        },
+      );
+    },
+  ),
+),
+
+        ],
+      ),
+    );
+  } 
+
+  Widget _buildLogoutDialogContent(BuildContext context ,double scale) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.0),
       child: BackdropFilter(
@@ -273,10 +286,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 Provider.of<LocalizationService>(context, listen: false).getLocalizedString('logoutBody'),
                 style: TextStyle(
-                  fontSize: 18.sp,
+                  fontSize: 18*scale,
                   fontFamily: "NotoSansUI",
                   fontWeight: FontWeight.bold,
-                  color: Colors.white, // Ooredoo theme color
+                  color: Colors.white,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -290,6 +303,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     onPressed: () => Navigator.of(context).pop(), // Close the dialog
                     backgroundColor: Colors.grey.shade300,
                     textColor: Colors.black,
+                    scale: scale
                   ),
 
                   _buildDialogButton(
@@ -299,27 +313,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       PaymentService.showLoadingOnly(context);
 
                       var connectivityResult = await (Connectivity().checkConnectivity());
-                      print("connectivityResult :${connectivityResult}");
                       if(connectivityResult.toString() != '[ConnectivityResult.none]'){
                         try {
                         SharedPreferences prefs = await SharedPreferences.getInstance();
                         String? tokenID = prefs.getString('token');
-                        print("logout token to delete :${tokenID}");
 
                         String finalLogout ="${apiUrlLogout}?token=${tokenID}";
                         NetworkHelper helper = NetworkHelper(url: finalLogout);
                           var logoutStatus = await helper.getData();
-                          print("logout.status :${logoutStatus}");
                         }
                         catch (e) {
                           print("logout failed :${e}");
-                          //PaymentService.completeLogout(context);
+                        }
+                        finally{
+                          PaymentService.completeLogout(context);
                         }
                       }
+                      else
                       PaymentService.completeLogout(context);
                       },
-                    backgroundColor: Color(0xFFC62828), // Ooredoo theme color
+                    backgroundColor: Color(0xFFC62828),
                     textColor: Colors.white,
+                    scale: scale
                   ),
                 ],
               ),
@@ -336,6 +351,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required VoidCallback onPressed,
     required Color backgroundColor,
     required Color textColor,
+    required double scale
   }) {
     return ElevatedButton(
       onPressed: onPressed,
@@ -343,81 +359,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         backgroundColor: backgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      child: Text(label, style: TextStyle(fontFamily: "NotoSansUI", color: textColor)),
+      child: Text(label, style: TextStyle(fontFamily: "NotoSansUI", color: textColor,fontSize: 14*scale),),
     );
   }
 
 }
-
-class DashboardItemModel {
-  final IconData iconData;
-  final String title;
-
-  DashboardItemModel({required this.iconData, required this.title, required void Function() onTap});
-}
-
-class DashboardItem extends StatefulWidget {
-  final IconData iconData;
-  final String title;
-  final VoidCallback onTap;
-
-  const DashboardItem({
-    Key? key,
-    required this.iconData,
-    required this.title,
-    required this.onTap,
-  }) : super(key: key);
-
-  @override
-  _DashboardItemState createState() => _DashboardItemState();
-}
-
-class _DashboardItemState extends State<DashboardItem> {
-  bool isTapped = false;
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      onTapDown: (_) => setState(() => isTapped = true),
-      onTapCancel: () => setState(() => isTapped = false),
-      onTapUp: (_) => setState(() => isTapped = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        decoration: BoxDecoration(
-          color: isTapped ? Color(0xFFC62828) : Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              offset: Offset(0, 3),
-              blurRadius: 6,
-              spreadRadius: 1,
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(8.r),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Icon(widget.iconData, size: 40.sp, color: isTapped ? Colors.white : Color(0xFFC62828)),
-              SizedBox(height: 4.h),
-              Text(
-                widget.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  overflow: TextOverflow.clip ,
-                  fontFamily: 'NotoSansUI',
-                  color: isTapped ? Colors.white : Colors.black87,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14.sp,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-  }

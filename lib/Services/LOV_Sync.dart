@@ -11,12 +11,12 @@ import 'package:flutter/material.dart';
     // Compare and sync currencies
     static Future<void> compareAndSyncCurrencies() async {
       try {
+        
         // Fetch remote currencies
         List<Currency> remoteCurrencies = await LovApiService.fetchCurrencies();
         print("currencies \n${remoteCurrencies}");
         // Convert remote currencies to a list of maps
         List<Map<String, dynamic>> remoteCurrenciesData = remoteCurrencies.map((currency) => currency.toMap()).toList();
-        print("remoteCurrenciesData \n${remoteCurrenciesData}");
         // Clear local currencies
          await DatabaseProvider.clearAllCurrencies();
 

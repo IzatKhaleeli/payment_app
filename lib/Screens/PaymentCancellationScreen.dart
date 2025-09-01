@@ -18,15 +18,23 @@ class PaymentCancellationScreen extends StatefulWidget {
 }
 
 class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
-  static final StreamController<void> _syncController = StreamController<
-      void>.broadcast();
+  static final StreamController<void> _syncController = StreamController<void>.broadcast();
   static Stream<void> get syncStream => _syncController.stream;
+
   final TextEditingController _reasonController = TextEditingController();
   String? _errorText;
+  late Future<Map<String, dynamic>?> _paymentFuture;
+
 
   Future<Map<String, dynamic>?> _fetchPayment(int id) async {
     final payment = await DatabaseProvider.getPaymentById(id);
     return payment;
+  }
+
+    @override
+  void initState() {
+    super.initState();
+    _paymentFuture = _fetchPayment(widget.id); // initialize once
   }
 
   void _handleCancellation(BuildContext context, Map<String, dynamic> paymentToCancel, ) async {
@@ -54,12 +62,15 @@ class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-        padding: EdgeInsets.all(16.w),
+        padding: const EdgeInsets.all(16),
         child: FutureBuilder<Map<String, dynamic>?>(
-          future: _fetchPayment(widget.id),
+          future: _paymentFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(child: CircularProgressIndicator());
@@ -78,21 +89,21 @@ class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
                   Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancelPayment'),
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 20.sp,
+                    fontSize: 20*scale,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 8.h),
+                SizedBox(height: 7),
                 Text(
                   '${ Provider.of<LocalizationService>(context, listen: false).getLocalizedString('voucherNumber')}: ${paymentToCancel["voucherSerialNumber"]}',
-                  style: TextStyle(color: Colors.grey, fontSize: 12.sp),
+                  style: TextStyle(color: Colors.grey, fontSize: 12*scale),
                 ),
-                SizedBox(height: 16.h),
+                SizedBox(height: 30),
                 Text(
                   Provider.of<LocalizationService>(context, listen: false).getLocalizedString('reasonCancellation'),
-                  style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 14*scale, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 8.h),
+                SizedBox(height: 10),
                 TextField(
                   controller: _reasonController,
                   maxLines: 3,
@@ -100,16 +111,16 @@ class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
                     hintText: Provider.of<LocalizationService>(context, listen: false)
                         .getLocalizedString('enterTheReasonHere'),
                     hintStyle: TextStyle(color: Colors.grey[400]),
-                    fillColor: Colors.grey[100], // Light background
+                     fillColor: Colors.white,
                     filled: true,
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Color(0xFFC62828), width: 2), // Highlight border when focused
+                      borderSide: BorderSide(color: Color(0xFFC62828), width: 1.5),
                     ),                 errorText: _errorText,
 
                   ),
                 ),
-                SizedBox(height: 16.h),
+                SizedBox(height: 15),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -118,17 +129,17 @@ class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
                         Navigator.of(context).pop();
 
                       },
-                      child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancel'), style: TextStyle(fontSize: 14.sp)),
+                      child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancel'), style: TextStyle(fontSize: 14*scale)),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFC62828),
+                        backgroundColor: const Color(0xFFC62828),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       onPressed: () {
                         _handleCancellation(context, paymentToCancel);
                       },
-                      child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('submit'), style: TextStyle(fontSize: 14.sp)),
+                      child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('submit'), style: TextStyle(fontSize: 14*scale)),
                     ),
                   ],
                 ),
@@ -142,6 +153,7 @@ class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
 
   @override
   void dispose() {
+    _syncController.close();
     _reasonController.dispose();
     super.dispose();
   }

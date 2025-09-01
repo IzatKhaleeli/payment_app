@@ -10,14 +10,21 @@ import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+    await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  
   LocalizationService localizeService = LocalizationService();
   bool isJailbroken=false;
   bool developerMode=false;
   try {
-    // Check for jailbreak status
     isJailbroken = await FlutterJailbreakDetection.jailbroken;
     developerMode = await FlutterJailbreakDetection.developerMode;
     print("developer mode :${developerMode} : isJailbroken :${isJailbroken}");
+
   }
   on PlatformException{
     isJailbroken = true;
@@ -25,7 +32,6 @@ void main() async {
   }
   catch (e) {
     print("Error localization Jailbroken: $e");
-    // Handle initialization error as needed
   }
 
   if (isJailbroken) {
@@ -36,7 +42,6 @@ void main() async {
       await localizeService.initLocalization();
     } catch (e) {
       print("Error initializing localization: $e");
-      // Handle initialization error as needed
     }
 
   runApp(
@@ -58,12 +63,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color primaryRed =
-        Color(0xFFD32F2F); // Adjust this hex to match exact color from image
+        Color(0xFFD32F2F);
     const Color backgroundGrey =
-        Color(0xFFF7F7F7); // Adjust this hex to match exact color from image
+        Color(0xFFF7F7F7);
     const Color inputFieldGrey =
-        Color(0xFFE0E0E0); // Adjust this hex to match exact color from image
-
+        Color(0xFFE0E0E0); 
     final ThemeData theme = ThemeData(
       brightness: Brightness.light,
       primaryColor: primaryRed,

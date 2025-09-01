@@ -45,8 +45,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: Size(360, 690));
-
-    // Access the LocalizationService directly using Provider.of
+    final size = MediaQuery.of(context).size;
+    final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
     final localizationService = Provider.of<LocalizationService>(context);
 
     return  Directionality(
@@ -55,7 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         appBar: AppBar(
           title: Text(
             localizationService.getLocalizedString('settings'),
-            style: TextStyle(fontFamily: "NotoSansUI", fontSize: 18.sp, color: Colors.white),
+            style: TextStyle(fontFamily: "NotoSansUI", fontSize: 22*scale, color: Colors.white),
           ),
           backgroundColor: Color(0xFFC62828),
           elevation: 0,
@@ -64,8 +64,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              _buildSettingSection(localizationService,'Preferences', [
-                _buildSettingOption(localizationService,Icons.language, 'languageSettings', onTap: () {
+              _buildSettingSection(scale,localizationService,'Preferences', [
+                _buildSettingOption(scale,localizationService,Icons.language, 'languageSettings', onTap: () {
                   Navigator.push(
                     context,
                     PageRouteBuilder(
@@ -83,8 +83,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 },subtitle:currentLanguage=='en' ? localizationService.getLocalizedString('english') :localizationService.getLocalizedString('arabic')),
               ]),
-              _buildSettingSection(localizationService,'Printer', [
-                _buildSettingOption(localizationService,Icons.print, 'printerSettings', onTap: () {
+              _buildSettingSection(scale,localizationService,'Printer', [
+                _buildSettingOption(scale,localizationService,Icons.print, 'printerSettings', onTap: () {
                   Navigator.push(
                     context,
                     PageRouteBuilder(
@@ -103,8 +103,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },subtitle: currentPrinter),
 
               ]),
-              _buildSettingSection(localizationService,'Other', [
-                _buildSettingOption(localizationService,Icons.info_outline, 'aboutHelp', onTap: () async {
+              _buildSettingSection(scale,localizationService,'Other', [
+                _buildSettingOption(scale,localizationService,Icons.info_outline, 'aboutHelp', onTap: () async {
                   showDialog(
                     context: context,
                     barrierDismissible: true,
@@ -120,9 +120,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 }),
               ]),
-              _buildSettingSection(localizationService,'Account', [
-                _buildSettingOption(localizationService,Icons.logout, 'logout', onTap: () {
-                  _showLogoutDialog(context);
+              _buildSettingSection(scale,localizationService,'Account', [
+                _buildSettingOption(scale,localizationService,Icons.logout, 'logout', onTap: () {
+                  _showLogoutDialog(context,scale);
                 }),
               ]),
             ],
@@ -132,7 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSettingSection(LocalizationService localizationService, title, List<Widget> options) {
+  Widget _buildSettingSection(double scale,LocalizationService localizationService, title, List<Widget> options) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 16.h),
       padding: EdgeInsets.all(12.h),
@@ -155,7 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
             child: Text(
               localizationService.getLocalizedString(title.toLowerCase()),
-              style: TextStyle(fontFamily: "NotoSansUI", fontSize: 16.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(fontFamily: "NotoSansUI", fontSize: 16*scale, fontWeight: FontWeight.bold),
             ),
           ),
           ...options,
@@ -165,7 +165,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
 
-  Widget _buildSettingOption(LocalizationService localizationService, icon, String title, {VoidCallback? onTap, String? subtitle}) {
+  Widget _buildSettingOption(double scale,LocalizationService localizationService, icon, String title, {VoidCallback? onTap, String? subtitle}) {
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -178,41 +178,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(icon, color: Color(0xFFC62828), size: 24.sp),
+                    Icon(icon, color: Color(0xFFC62828), size: 24*scale),
                     SizedBox(width: 20.w),
                     Text(
                       localizationService.getLocalizedString(title)
                       ,
-                      style: TextStyle(fontFamily: "NotoSansUI", fontSize: 16.sp),
+                      style: TextStyle(fontFamily: "NotoSansUI", fontSize: 16*scale),
                     ),
                   ],
                 ),
-                Icon(Icons.arrow_forward_ios, size: 16.sp, color: Colors.grey),
+                Icon(Icons.arrow_forward_ios, size: 16*scale, color: Colors.grey),
               ],
             ),
             // Add subtitle only if provided
-            if (subtitle != null) _buildSubTitleSettingOption(subtitle),
+            if (subtitle != null) _buildSubTitleSettingOption(subtitle,scale),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSubTitleSettingOption(subtitle) {
+  Widget _buildSubTitleSettingOption(subtitle,double scale) {
     return Padding(
       padding: EdgeInsets.only(left: 50.w,right: 50.w, top: 4.h), // Adjust padding for alignment
       child: Text(
         subtitle,
         style: TextStyle(
           fontFamily: "NotoSansUI",
-          fontSize: 13.sp, // Smaller font size
+          fontSize: 13*scale, // Smaller font size
           color: Colors.grey, // Grey color
         ),
       ),
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog(BuildContext context,double scale) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -225,14 +225,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             elevation: 0,
             backgroundColor: Colors.transparent,
-            child: _buildLogoutDialogContent(dialogContext),
+            child: _buildLogoutDialogContent(dialogContext,scale),
           ),
         );
       },
     );
   }
 
-  Widget _buildLogoutDialogContent(BuildContext context) {
+  Widget _buildLogoutDialogContent(BuildContext context,double scale) {
     final localizationService = Provider.of<LocalizationService>(context, listen: false);
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.0),
@@ -254,10 +254,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 localizationService.getLocalizedString('logoutBody'),
                 style: TextStyle(
-                  fontSize: 18.sp,
+                  fontSize: 18*scale,
                   fontFamily: "NotoSansUI",
                   fontWeight: FontWeight.bold,
-                  color: Colors.white, // Ooredoo theme color
+                  color: Colors.white,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -271,6 +271,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onPressed: () => Navigator.of(context).pop(),
                     backgroundColor: Colors.grey.shade300,
                     textColor: Colors.black,
+                    scale:scale
                   ),
                   _buildDialogButton(
                     context: context,
@@ -300,8 +301,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       }
                       PaymentService.completeLogout(context);
                     },
-                    backgroundColor: Color(0xFFC62828), // Ooredoo theme color
+                    backgroundColor: Color(0xFFC62828),
                     textColor: Colors.white,
+                    scale:scale
                   ),
                 ],
               ),
@@ -318,6 +320,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required VoidCallback onPressed,
     required Color backgroundColor,
     required Color textColor,
+    required double scale,
+
   }) {
     return ElevatedButton(
       onPressed: onPressed,
@@ -325,7 +329,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: backgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      child: Text(label, style: TextStyle(fontFamily: "NotoSansUI", color: textColor)),
+      child: Text(label, style: TextStyle(fontFamily: "NotoSansUI", color: textColor,fontSize: 14*scale)),
     );
   }
 }

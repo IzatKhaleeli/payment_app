@@ -8,16 +8,17 @@ class LanguageSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     LocalizationService localizationService = Provider.of<LocalizationService>(context);
     String selectedLanguage = localizationService.selectedLanguageCode; // Get selected language code
-
+    final size = MediaQuery.of(context).size;
+    final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFFA60016), // Set app bar color to red
+        backgroundColor: const Color(0xFFA60016), // Set app bar color to red
         title: Text(
           localizationService.getLocalizedString('languageSettings'),
-          style: TextStyle(fontFamily: "NotoSansUI", fontSize: 18.sp, color: Colors.white),
+          style: TextStyle(fontFamily: "NotoSansUI", fontSize: 18*scale, color: Colors.white),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white), // Set back arrow icon color to white
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -34,15 +35,15 @@ class LanguageSettingsScreen extends StatelessWidget {
                 Text(
                   localizationService.getLocalizedString('languageSettings'),
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 24* scale,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 7),
+                const SizedBox(height: 10),
                 Text(
                   localizationService.getLocalizedString('selectPreferredLanguage'),
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18* scale,
                     color: Colors.grey,
                   ),
                 ),
@@ -51,19 +52,21 @@ class LanguageSettingsScreen extends StatelessWidget {
           ),
           Expanded(
             child: ListView(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 _LanguageCard(
-                  flag: '🇸🇦', // Replace with actual flag icon or image
+                  scale: scale,
+                  flag: '🇸🇦',
                   language: localizationService.getLocalizedString('arabic'),
                   isSelected: selectedLanguage == 'ar',
                   onTap: () {
                     _handleLanguageSelection(context, 'ar');
                   },
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _LanguageCard(
-                  flag: '🇬🇧', // Replace with actual flag icon or image
+                  scale: scale,
+                  flag: '🇬🇧', 
                   language: localizationService.getLocalizedString('english'),
                   isSelected: selectedLanguage == 'en',
                   onTap: () {
@@ -109,12 +112,15 @@ class _LanguageCard extends StatelessWidget {
   final String language;
   final bool isSelected;
   final VoidCallback onTap;
+  final double scale;
 
   const _LanguageCard({
     required this.flag,
     required this.language,
     required this.isSelected,
     required this.onTap,
+    required this.scale,
+
   });
 
   @override
@@ -130,15 +136,14 @@ class _LanguageCard extends StatelessWidget {
             children: [
               Text(
                 flag,
-                style: TextStyle(fontSize: 18),
+                style:TextStyle(fontSize: 18*scale),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Text(
                 language,
                 style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? Color(0xFFC62828) : Colors.black,
+                  fontSize: 16* scale,
+                  color: isSelected ? const Color(0xFFC62828) : Colors.black,
                 ),
               ),
             ],

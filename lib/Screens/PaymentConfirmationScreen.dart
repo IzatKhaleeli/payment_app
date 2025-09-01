@@ -135,20 +135,23 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: Size(360, 690));
+    final size = MediaQuery.of(context).size;
+    final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           viewPayment,
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20.sp,
+            fontSize: 22*scale,
             fontFamily: 'NotoSansUI',
           ),
         ),
-        backgroundColor: Color(0xFFC62828),
+        backgroundColor: const Color(0xFFC62828),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pushReplacement(
               context,
@@ -163,8 +166,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.only(bottom: 30.h), // Margin from the bottom button
-              child: _buildPaymentDetailCard(),
+              margin: EdgeInsets.only(bottom: 30*scale),
+              child: _buildPaymentDetailCard(scale),
             ),
           ],
         ),
@@ -187,7 +190,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 ),
               );
             },
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: const Color(0xFFC62828),
             child: Icon(Icons.add,color: Colors.white),
           ),
         ),
@@ -238,117 +241,119 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     cancelPending = localizationService.getLocalizedString('cancelpending') ?? 'Confirm Payment';
   }
 
-  Widget _buildPaymentDetailCard() {
+  Widget _buildPaymentDetailCard(double scale) {
     if (widget.paymentDetails == null) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
 
     final paymentDetails = widget.paymentDetails!;
 
     return Container(
-      padding: EdgeInsets.all(16.w),
-      margin: EdgeInsets.only(bottom: 20.h),
+      padding: EdgeInsets.all(16*scale),
+      margin: EdgeInsets.only(bottom: 20*scale),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             spreadRadius: 0,
             blurRadius: 15,
-            offset: Offset(0, 5),
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSummaryHeader(paymentDetails['status'].toLowerCase()),
+          _buildSummaryHeader(scale,paymentDetails['status'].toLowerCase()),
 
-          Divider(color: Color(0xFFC62828), thickness: 2, height: 15.h),
+          Divider(color: const Color(0xFFC62828), thickness: 2, height: 15*scale),
 
           if ((paymentDetails['status']?.toLowerCase() == "synced") || (paymentDetails['status']?.toLowerCase() == "cancelled") || (paymentDetails['status']?.toLowerCase() == "canceldpending")) ...[
-            _detailItem(voucherNumber, paymentDetails['voucherSerialNumber'] ?? ''),
-            _divider(),
+            _detailItem(scale,voucherNumber, paymentDetails['voucherSerialNumber'] ?? ''),
+            _divider(scale),
 
           ],
-          _detailItem(transactionDate, paymentDetails['status']?.toLowerCase() == "saved"
+          _detailItem(scale,transactionDate, paymentDetails['status']?.toLowerCase() == "saved"
               ? (paymentDetails['lastUpdatedDate'] != null
               ? DateFormat('yyyy-MM-dd').format(DateTime.parse(paymentDetails['lastUpdatedDate']))
               : '')
               : (paymentDetails['transactionDate'] != null
               ? DateFormat('yyyy-MM-dd').format(DateTime.parse(paymentDetails['transactionDate']))
               : '')),
-          _divider(),
-          _detailItem(transactionTime, paymentDetails['status']?.toLowerCase() == "saved"
+          _divider(scale),
+          _detailItem(scale,transactionTime, paymentDetails['status']?.toLowerCase() == "saved"
               ? (paymentDetails['lastUpdatedDate'] != null
               ? DateFormat('HH:mm:ss').format(DateTime.parse(paymentDetails['lastUpdatedDate']))
               : '')
               : (paymentDetails['transactionDate'] != null
               ? DateFormat('HH:mm:ss').format(DateTime.parse(paymentDetails['transactionDate']))
               : '')),
-          _divider(),
+          _divider(scale),
           if ((paymentDetails['status']?.toLowerCase() == "cancelled") || (paymentDetails['status']?.toLowerCase() == "canceldpending"))
             ...[
-              _detailItem(cancellationDate, paymentDetails['cancellationDate']?.toString() ?? ''),
-              _divider(),
-              _detailItem(cancelReason, paymentDetails['cancelReason']?.toString() ?? ''),
-              _divider(),
+              _detailItem(scale,cancellationDate, paymentDetails['cancellationDate']?.toString() ?? ''),
+              _divider(scale),
+              _detailItem(scale,cancelReason, paymentDetails['cancelReason']?.toString() ?? ''),
+              _divider(scale),
             ],
 
 
-          _detailItem(customerName, paymentDetails['customerName'] ?? ''),
-          _divider(),
-          _detailItem(status,Provider.of<LocalizationService>(context, listen: false).getLocalizedString(paymentDetails['status'].toLowerCase()) ?? ''),
-          _divider(),
-          _detailItem(prNumber, paymentDetails['prNumber']?.toString() ?? ''),
-          _divider(),
-          _detailItem(msisdn, paymentDetails['msisdn']?.toString() ?? ''),
-          _divider(),
-          _detailItem(paymentMethod, Provider.of<LocalizationService>(context, listen: false).getLocalizedString(paymentDetails['paymentMethod'].toLowerCase()) ?? ''),
+          _detailItem(scale,customerName, paymentDetails['customerName'] ?? ''),
+          _divider(scale),
+          _detailItem(scale,status,Provider.of<LocalizationService>(context, listen: false).getLocalizedString(paymentDetails['status'].toLowerCase()) ?? ''),
+          _divider(scale),
+          _detailItem(scale,prNumber, paymentDetails['prNumber']?.toString() ?? ''),
+          _divider(scale),
+          _detailItem(scale,msisdn, paymentDetails['msisdn']?.toString() ?? ''),
+          _divider(scale),
+          _detailItem(scale,paymentMethod, Provider.of<LocalizationService>(context, listen: false).getLocalizedString(paymentDetails['paymentMethod'].toLowerCase()) ?? ''),
 
           if ((paymentDetails['paymentMethod']?.toLowerCase() == "check") || (paymentDetails['paymentMethod'] == "شيك")) ...[
-            _divider(),
-            _detailItem(amountCheck, paymentDetails['amountCheck']?.toString() ?? ''),
-            _divider(),
-            _detailItem(currency, AppearedCurrency!),
-            _divider(),
+            _divider(scale),
+            _detailItem(scale,amountCheck, paymentDetails['amountCheck']?.toString() ?? ''),
+            _divider(scale),
+            _detailItem(scale,currency, AppearedCurrency!),
+            _divider(scale),
             _detailNoteItem(
+              scale,
                 theSumOf,
                 languageCode == 'ar'
                     ? Tafqeet.convert(paymentDetails['amountCheck']?.toInt().toString() ?? '')
                     : NumberToWordsEnglish.convert(paymentDetails['amountCheck'] != null ? (paymentDetails['amountCheck'] as double).toInt() : 0)
                 ,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
-            _divider(),
-            _detailItem(checkNumber, paymentDetails['checkNumber']?.toString() ?? ''),
-            _divider(),
-            _detailItem(bankBranch,AppearedBank ?? ''),
-            _divider(),
-            _detailItem(dueDateCheck, DateFormat('yyyy-MM-dd').format(DateTime.parse(paymentDetails['dueDateCheck'])) ?? ''),
+            _divider(scale),
+            _detailItem(scale,checkNumber, paymentDetails['checkNumber']?.toString() ?? ''),
+            _divider(scale),
+            _detailItem(scale,bankBranch,AppearedBank ?? ''),
+            _divider(scale),
+            _detailItem(scale,dueDateCheck, DateFormat('yyyy-MM-dd').format(DateTime.parse(paymentDetails['dueDateCheck'])) ?? ''),
           ],
           if ((paymentDetails['paymentMethod']?.toLowerCase() == "cash") || (paymentDetails['paymentMethod'] == "كاش")) ...[
-            _divider(),
-            _detailItem(amount, paymentDetails['amount']?.toString() ?? ''),
-            _divider(),
-            _detailItem(currency, AppearedCurrency!),
-            _divider(),
+            _divider(scale),
+            _detailItem(scale,amount, paymentDetails['amount']?.toString() ?? ''),
+            _divider(scale),
+            _detailItem(scale,currency, AppearedCurrency!),
+            _divider(scale),
             _detailNoteItem(
+              scale,
                 theSumOf,
                 languageCode == 'ar'
                     ?  paymentDetails['amount']!= null ? Tafqeet.convert(paymentDetails['amount'].toInt().toString() )  : 'Invalid amount'
                     : NumberToWordsEnglish.convert(paymentDetails['amount'] != null ? (paymentDetails['amount'] as double).toInt() : 0),
                 Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
           ],
-          _divider(),
-          _detailItem(deposit,paymentDetails['isDepositChecked'] == 0 ? Provider.of<LocalizationService>(context, listen: false).getLocalizedString('no') : Provider.of<LocalizationService>(context, listen: false).getLocalizedString('yes')),
-          _divider(),
-          _detailNoteItem(paymentInvoiceFor, paymentDetails['paymentInvoiceFor']?.toString() ?? '',Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
+          _divider(scale),
+          _detailItem(scale,deposit,paymentDetails['isDepositChecked'] == 0 ? Provider.of<LocalizationService>(context, listen: false).getLocalizedString('no') : Provider.of<LocalizationService>(context, listen: false).getLocalizedString('yes')),
+          _divider(scale),
+          _detailNoteItem(scale,paymentInvoiceFor, paymentDetails['paymentInvoiceFor']?.toString() ?? '',Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryHeader(String paymentStatus) {
+  Widget _buildSummaryHeader(double scale,String paymentStatus) {
     // Determine if icons should be shown based on conditions
     bool canEdit = paymentStatus == 'saved';
     bool canDelete = paymentStatus == 'saved';
@@ -362,7 +367,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         Text(
           paymentSummary,
           style: TextStyle(
-            fontSize: 18.sp,
+            fontSize: 18*scale,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
@@ -600,7 +605,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                           deleteButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('ok'),
                           onPressButton: () async {
                             showDialog( context: context,  barrierDismissible: false,  builder: (BuildContext dialogContext) {
-                              return Center(
+                              return const Center(
                                 child: CircularProgressIndicator(),
                               );
                             },
@@ -621,16 +626,16 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     );
   }
 
-  Widget _detailItem(String title, String value) {
+  Widget _detailItem(double scale ,String title, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 6.h),
+      padding: EdgeInsets.symmetric(vertical: 6*scale),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             title,
             style: TextStyle(
-              fontSize: 14.sp,
+              fontSize: 14*scale,
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
@@ -640,7 +645,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               value,
               textAlign: TextAlign.end,
               style: TextStyle(
-                fontSize: 14.sp,
+                fontSize: 14*scale,
                 color: Colors.black54,
               ),
             ),
@@ -650,7 +655,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     );
   }
 
-  Widget _detailNoteItem(String title, String value, String languageCode) {
+  Widget _detailNoteItem(double scale,String title, String value, String languageCode) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.h),
       child: Column(
@@ -663,7 +668,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: 14*scale,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
@@ -672,7 +677,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               ),
             ],
           ),
-          SizedBox(height: 4.h), // Adjust space between title and value
+          SizedBox(height: 5*scale),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -681,7 +686,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                   value,
                   textAlign: languageCode == 'ar' ? TextAlign.left : TextAlign.right, // Opposite alignment for value
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: 14*scale,
                     color: Colors.black54,
                   ),
                 ),
@@ -693,7 +698,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     );
   }
 
-  Widget _divider() {
-    return Divider(color: Color(0xFFCCCCCC), height: 10.h);
+  Widget _divider(double scale) {
+    return Divider(color: const Color(0xFFCCCCCC), height: 10*scale);
   }
 }
