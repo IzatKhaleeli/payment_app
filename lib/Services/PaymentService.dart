@@ -1,6 +1,7 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
+
 import '../Services/secure_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -19,7 +20,7 @@ import '../Screens/SMS_Service.dart';
 import 'LocalizationService.dart';
 import 'apiConstants.dart';
 import 'package:mutex/mutex.dart';
-
+import 'package:package_info_plus/package_info_plus.dart';
 import 'globalError.dart';
 
 
@@ -428,6 +429,74 @@ class PaymentService {
 
   }
 
+    static Future <bool> getMinVersion() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? tokenID = prefs.getString('token');
+    if (tokenID == null) {
+      print('Token not found');
+      return false;
+    }
+    String fullToken = "Barer ${tokenID}";
+
+    try {
+      Map<String, String> headers = {
+        'Content-Type': 'application/json',
+        'tokenID': fullToken,
+      };
+      final response = await http.get(
+        Uri.parse(apiUrlMinVersion),
+        headers: headers,
+      )
+     .timeout(const Duration(seconds: 5)); 
+
+      if (response.statusCode != 200) {
+        print('Failed to get the min version. Status code: ${response.statusCode}');
+        return false;
+      }
+      String backendVersion = response.body.trim();
+      print("MIN_VERSION from backend: $backendVersion");
+
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      String currentVersion = packageInfo.version;
+      print("APP_VERSION: $currentVersion");
+
+      List<String> backendParts = backendVersion.split('.');
+      List<String> appParts = currentVersion.split('.');
+
+      if (backendParts.length < 3 || appParts.length < 3) {
+        print("Invalid version format");
+        return false;
+      }
+
+      int backendMajor = int.tryParse(backendParts[0]) ?? 0;
+      int backendMinor = int.tryParse(backendParts[1]) ?? 0;
+      int backendPatch = int.tryParse(backendParts[2]) ?? 0;
+
+      int appMajor = int.tryParse(appParts[0]) ?? 0;
+      int appMinor = int.tryParse(appParts[1]) ?? 0;
+      int appPatch = int.tryParse(appParts[2]) ?? 0;
+
+      if (backendMajor != appMajor || backendMinor != appMinor) {
+        print("Major/Minor mismatch → force update required.");
+        return false;
+      }
+
+      if (backendPatch != appPatch) {
+        print("Patch mismatch → new version available, but not mandatory.");
+        return true;
+      }
+
+      print("App is up-to-date.");
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting the min version: $e');
+      }
+      return false;
+    }
+
+  }
+
 
   static Future<void> showLoadingAndNavigate(BuildContext context) async {
     final size = MediaQuery.of(context).size;
@@ -443,11 +512,11 @@ class PaymentService {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                width: 130*scale,
-                height: 100*scale,
+                width: 130.w,
+                height: 100.h,
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2), // Semi-transparent white for glass effect
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(10.r),
                   border: Border.all(
                     color: Colors.white.withOpacity(0.2),
                     width: 1.5,
@@ -469,7 +538,7 @@ class PaymentService {
                         );
                       },
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 10.h),
                     Text(
                       Provider.of<LocalizationService>(context, listen: false).getLocalizedString('pleaseWait'),
                       style: TextStyle(
@@ -521,7 +590,7 @@ class PaymentService {
   }
 
   // Show only loading (no logout logic)
-  static void showLoadingOnly(BuildContext context) {
+  static void showLoadingOnly(BuildContext context,double scale) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -532,11 +601,11 @@ class PaymentService {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                width: 130.w,
-                height: 100.h,
+                width: 130,
+                height: 100,
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: Colors.white.withOpacity(0.2),
                     width: 1.5,
@@ -558,14 +627,14 @@ class PaymentService {
                         );
                       },
                     ),
-                    SizedBox(height: 10.h),
+                    SizedBox(height: 10),
                     Text(
                       Provider.of<LocalizationService>(context, listen: false).getLocalizedString('pleaseWait'),
                       style: TextStyle(
                         decoration: TextDecoration.none,
                         color: Colors.white,
                         fontFamily: 'NotoSansUI',
-                        fontSize: 14.sp,
+                        fontSize: 14*scale,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../Services/LocalizationService.dart';
 import '../Services/apiConstants.dart';
 
 class CustomAboutDialogScreen extends StatelessWidget {
+  final double scale;
+
+  const CustomAboutDialogScreen({
+    Key? key,
+    required this.scale,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -20,39 +28,71 @@ class CustomAboutDialogScreen extends StatelessWidget {
     return Stack(
       children: <Widget>[
         Container(
-          padding: EdgeInsets.only(left: 20.w, top: 45.h, right: 20.w, bottom: 20.h),
-          margin: EdgeInsets.only(top: 45.h),
+          padding: EdgeInsets.only(
+              left: 20 * scale,
+              top: 45 * scale,
+              right: 20 * scale,
+              bottom: 20 * scale),
+          margin: EdgeInsets.only(top: 45 * scale),
           decoration: BoxDecoration(
             shape: BoxShape.rectangle,
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.2), offset: Offset(0, 10), blurRadius: 10),
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  offset: const Offset(0, 10),
+                  blurRadius: 10),
             ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Text(
-                "${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('aboutTitle')} ",
-                style: TextStyle(fontSize: 22.sp, fontFamily: 'NotoSansUI', fontWeight: FontWeight.w600),
+                Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('aboutTitle'),
+                style: TextStyle(
+                    fontSize: 22 * scale,
+                    fontFamily: 'NotoSansUI',
+                    fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center,
               ),
-              (baseUrl == 'https://b2bpayments.ooredoo.ps') ?
-                Text('1.2 P',
-                  style: TextStyle(fontSize: 14.sp, fontFamily: 'NotoSansUI'),
-                  textAlign: TextAlign.center,
-                ):
-              Text('1.2 T',
-              style: TextStyle(fontSize: 14.sp, fontFamily: 'NotoSansUI'),
-              textAlign: TextAlign.center,
+
+              // 🔹 Version (dynamic)
+              FutureBuilder<PackageInfo>(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const SizedBox.shrink(); // loading placeholder
+                  }
+                  if (!snapshot.hasData) {
+                    return Text(
+                      "Version ?",
+                      style: TextStyle(
+                          fontSize: 14 * scale, fontFamily: 'NotoSansUI'),
+                      textAlign: TextAlign.center,
+                    );
+                  }
+                  final version = snapshot.data!.version;
+                  final suffix =
+                      baseUrl == 'https://b2bpayments.ooredoo.ps' ? " P" : " T";
+                  return Text(
+                    "$version$suffix",
+                    style: TextStyle(
+                        fontSize: 14 * scale, fontFamily: 'NotoSansUI'),
+                    textAlign: TextAlign.center,
+                  );
+                },
               ),
-              SizedBox(height: 15.h),
-              Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('aboutBody'),
-                style: TextStyle(fontSize: 14.sp, fontFamily: 'NotoSansUI'),
+
+              SizedBox(height: 15 * scale),
+              Text(
+                Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('aboutBody'),
+                style: TextStyle(fontSize: 14 * scale, fontFamily: 'NotoSansUI'),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 22.h),
+              SizedBox(height: 25 * scale),
               Align(
                 alignment: Alignment.bottomRight,
                 child: TextButton(
@@ -60,8 +100,12 @@ class CustomAboutDialogScreen extends StatelessWidget {
                     Navigator.of(context).pop();
                   },
                   child: Text(
-                    Provider.of<LocalizationService>(context, listen: false).getLocalizedString('ok'),
-                    style: TextStyle(fontFamily: 'NotoSansUI', fontSize: 18.sp, color: Color(0xFFC62828)),
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString('ok'),
+                    style: TextStyle(
+                        fontFamily: 'NotoSansUI',
+                        fontSize: 18 * scale,
+                        color: const Color(0xFFC62828)),
                   ),
                 ),
               ),
@@ -69,14 +113,14 @@ class CustomAboutDialogScreen extends StatelessWidget {
           ),
         ),
         Positioned(
-          left: 20.w,
-          right: 20.w,
+          left: 20 * scale,
+          right: 20 * scale,
           child: CircleAvatar(
             backgroundColor: Colors.transparent,
-            radius: 45.h,
+            radius: 45 * scale,
             child: ClipRRect(
-              borderRadius: BorderRadius.all(Radius.circular(45.h)),
-              child: Image.asset('assets/images/Init Logo.png'), // Replace with your app's logo or suitable graphic
+              borderRadius: BorderRadius.circular(45 * scale),
+              child: Image.asset('assets/images/Init Logo.png'),
             ),
           ),
         ),

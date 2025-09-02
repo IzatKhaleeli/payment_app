@@ -55,4 +55,5 @@ import 'package:flutter/material.dart';
         print('Error comparing and syncing banks: $e');
       }
     }
+    
   }

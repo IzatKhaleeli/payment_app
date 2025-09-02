@@ -9,7 +9,6 @@
   "loginFailedTimeout": "انتهت مهلة الطلب. يرجى المحاولة مرة أخرى لاحقًا.",
   "loginfailedNetworkError": "يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.",
 
-  "recordPayment": "تسجيل دفعة",
   "paymentHistory": "سجل الدفعات",
   "printReceipt": "طباعة الإيصال",
   "paymentCancellation": "إلغاء دفعة",
@@ -82,8 +81,6 @@
   "confirmCancellationBody": "هل أنت متأكد أنك تريد إلغاء هذه الدفعة؟",
   "confirm": "تأكيد",
 
-
-  "paymentHistory": "سجل الدفعات",
   "from": "من",
   "to": "إلى",
   "search": "البحث",
@@ -251,6 +248,10 @@
   "no": "لا",
   "yes": "نعم",
   "amountFormatter": "يجب أن يكون المبلغ بصيغة XXX.XX (مثل 123.45)",
-  "unexpectedError": "خطأ غير متوقع"
+  "unexpectedError": "خطأ غير متوقع",
 
+  "updateAppTitle": "تحديث متاح",
+  "updateAppBody": "يتوفر إصدار جديد من التطبيق. يرجى التحديث للمتابعة.",
+  "update": "تحديث",
+  "later": "لاحقاً"
 }

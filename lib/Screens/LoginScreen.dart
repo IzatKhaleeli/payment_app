@@ -28,6 +28,8 @@ class LoginScreen extends StatelessWidget {
     ScreenUtil.init(context, designSize: Size(360, 690), minTextAdapt: true);
     double maxWidth =
     ScreenUtil().screenWidth > 600 ? 600.w : ScreenUtil().screenWidth * 0.9;
+    final size = MediaQuery.of(context).size;
+    final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
 
     final screenSize = MediaQuery.of(context).size;
 
@@ -59,7 +61,7 @@ class LoginScreen extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        _buildLanguageDropdown(context, localizationService),
+                        _buildLanguageDropdown(scale,context, localizationService),
                       ],
                     ),
                   ),
@@ -113,36 +115,56 @@ class LoginScreen extends StatelessWidget {
                                       var connectivityResult = await (Connectivity().checkConnectivity());
                                       if(connectivityResult.toString() == '[ConnectivityResult.none]'){
                                         _showLoginFailedDialog(
+                                          scale,
                                           context,
                                           localizationService.getLocalizedString('noInternet'),
                                           localizationService.isLocalizationLoaded
                                               ? localizationService.getLocalizedString('noInternetConnection')
                                               : 'No Internet Connection',
                                           localizationService.selectedLanguageCode,
+                                          localizationService
                                         );
                                       }
                                       else{
                                         bool isValid = validateLoginInputs(loginState);
                                         if (isValid) {
-                                          _handleLogin(context, localizationService);
+                                          _handleLogin(scale,context, localizationService);
                                           var loginResult =await loginState.login(loginState.username,loginState.password);
                                           print("loginResult :${loginResult}");
                                           if (loginResult["status"] == 200) {
+                                          var versionChecker = await PaymentService.getMinVersion();
+                                          if(versionChecker == false){
+                                            print("App update required");
+                                            Navigator.of(context).pop(); 
+                                            _showLoginFailedDialog(
+                                              scale,
+                                              context,
+                                              localizationService.getLocalizedString('updateAppBody'),
+                                              localizationService.isLocalizationLoaded
+                                              ? localizationService.getLocalizedString('updateAppTitle')
+                                              : 'Update Required',
+                                              localizationService.selectedLanguageCode,
+                                              localizationService);
+                                              return;
+                                              }
+                                              else{
+                                                print("App is up-to-date.");
+                                                             
                                             await saveCredentials(loginState.username,loginState.password);
                                             await LOVCompareService.compareAndSyncCurrencies();
                                             await LOVCompareService.compareAndSyncBanks();
                                             await PaymentService.getExpiredPaymentsNumber();
-                                            print("jjjj");
                                             Navigator.of(context).pop();  // Dismiss the loading dialog
                                             Navigator.pushReplacement(
                                               context,
                                               MaterialPageRoute(builder: (context) => DashboardScreen()),
                                             );
+                                            }    
                                           }
                                           else if (loginResult['status'] == 408) { // Handle timeout
                                             Navigator.of(context).pop();
-
                                             _showLoginFailedDialog(
+                                              scale,
                                               context,
                                               localizationService
                                                   .getLocalizedString(
@@ -155,12 +177,14 @@ class LoginScreen extends StatelessWidget {
                                                   : 'Login Failed',
                                               localizationService
                                                   .selectedLanguageCode,
+                                                  localizationService
                                             );
                                           }
                                           else if (loginResult['status'] == 503) { // Handle network error
                                             Navigator.of(context).pop();
 
                                             _showLoginFailedDialog(
+                                              scale,
                                               context,
                                               localizationService
                                                   .getLocalizedString(
@@ -173,12 +197,14 @@ class LoginScreen extends StatelessWidget {
                                                   : 'Login Failed',
                                               localizationService
                                                   .selectedLanguageCode,
+                                                  localizationService
                                             );
                                           }
                                           else {
                                             Navigator.of(context).pop();
 
                                             _showLoginFailedDialog(
+                                              scale,
                                               context,
                                               localizationService
                                                   .getLocalizedString(
@@ -191,11 +217,13 @@ class LoginScreen extends StatelessWidget {
                                                   : 'Login Failed',
                                               localizationService
                                                   .selectedLanguageCode,
+                                                  localizationService
                                             );
                                           }
                                         }
                                         else {
                                           _showLoginFailedDialog(
+                                            scale,
                                             context,
                                             localizationService
                                                 .getLocalizedString(
@@ -208,8 +236,10 @@ class LoginScreen extends StatelessWidget {
                                                 : 'Login Failed',
                                             localizationService
                                                 .selectedLanguageCode,
+                                                localizationService
                                           );
                                         }
+                                      
                                       }
                                     },
                                   ),
@@ -228,16 +258,18 @@ class LoginScreen extends StatelessWidget {
                                       var connectivityResult = await (Connectivity().checkConnectivity());
                                       if(connectivityResult.toString() == '[ConnectivityResult.none]'){
                                         _showLoginFailedDialog(
+                                          scale,
                                           context,
                                           localizationService.getLocalizedString('noInternet'),
                                           localizationService.isLocalizationLoaded
                                               ? localizationService.getLocalizedString('noInternetConnection')
                                               : 'No Internet Connection',
                                           localizationService.selectedLanguageCode,
+                                          localizationService
                                         );
                                       }
                                       else{
-                                        _handleSmartLogin(context, loginState, localizationService);
+                                        _handleSmartLogin(scale,context, loginState, localizationService);
                                       }
 
                                     },
@@ -280,19 +312,21 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  void _handleSmartLogin(BuildContext context, LoginState loginState, LocalizationService localizationService) async {
+  void _handleSmartLogin(double scale,BuildContext context, LoginState loginState, LocalizationService localizationService) async {
     late final LocalAuthentication auth;
 
     auth = LocalAuthentication();
     bool isSupported = await auth.isDeviceSupported();
     if (!isSupported) {
       _showLoginFailedDialog(
+        scale,
         context,
         localizationService.getLocalizedString('noBiometricSupportBody'),
         localizationService.isLocalizationLoaded
             ? localizationService.getLocalizedString('loginFailed')
             : "Biometric not supported",
         localizationService.selectedLanguageCode,
+                localizationService
       );
       return;
     }
@@ -315,7 +349,8 @@ class LoginScreen extends StatelessWidget {
         ),
       );
       if (authenticated) {
-        _handleLogin(context, localizationService);
+        _handleLogin(scale,context, localizationService);
+
         Map<String, String?> credentials = await getCredentials();
         String? username = credentials['username'];
         String? password = credentials['password'];
@@ -323,37 +358,52 @@ class LoginScreen extends StatelessWidget {
           var loginSuccessful = await loginState.login(username, password);
           if (loginSuccessful["status"] == 200) {
             print("loginSuccessful tt");
-            await LOVCompareService.compareAndSyncCurrencies();
-            await LOVCompareService.compareAndSyncBanks();
-            await PaymentService.getExpiredPaymentsNumber();
 
-            Navigator.of(context).pop();  // Dismiss the loading dialog
+          var versionChecker = await PaymentService.getMinVersion();
+          if(versionChecker == false){
+            print("App update required");
+            Navigator.of(context).pop(); 
+            _showLoginFailedDialog(
+              scale,
+              context,
+              localizationService.getLocalizedString('updateAppBody'),
+              localizationService.isLocalizationLoaded
+              ? localizationService.getLocalizedString('updateAppTitle')
+              : 'Update Required',
+              localizationService.selectedLanguageCode,
+              localizationService);
+              return;
+              }
+              else{
+                print("App is up-to-date.");
+                await LOVCompareService.compareAndSyncCurrencies();
+                await LOVCompareService.compareAndSyncBanks();
+                await PaymentService.getExpiredPaymentsNumber();
+            Navigator.of(context).pop();  
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => DashboardScreen()),
             );
+            }
           }
           else {
             Navigator.of(context).pop();
             _showLoginFailedDialog(
+              scale,
               context,
-              localizationService
-                  .getLocalizedString(
-                  'WrongCredentialsFoundBody'),
-              localizationService
-                  .isLocalizationLoaded
-                  ? localizationService
-                  .getLocalizedString(
-                  'loginfailed')
+              localizationService.getLocalizedString( 'WrongCredentialsFoundBody'),
+                  localizationService.isLocalizationLoaded? 
+                  localizationService.getLocalizedString('loginfailed')
                   : "Login Failed",
-              localizationService
-                  .selectedLanguageCode,
+              localizationService.selectedLanguageCode,
+                localizationService
             );
           }
         }
         else {
           Navigator.of(context).pop();
           _showLoginFailedDialog(
+            scale,
             context,
             localizationService
                 .getLocalizedString(
@@ -366,6 +416,7 @@ class LoginScreen extends StatelessWidget {
                 : "Login Failed",
             localizationService
                 .selectedLanguageCode,
+                localizationService
           );
         }
         print("Authenticated successfully from screen.");
@@ -376,6 +427,7 @@ class LoginScreen extends StatelessWidget {
   }
 
   Widget _buildLanguageDropdown(
+    double scale,
       BuildContext context, LocalizationService localizationService) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -396,7 +448,7 @@ class LoginScreen extends StatelessWidget {
                 child: ListTile(
                   title: Text(
                     language['name']!,
-                    style: TextStyle(fontSize: 16.0),
+                    style: TextStyle(fontSize: 14*scale),
                   ),
                 ),
               );
@@ -440,29 +492,28 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  void _showLoginFailedDialog(BuildContext context, String errorMessage,
-      String loginFailed, String langauage) {
+  void _showLoginFailedDialog(double scale,BuildContext context, String errorMessage,
+      String loginFailed, String langauage,LocalizationService localizationService) {
     showDialog(
       context: context,
       barrierDismissible: true,
-      // Allow dismissing the dialog by tapping outside of it
       builder: (BuildContext dialogContext) {
         return Directionality(
           textDirection: langauage == 'ar'
               ? TextDirection.rtl
-              : TextDirection.ltr, // Set text direction to left-to-right
+              : TextDirection.ltr,
           child: Center(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12.0),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                 child: Container(
-                  width: 300.w,
-                  padding: EdgeInsets.all(16.w),
+                  width: 280.w,
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     // Semi-transparent white for glass effect
-                    borderRadius: BorderRadius.circular(12.r),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: Colors.white.withOpacity(0.2),
                       width: 1.5,
@@ -478,7 +529,7 @@ class LoginScreen extends StatelessWidget {
                         loginFailed,
                         style: TextStyle(
                           decoration: TextDecoration.none,
-                          fontSize: 18.sp,
+                          fontSize: 18*scale,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'NotoSansUI',
                           color: Color(0xFFC62828),
@@ -489,30 +540,29 @@ class LoginScreen extends StatelessWidget {
                         errorMessage,
                         style: TextStyle(
                           decoration: TextDecoration.none,
-                          fontSize: 14.sp,
+                          fontSize: 14*scale,
                           fontFamily: 'NotoSansUI',
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(height: 20.h),
+                      const SizedBox(height: 20),
                       Align(
-                        alignment: Alignment.centerRight,
+                        alignment: AlignmentDirectional.centerEnd,
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.of(dialogContext)
-                                .pop(); // Dismiss the dialog
+                            Navigator.of(dialogContext).pop(); 
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFFC62828), // Button color
+                            backgroundColor: const Color(0xFFC62828),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                           child: Text(
-                            'OK',
+                             localizationService.getLocalizedString("ok"),
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 16.sp,
+                              fontSize: 16*scale,
                               decoration: TextDecoration.none,
                               fontFamily: 'NotoSansUI',
                             ),
@@ -546,7 +596,7 @@ class LoginScreen extends StatelessWidget {
     return true; // Validation succeeded
   }
 
-  void _handleLogin(BuildContext context, LocalizationService localizationService) async {
+  void _handleLogin(double scale,BuildContext context, LocalizationService localizationService) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -590,7 +640,7 @@ class LoginScreen extends StatelessWidget {
                         decoration: TextDecoration.none,
                         color: Colors.white,
                         fontFamily: 'NotoSansUI',
-                        fontSize: 14.sp,
+                        fontSize: 12*scale,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -603,8 +653,7 @@ class LoginScreen extends StatelessWidget {
       },
     );
 
-    // Ensure the dialog is shown for at least 2 seconds
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
   }
 
 

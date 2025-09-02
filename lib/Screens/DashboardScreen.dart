@@ -310,7 +310,7 @@ Expanded(
                     context: context,
                     label: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('logout'),
                     onPressed: () async {
-                      PaymentService.showLoadingOnly(context);
+                      PaymentService.showLoadingOnly(context,scale);
 
                       var connectivityResult = await (Connectivity().checkConnectivity());
                       if(connectivityResult.toString() != '[ConnectivityResult.none]'){

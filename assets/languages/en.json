@@ -266,5 +266,10 @@
   "no": "No",
   "yes": "Yes",
   "amountFormatter": "Amount must follow the format XXX.XX (e.g., 123.45).",
-  "unexpectedError": "Unexpected Error"
+  "unexpectedError": "Unexpected Error",
+  "updateAppTitle": "Update Available",
+  "updateAppBody": "A new version of the app is available. Please update to continue.",
+  "update": "Update",
+  "later": "Later"
+
 }

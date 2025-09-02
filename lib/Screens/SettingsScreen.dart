@@ -114,7 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
                         elevation: 0,
                         backgroundColor: Colors.transparent,
-                        child: CustomAboutDialogScreen(),
+                        child: CustomAboutDialogScreen(scale: scale,),
                       );
                     },
                   );
@@ -278,7 +278,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     label: localizationService.getLocalizedString('logout'),
                     onPressed: () async {
                       // Immediately show loading
-                      PaymentService.showLoadingOnly(context);
+                      PaymentService.showLoadingOnly(context,scale);
 
                       var connectivityResult = await (Connectivity().checkConnectivity());
                       if(connectivityResult.toString() != '[ConnectivityResult.none]'){
