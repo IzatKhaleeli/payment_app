@@ -365,26 +365,29 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  Widget _buildDateField(double scale, BuildContext context,
-      {required String label,
-      required TextEditingController controller,
-      required Function(DateTime) onDateSelected}) {
+  Widget _buildDateField(
+    double scale,
+    BuildContext context, {
+    required String label,
+    required TextEditingController controller,
+    required Function(DateTime) onDateSelected,
+  }) {
     return TextField(
       controller: controller,
-      style: TextStyle(fontSize: 12 * scale), // Set font size smaller here
+      style: TextStyle(fontSize: 11 * scale),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(
-            fontSize: 12 *
-                scale), // Set the label text size to match the input text size
-        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFC62828)),
+        labelStyle: TextStyle(fontSize: 12 * scale),
+        suffixIcon: const Icon(Icons.calendar_today, color: Color(0xFFC62828)),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         fillColor: Colors.white,
         filled: true,
-        contentPadding: EdgeInsets.symmetric(
-            horizontal: 10, vertical: 8), // Adjust padding inside the TextField
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       ),
       readOnly: true,
+      expands: false,
+      minLines: 1,
+      maxLines: null,
       onTap: () async {
         final DateTime? picked = await showDatePicker(
           context: context,
@@ -392,22 +395,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           firstDate: DateTime(2000),
           lastDate: DateTime(2100),
         );
-        if (picked != null && picked != _selectedFromDate) {
-          // Check if picked date is valid based on "From" and "To" date logic
-          if (label == from &&
-              _selectedToDate != null &&
-              picked.isAfter(_selectedToDate!)) {
-            // If "From" date is selected and it is after the "To" date, reset the "To" date
-            _toDateController.clear();
-            _selectedToDate = null;
-          } else if (label == to &&
-              _selectedFromDate != null &&
-              picked.isBefore(_selectedFromDate!)) {
-            // If "To" date is selected and it is before the "From" date, show a warning or reset
-            _fromDateController.clear();
-            _selectedFromDate = null;
-          }
-
+        if (picked != null) {
           controller.text = DateFormat('yyyy-MM-dd').format(picked);
           onDateSelected(picked);
         }
