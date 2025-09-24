@@ -25,10 +25,8 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   List<DashboardItemModel> dashboardItems = [];
   late SharedPreferences prefs;
-  String? usernameLogin; 
-  Timer? _timer; 
-
-
+  String? usernameLogin;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -51,7 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     _timer = Timer.periodic(
       durationUntilNextRun,
-          (Timer timer) {
+      (Timer timer) {
         PaymentService.getExpiredPaymentsNumber();
         _timer?.cancel();
         _timer = Timer.periodic(Duration(days: 1), (Timer timer) {
@@ -76,15 +74,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _initializeLocalization() async {
-    await Provider.of<LocalizationService>(context, listen: false).initLocalization();
+    await Provider.of<LocalizationService>(context, listen: false)
+        .initLocalization();
   }
 
   void _initializeDashboardItems() {
-
     dashboardItems = [
-      DashboardItemModel(iconData: Icons.payment, title: 'recordPayment', onTap: () => _navigateTo(RecordPaymentScreen())),
-      DashboardItemModel(iconData: Icons.history, title: 'paymentHistory', onTap: () => _navigateTo(PaymentHistoryScreen())),
-      DashboardItemModel(iconData: Icons.settings, title: 'settings', onTap: () => _navigateTo(SettingsScreen())),
+      DashboardItemModel(
+          iconData: Icons.payment,
+          title: 'recordPayment',
+          onTap: () => _navigateTo(RecordPaymentScreen())),
+      DashboardItemModel(
+          iconData: Icons.history,
+          title: 'paymentHistory',
+          onTap: () => _navigateTo(PaymentHistoryScreen())),
+      DashboardItemModel(
+          iconData: Icons.settings,
+          title: 'settings',
+          onTap: () => _navigateTo(SettingsScreen())),
     ];
   }
 
@@ -97,7 +104,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const begin = Offset(1.0, 0.0);
           const end = Offset.zero;
           const curve = Curves.easeInOut;
-          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
           var offsetAnimation = animation.drive(tween);
 
           return SlideTransition(
@@ -108,9 +116,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
+
   @override
-  Widget build(BuildContext context)  {
+  Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: Size(360, 690));
     final size = MediaQuery.of(context).size;
     final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
@@ -130,7 +138,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           iconSize: 34,
           icon: const Icon(
             Icons.logout_outlined,
-            color: Color(0xffd21816),
+            color: Color(0xFFC62828),
           ),
           onPressed: () {
             showDialog(
@@ -159,9 +167,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         centerTitle: true,
       ),
-
-      body:
-      Column(
+      body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(8),
@@ -169,7 +175,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12.r),
-
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey.withOpacity(0.15),
@@ -184,13 +189,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Icon(
                     Icons.person,
                     color: const Color(0xFFC62828),
-                    size: 24*scale,
+                    size: 24 * scale,
                   ),
                   SizedBox(width: 8.w),
                   Text(
                     '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('hello')} $usernameLogin',
                     style: TextStyle(
-                      fontSize: 16*scale,
+                      fontSize: 16 * scale,
                       fontFamily: "NotoSansUI",
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFFC62828),
@@ -200,72 +205,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // total available height inside Expanded
+                final double availableHeight = constraints.maxHeight;
 
-Expanded(
-  child: LayoutBuilder(
-    builder: (context, constraints) {
-      // total available height inside Expanded
-      final double availableHeight = constraints.maxHeight;
+                // spacing between items
+                final double spacing = 10.h * (dashboardItems.length - 1);
 
-      // spacing between items
-      final double spacing = 10.h * (dashboardItems.length - 1);
+                // each item's height (equally divided space)
+                final double itemHeight = (availableHeight - spacing - 32) /
+                    dashboardItems.length; // 32 for top+bottom padding
 
-      // each item's height (equally divided space)
-      final double itemHeight =
-          (availableHeight - spacing - 32) / dashboardItems.length; // 32 for top+bottom padding
+                // item width = full width - left/right padding
+                final double itemWidth = constraints.maxWidth - 32;
 
-      // item width = full width - left/right padding
-      final double itemWidth = constraints.maxWidth - 32;
+                // calculate aspect ratio
+                final double aspectRatio = itemWidth / itemHeight;
 
-      // calculate aspect ratio
-      final double aspectRatio = itemWidth / itemHeight;
-
-      return GridView.builder(
-        padding: const EdgeInsets.all(20),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 1,
-          crossAxisSpacing: 10.w,
-          mainAxisSpacing: 10.h,
-          childAspectRatio: aspectRatio, // dynamic height
-        ),
-        itemCount: dashboardItems.length,
-        itemBuilder: (context, index) {
-          return Consumer<LocalizationService>(
-            builder: (context, localizationService, _) {
-              return DashboardItem(
-                scale: scale,
-                iconData: dashboardItems[index].iconData,
-                title: localizationService.getLocalizedString(dashboardItems[index].title),
-                onTap: () async {
-                  switch (dashboardItems[index].title) {
-                    case 'recordPayment':
-                      _navigateTo(RecordPaymentScreen());
-                      break;
-                    case 'paymentHistory':
-                      _navigateTo(PaymentHistoryScreen());
-                      break;
-                    case 'settings':
-                      _navigateTo(SettingsScreen());
-                      break;
-                    default:
-                      break;
-                  }
-                },
-              );
-            },
-          );
-        },
-      );
-    },
-  ),
-),
-
+                return GridView.builder(
+                  padding: const EdgeInsets.all(20),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 1,
+                    crossAxisSpacing: 10.w,
+                    mainAxisSpacing: 10.h,
+                    childAspectRatio: aspectRatio, // dynamic height
+                  ),
+                  itemCount: dashboardItems.length,
+                  itemBuilder: (context, index) {
+                    return Consumer<LocalizationService>(
+                      builder: (context, localizationService, _) {
+                        return DashboardItem(
+                          scale: scale,
+                          iconData: dashboardItems[index].iconData,
+                          title: localizationService
+                              .getLocalizedString(dashboardItems[index].title),
+                          onTap: () async {
+                            switch (dashboardItems[index].title) {
+                              case 'recordPayment':
+                                _navigateTo(RecordPaymentScreen());
+                                break;
+                              case 'paymentHistory':
+                                _navigateTo(PaymentHistoryScreen());
+                                break;
+                              case 'settings':
+                                _navigateTo(SettingsScreen());
+                                break;
+                              default:
+                                break;
+                            }
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
-  } 
+  }
 
-  Widget _buildLogoutDialogContent(BuildContext context ,double scale) {
+  Widget _buildLogoutDialogContent(BuildContext context, double scale) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.0),
       child: BackdropFilter(
@@ -284,9 +288,10 @@ Expanded(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                Provider.of<LocalizationService>(context, listen: false).getLocalizedString('logoutBody'),
+                Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('logoutBody'),
                 style: TextStyle(
-                  fontSize: 18*scale,
+                  fontSize: 18 * scale,
                   fontFamily: "NotoSansUI",
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -298,44 +303,48 @@ Expanded(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildDialogButton(
-                    context: context,
-                    label: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancel'),
-                    onPressed: () => Navigator.of(context).pop(), // Close the dialog
-                    backgroundColor: Colors.grey.shade300,
-                    textColor: Colors.black,
-                    scale: scale
-                  ),
-
+                      context: context,
+                      label: Provider.of<LocalizationService>(context,
+                              listen: false)
+                          .getLocalizedString('cancel'),
+                      onPressed: () =>
+                          Navigator.of(context).pop(), // Close the dialog
+                      backgroundColor: Colors.grey.shade300,
+                      textColor: Colors.black,
+                      scale: scale),
                   _buildDialogButton(
-                    context: context,
-                    label: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('logout'),
-                    onPressed: () async {
-                      PaymentService.showLoadingOnly(context,scale);
+                      context: context,
+                      label: Provider.of<LocalizationService>(context,
+                              listen: false)
+                          .getLocalizedString('logout'),
+                      onPressed: () async {
+                        PaymentService.showLoadingOnly(context, scale);
 
-                      var connectivityResult = await (Connectivity().checkConnectivity());
-                      if(connectivityResult.toString() != '[ConnectivityResult.none]'){
-                        try {
-                        SharedPreferences prefs = await SharedPreferences.getInstance();
-                        String? tokenID = prefs.getString('token');
+                        var connectivityResult =
+                            await (Connectivity().checkConnectivity());
+                        if (connectivityResult.toString() !=
+                            '[ConnectivityResult.none]') {
+                          try {
+                            SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+                            String? tokenID = prefs.getString('token');
 
-                        String finalLogout ="${apiUrlLogout}?token=${tokenID}";
-                        NetworkHelper helper = NetworkHelper(url: finalLogout);
-                          var logoutStatus = await helper.getData();
-                        }
-                        catch (e) {
-                          print("logout failed :${e}");
-                        }
-                        finally{
+                            String finalLogout =
+                                "${apiUrlLogout}?token=${tokenID}";
+                            NetworkHelper helper =
+                                NetworkHelper(url: finalLogout);
+                            var logoutStatus = await helper.getData();
+                          } catch (e) {
+                            print("logout failed :${e}");
+                          } finally {
+                            PaymentService.completeLogout(context);
+                          }
+                        } else
                           PaymentService.completeLogout(context);
-                        }
-                      }
-                      else
-                      PaymentService.completeLogout(context);
                       },
-                    backgroundColor: Color(0xFFC62828),
-                    textColor: Colors.white,
-                    scale: scale
-                  ),
+                      backgroundColor: Color(0xFFC62828),
+                      textColor: Colors.white,
+                      scale: scale),
                 ],
               ),
             ],
@@ -345,22 +354,24 @@ Expanded(
     );
   }
 
-  Widget _buildDialogButton({
-    required BuildContext context,
-    required String label,
-    required VoidCallback onPressed,
-    required Color backgroundColor,
-    required Color textColor,
-    required double scale
-  }) {
+  Widget _buildDialogButton(
+      {required BuildContext context,
+      required String label,
+      required VoidCallback onPressed,
+      required Color backgroundColor,
+      required Color textColor,
+      required double scale}) {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: backgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      child: Text(label, style: TextStyle(fontFamily: "NotoSansUI", color: textColor,fontSize: 14*scale),),
+      child: Text(
+        label,
+        style: TextStyle(
+            fontFamily: "NotoSansUI", color: textColor, fontSize: 14 * scale),
+      ),
     );
   }
-
 }

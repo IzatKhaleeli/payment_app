@@ -11,48 +11,43 @@ import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-    await SystemChrome.setPreferredOrientations([
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  
   LocalizationService localizeService = LocalizationService();
-  bool isJailbroken=false;
-  bool developerMode=false;
+  bool isJailbroken = false;
+  bool developerMode = false;
   try {
     isJailbroken = await FlutterJailbreakDetection.jailbroken;
     developerMode = await FlutterJailbreakDetection.developerMode;
     print("developer mode :${developerMode} : isJailbroken :${isJailbroken}");
-
-  }
-  on PlatformException{
+  } on PlatformException {
     isJailbroken = true;
     developerMode = true;
-  }
-  catch (e) {
+  } catch (e) {
     print("Error localization Jailbroken: $e");
   }
 
   if (isJailbroken) {
     runApp(MyApp(isJailbroken: true));
-  }
-  else {
+  } else {
     try {
       await localizeService.initLocalization();
     } catch (e) {
       print("Error initializing localization: $e");
     }
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => LocalizationService()),
-        ChangeNotifierProvider(create: (context) => LoginState()),
-      ],
-      child: const MyApp(isJailbroken: false),
-    ),
-  );
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => LocalizationService()),
+          ChangeNotifierProvider(create: (context) => LoginState()),
+        ],
+        child: const MyApp(isJailbroken: false),
+      ),
+    );
   }
 }
 
@@ -62,12 +57,9 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.isJailbroken});
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed =
-        Color(0xFFD32F2F);
-    const Color backgroundGrey =
-        Color(0xFFF7F7F7);
-    const Color inputFieldGrey =
-        Color(0xFFE0E0E0); 
+    const Color primaryRed = Color(0xFFC62828);
+    const Color backgroundGrey = Color(0xFFF7F7F7);
+    const Color inputFieldGrey = Color(0xFFE0E0E0);
     final ThemeData theme = ThemeData(
       brightness: Brightness.light,
       primaryColor: primaryRed,
@@ -150,7 +142,6 @@ class MyApp extends StatelessWidget {
                   : TextDirection.rtl,
               child: child!,
             );
-
           },
         );
       },

@@ -29,7 +29,8 @@ class PaymentConfirmationScreen extends StatefulWidget {
   PaymentConfirmationScreen({required this.paymentId});
 
   @override
-  State<PaymentConfirmationScreen> createState() => _PaymentConfirmationScreenState();
+  State<PaymentConfirmationScreen> createState() =>
+      _PaymentConfirmationScreenState();
 }
 
 class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
@@ -66,11 +67,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   String languageCode = "";
   String cancelReason = "";
 
-  String saved= "";
-  String synced= "";
-  String confirmed= "";
-  String cancelled= "";
-  String cancelPending= "";
+  String saved = "";
+  String synced = "";
+  String confirmed = "";
+  String cancelled = "";
+  String cancelPending = "";
 
   late StreamSubscription _syncSubscription;
   String? AppearedCurrency;
@@ -88,7 +89,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _localizationService = Provider.of<LocalizationService>(context, listen: false);
+    _localizationService =
+        Provider.of<LocalizationService>(context, listen: false);
     _initializeLocalizationStrings();
   }
 
@@ -98,17 +100,24 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     super.dispose();
   }
 
-
   Future<void> _fetchPaymentDetails() async {
     try {
       if (widget.paymentId != null) {
-        widget.paymentDetails = await DatabaseProvider.getPaymentById(widget.paymentId);
-        String currencyId = widget.paymentDetails!['currency']?.toString() ?? '';
+        widget.paymentDetails =
+            await DatabaseProvider.getPaymentById(widget.paymentId);
+        String currencyId =
+            widget.paymentDetails!['currency']?.toString() ?? '';
         // Fetch the currency by ID
-        Map<String, dynamic>? currency = await DatabaseProvider.getCurrencyById(currencyId);
+        Map<String, dynamic>? currency =
+            await DatabaseProvider.getCurrencyById(currencyId);
         if (!mounted) return;
         setState(() {
-          AppearedCurrency = Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode == 'ar' ? currency!["arabicName"] :  currency!["englishName"];
+          AppearedCurrency =
+              Provider.of<LocalizationService>(context, listen: false)
+                          .selectedLanguageCode ==
+                      'ar'
+                  ? currency!["arabicName"]
+                  : currency!["englishName"];
         });
 
         String bankId = widget.paymentDetails!['bankBranch']?.toString() ?? '';
@@ -116,14 +125,16 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         if (!mounted) return;
         setState(() {
           if (bank != null) {
-            AppearedBank = Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode == 'ar'
-                ? bank["arabicName"] ?? 'Unknown Bank'
-                : bank["englishName"] ?? 'Unknown Bank';
+            AppearedBank =
+                Provider.of<LocalizationService>(context, listen: false)
+                            .selectedLanguageCode ==
+                        'ar'
+                    ? bank["arabicName"] ?? 'Unknown Bank'
+                    : bank["englishName"] ?? 'Unknown Bank';
           } else {
             AppearedBank = 'Unknown Bank';
           }
         });
-
       } else {
         print('No payment details found for ID ${widget.paymentId}');
       }
@@ -144,7 +155,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           viewPayment,
           style: TextStyle(
             color: Colors.white,
-            fontSize: 22*scale,
+            fontSize: 22 * scale,
             fontFamily: 'NotoSansUI',
           ),
         ),
@@ -166,7 +177,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.only(bottom: 30*scale),
+              margin: EdgeInsets.only(bottom: 30 * scale),
               child: _buildPaymentDetailCard(scale),
             ),
           ],
@@ -185,13 +196,14 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => RecordPaymentScreen(
-                    paymentParams:widget.paymentDetails , // Pass the paymentParams here
+                    paymentParams:
+                        widget.paymentDetails, // Pass the paymentParams here
                   ),
                 ),
               );
             },
             backgroundColor: const Color(0xFFC62828),
-            child: Icon(Icons.add,color: Colors.white),
+            child: Icon(Icons.add, color: Colors.white),
           ),
         ),
       ),
@@ -199,46 +211,82 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   }
 
   void _initializeLocalizationStrings() {
-    final localizationService = Provider.of<LocalizationService>(context, listen: false);
+    final localizationService =
+        Provider.of<LocalizationService>(context, listen: false);
     languageCode = localizationService.selectedLanguageCode;
-    voucherNumber = localizationService.getLocalizedString('voucherNumber') ?? 'Voucher Number';
-    paymentInvoiceFor = localizationService.getLocalizedString('paymentInvoiceFor') ?? 'Confirm Payment';
-    amountCheck = localizationService.getLocalizedString('amountCheck') ?? 'Confirm Payment';
-    checkNumber = localizationService.getLocalizedString('checkNumber') ?? 'Confirm Payment';
-    bankBranch = localizationService.getLocalizedString('bankBranchCheck') ?? 'Confirm Payment';
-    dueDateCheck = localizationService.getLocalizedString('dueDateCheck') ?? 'Confirm Payment';
-    amount = localizationService.getLocalizedString('amount') ?? 'Confirm Payment';
-    currency = localizationService.getLocalizedString('currency') ?? 'Confirm Payment';
-    deposit = localizationService.getLocalizedString('deposit') ?? 'Confirm Payment';
-    cancellationDate = localizationService.getLocalizedString('cancellationDate') ?? 'Confirm Payment';
+    voucherNumber = localizationService.getLocalizedString('voucherNumber') ??
+        'Voucher Number';
+    paymentInvoiceFor =
+        localizationService.getLocalizedString('paymentInvoiceFor') ??
+            'Confirm Payment';
+    amountCheck = localizationService.getLocalizedString('amountCheck') ??
+        'Confirm Payment';
+    checkNumber = localizationService.getLocalizedString('checkNumber') ??
+        'Confirm Payment';
+    bankBranch = localizationService.getLocalizedString('bankBranchCheck') ??
+        'Confirm Payment';
+    dueDateCheck = localizationService.getLocalizedString('dueDateCheck') ??
+        'Confirm Payment';
+    amount =
+        localizationService.getLocalizedString('amount') ?? 'Confirm Payment';
+    currency =
+        localizationService.getLocalizedString('currency') ?? 'Confirm Payment';
+    deposit =
+        localizationService.getLocalizedString('deposit') ?? 'Confirm Payment';
+    cancellationDate =
+        localizationService.getLocalizedString('cancellationDate') ??
+            'Confirm Payment';
 
     ok = localizationService.getLocalizedString('ok') ?? 'Confirm Payment';
     status = localizationService.getLocalizedString('status') ?? '';
-    prNumber = localizationService.getLocalizedString('PR') ?? 'Confirm Payment';
-    msisdn = localizationService.getLocalizedString('MSISDN') ?? 'Confirm Payment';
-    theSumOf = localizationService.getLocalizedString('theSumOf') ?? 'Confirm Payment';
+    prNumber =
+        localizationService.getLocalizedString('PR') ?? 'Confirm Payment';
+    msisdn =
+        localizationService.getLocalizedString('MSISDN') ?? 'Confirm Payment';
+    theSumOf =
+        localizationService.getLocalizedString('theSumOf') ?? 'Confirm Payment';
 
-    viewPayment = localizationService.getLocalizedString('viewPayment') ?? 'Confirm Payment';
-    savePayment = localizationService.getLocalizedString('savePayment') ?? 'Save Payment';
-    confirmPayment = localizationService.getLocalizedString('confirmPayment') ?? 'Confirm Payment';
+    viewPayment = localizationService.getLocalizedString('viewPayment') ??
+        'Confirm Payment';
+    savePayment =
+        localizationService.getLocalizedString('savePayment') ?? 'Save Payment';
+    confirmPayment = localizationService.getLocalizedString('confirmPayment') ??
+        'Confirm Payment';
 
-    paymentSummary = localizationService.getLocalizedString('paymentSummary') ?? 'Payment Summary';
-    customerName = localizationService.getLocalizedString('customerName') ?? 'Customer Name';
-    paymentMethod = localizationService.getLocalizedString('paymentMethod') ?? 'Payment Method';
+    paymentSummary = localizationService.getLocalizedString('paymentSummary') ??
+        'Payment Summary';
+    customerName = localizationService.getLocalizedString('customerName') ??
+        'Customer Name';
+    paymentMethod = localizationService.getLocalizedString('paymentMethod') ??
+        'Payment Method';
 
     confirm = localizationService.getLocalizedString('confirm') ?? 'Confirm';
-    paymentSuccessful = localizationService.getLocalizedString('paymentSuccessful') ?? 'Payment Successful';
-    paymentSuccessfulBody = localizationService.getLocalizedString('paymentSuccessfulBody') ?? 'Your payment was successful!';
+    paymentSuccessful =
+        localizationService.getLocalizedString('paymentSuccessful') ??
+            'Payment Successful';
+    paymentSuccessfulBody =
+        localizationService.getLocalizedString('paymentSuccessfulBody') ??
+            'Your payment was successful!';
     cancel = localizationService.getLocalizedString('cancel') ?? 'Cancel';
-    cancelReason = localizationService.getLocalizedString('cancelReason') ?? 'Confirm Payment';
+    cancelReason = localizationService.getLocalizedString('cancelReason') ??
+        'Confirm Payment';
 
-    transactionDate = localizationService.getLocalizedString('transactionDate') ?? 'Confirm Payment';
-    transactionTime = localizationService.getLocalizedString('transactionTime') ?? 'Confirm Payment';
-    saved = localizationService.getLocalizedString('saved') ?? 'Confirm Payment';
-    synced = localizationService.getLocalizedString('synced') ?? 'Confirm Payment';
-    confirmed = localizationService.getLocalizedString('confirmed') ?? 'Confirm Payment';
-    cancelled = localizationService.getLocalizedString('cancelled') ?? 'Confirm Payment';
-    cancelPending = localizationService.getLocalizedString('cancelpending') ?? 'Confirm Payment';
+    transactionDate =
+        localizationService.getLocalizedString('transactionDate') ??
+            'Confirm Payment';
+    transactionTime =
+        localizationService.getLocalizedString('transactionTime') ??
+            'Confirm Payment';
+    saved =
+        localizationService.getLocalizedString('saved') ?? 'Confirm Payment';
+    synced =
+        localizationService.getLocalizedString('synced') ?? 'Confirm Payment';
+    confirmed = localizationService.getLocalizedString('confirmed') ??
+        'Confirm Payment';
+    cancelled = localizationService.getLocalizedString('cancelled') ??
+        'Confirm Payment';
+    cancelPending = localizationService.getLocalizedString('cancelpending') ??
+        'Confirm Payment';
   }
 
   Widget _buildPaymentDetailCard(double scale) {
@@ -249,8 +297,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     final paymentDetails = widget.paymentDetails!;
 
     return Container(
-      padding: EdgeInsets.all(16*scale),
-      margin: EdgeInsets.only(bottom: 20*scale),
+      padding: EdgeInsets.all(16 * scale),
+      margin: EdgeInsets.only(bottom: 20 * scale),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -266,94 +314,155 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSummaryHeader(scale,paymentDetails['status'].toLowerCase()),
-
-          Divider(color: const Color(0xFFC62828), thickness: 2, height: 15*scale),
-
-          if ((paymentDetails['status']?.toLowerCase() == "synced") || (paymentDetails['status']?.toLowerCase() == "cancelled") || (paymentDetails['status']?.toLowerCase() == "canceldpending")) ...[
-            _detailItem(scale,voucherNumber, paymentDetails['voucherSerialNumber'] ?? ''),
+          _buildSummaryHeader(scale, paymentDetails['status'].toLowerCase()),
+          Divider(
+              color: const Color(0xFFC62828), thickness: 2, height: 15 * scale),
+          if ((paymentDetails['status']?.toLowerCase() == "synced") ||
+              (paymentDetails['status']?.toLowerCase() == "cancelled") ||
+              (paymentDetails['status']?.toLowerCase() ==
+                  "canceldpending")) ...[
+            _detailItem(scale, voucherNumber,
+                paymentDetails['voucherSerialNumber'] ?? ''),
             _divider(scale),
-
           ],
-          _detailItem(scale,transactionDate, paymentDetails['status']?.toLowerCase() == "saved"
-              ? (paymentDetails['lastUpdatedDate'] != null
-              ? DateFormat('yyyy-MM-dd').format(DateTime.parse(paymentDetails['lastUpdatedDate']))
-              : '')
-              : (paymentDetails['transactionDate'] != null
-              ? DateFormat('yyyy-MM-dd').format(DateTime.parse(paymentDetails['transactionDate']))
-              : '')),
+          _detailItem(
+              scale,
+              transactionDate,
+              paymentDetails['status']?.toLowerCase() == "saved"
+                  ? (paymentDetails['lastUpdatedDate'] != null
+                      ? DateFormat('yyyy-MM-dd').format(
+                          DateTime.parse(paymentDetails['lastUpdatedDate']))
+                      : '')
+                  : (paymentDetails['transactionDate'] != null
+                      ? DateFormat('yyyy-MM-dd').format(
+                          DateTime.parse(paymentDetails['transactionDate']))
+                      : '')),
           _divider(scale),
-          _detailItem(scale,transactionTime, paymentDetails['status']?.toLowerCase() == "saved"
-              ? (paymentDetails['lastUpdatedDate'] != null
-              ? DateFormat('HH:mm:ss').format(DateTime.parse(paymentDetails['lastUpdatedDate']))
-              : '')
-              : (paymentDetails['transactionDate'] != null
-              ? DateFormat('HH:mm:ss').format(DateTime.parse(paymentDetails['transactionDate']))
-              : '')),
+          _detailItem(
+              scale,
+              transactionTime,
+              paymentDetails['status']?.toLowerCase() == "saved"
+                  ? (paymentDetails['lastUpdatedDate'] != null
+                      ? DateFormat('HH:mm:ss').format(
+                          DateTime.parse(paymentDetails['lastUpdatedDate']))
+                      : '')
+                  : (paymentDetails['transactionDate'] != null
+                      ? DateFormat('HH:mm:ss').format(
+                          DateTime.parse(paymentDetails['transactionDate']))
+                      : '')),
           _divider(scale),
-          if ((paymentDetails['status']?.toLowerCase() == "cancelled") || (paymentDetails['status']?.toLowerCase() == "canceldpending"))
-            ...[
-              _detailItem(scale,cancellationDate, paymentDetails['cancellationDate']?.toString() ?? ''),
-              _divider(scale),
-              _detailItem(scale,cancelReason, paymentDetails['cancelReason']?.toString() ?? ''),
-              _divider(scale),
-            ],
-
-
-          _detailItem(scale,customerName, paymentDetails['customerName'] ?? ''),
-          _divider(scale),
-          _detailItem(scale,status,Provider.of<LocalizationService>(context, listen: false).getLocalizedString(paymentDetails['status'].toLowerCase()) ?? ''),
-          _divider(scale),
-          _detailItem(scale,prNumber, paymentDetails['prNumber']?.toString() ?? ''),
-          _divider(scale),
-          _detailItem(scale,msisdn, paymentDetails['msisdn']?.toString() ?? ''),
-          _divider(scale),
-          _detailItem(scale,paymentMethod, Provider.of<LocalizationService>(context, listen: false).getLocalizedString(paymentDetails['paymentMethod'].toLowerCase()) ?? ''),
-
-          if ((paymentDetails['paymentMethod']?.toLowerCase() == "check") || (paymentDetails['paymentMethod'] == "شيك")) ...[
+          if ((paymentDetails['status']?.toLowerCase() == "cancelled") ||
+              (paymentDetails['status']?.toLowerCase() ==
+                  "canceldpending")) ...[
+            _detailItem(scale, cancellationDate,
+                paymentDetails['cancellationDate']?.toString() ?? ''),
             _divider(scale),
-            _detailItem(scale,amountCheck, paymentDetails['amountCheck']?.toString() ?? ''),
+            _detailItem(scale, cancelReason,
+                paymentDetails['cancelReason']?.toString() ?? ''),
             _divider(scale),
-            _detailItem(scale,currency, AppearedCurrency!),
+          ],
+          _detailItem(
+              scale, customerName, paymentDetails['customerName'] ?? ''),
+          _divider(scale),
+          _detailItem(
+              scale,
+              status,
+              Provider.of<LocalizationService>(context, listen: false)
+                      .getLocalizedString(
+                          paymentDetails['status'].toLowerCase()) ??
+                  ''),
+          _divider(scale),
+          _detailItem(
+              scale, prNumber, paymentDetails['prNumber']?.toString() ?? ''),
+          _divider(scale),
+          _detailItem(
+              scale, msisdn, paymentDetails['msisdn']?.toString() ?? ''),
+          _divider(scale),
+          _detailItem(
+              scale,
+              paymentMethod,
+              Provider.of<LocalizationService>(context, listen: false)
+                      .getLocalizedString(
+                          paymentDetails['paymentMethod'].toLowerCase()) ??
+                  ''),
+          if ((paymentDetails['paymentMethod']?.toLowerCase() == "check") ||
+              (paymentDetails['paymentMethod'] == "شيك")) ...[
+            _divider(scale),
+            _detailItem(scale, amountCheck,
+                paymentDetails['amountCheck']?.toString() ?? ''),
+            _divider(scale),
+            _detailItem(scale, currency, AppearedCurrency!),
             _divider(scale),
             _detailNoteItem(
-              scale,
+                scale,
                 theSumOf,
                 languageCode == 'ar'
-                    ? Tafqeet.convert(paymentDetails['amountCheck']?.toInt().toString() ?? '')
-                    : NumberToWordsEnglish.convert(paymentDetails['amountCheck'] != null ? (paymentDetails['amountCheck'] as double).toInt() : 0)
-                ,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
+                    ? Tafqeet.convert(
+                        paymentDetails['amountCheck']?.toInt().toString() ?? '')
+                    : NumberToWordsEnglish.convert(
+                        paymentDetails['amountCheck'] != null
+                            ? (paymentDetails['amountCheck'] as double).toInt()
+                            : 0),
+                Provider.of<LocalizationService>(context, listen: false)
+                    .selectedLanguageCode),
             _divider(scale),
-            _detailItem(scale,checkNumber, paymentDetails['checkNumber']?.toString() ?? ''),
+            _detailItem(scale, checkNumber,
+                paymentDetails['checkNumber']?.toString() ?? ''),
             _divider(scale),
-            _detailItem(scale,bankBranch,AppearedBank ?? ''),
+            _detailItem(scale, bankBranch, AppearedBank ?? ''),
             _divider(scale),
-            _detailItem(scale,dueDateCheck, DateFormat('yyyy-MM-dd').format(DateTime.parse(paymentDetails['dueDateCheck'])) ?? ''),
+            _detailItem(
+                scale,
+                dueDateCheck,
+                DateFormat('yyyy-MM-dd').format(
+                        DateTime.parse(paymentDetails['dueDateCheck'])) ??
+                    ''),
           ],
-          if ((paymentDetails['paymentMethod']?.toLowerCase() == "cash") || (paymentDetails['paymentMethod'] == "كاش")) ...[
+          if ((paymentDetails['paymentMethod']?.toLowerCase() == "cash") ||
+              (paymentDetails['paymentMethod'] == "كاش")) ...[
             _divider(scale),
-            _detailItem(scale,amount, paymentDetails['amount']?.toString() ?? ''),
+            _detailItem(
+                scale, amount, paymentDetails['amount']?.toString() ?? ''),
             _divider(scale),
-            _detailItem(scale,currency, AppearedCurrency!),
+            _detailItem(scale, currency, AppearedCurrency!),
             _divider(scale),
             _detailNoteItem(
-              scale,
+                scale,
                 theSumOf,
                 languageCode == 'ar'
-                    ?  paymentDetails['amount']!= null ? Tafqeet.convert(paymentDetails['amount'].toInt().toString() )  : 'Invalid amount'
-                    : NumberToWordsEnglish.convert(paymentDetails['amount'] != null ? (paymentDetails['amount'] as double).toInt() : 0),
-                Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
+                    ? paymentDetails['amount'] != null
+                        ? Tafqeet.convert(
+                            paymentDetails['amount'].toInt().toString())
+                        : 'Invalid amount'
+                    : NumberToWordsEnglish.convert(
+                        paymentDetails['amount'] != null
+                            ? (paymentDetails['amount'] as double).toInt()
+                            : 0),
+                Provider.of<LocalizationService>(context, listen: false)
+                    .selectedLanguageCode),
           ],
           _divider(scale),
-          _detailItem(scale,deposit,paymentDetails['isDepositChecked'] == 0 ? Provider.of<LocalizationService>(context, listen: false).getLocalizedString('no') : Provider.of<LocalizationService>(context, listen: false).getLocalizedString('yes')),
+          _detailItem(
+              scale,
+              deposit,
+              paymentDetails['isDepositChecked'] == 0
+                  ? Provider.of<LocalizationService>(context, listen: false)
+                      .getLocalizedString('no')
+                  : Provider.of<LocalizationService>(context, listen: false)
+                      .getLocalizedString('yes')),
           _divider(scale),
-          _detailNoteItem(scale,paymentInvoiceFor, paymentDetails['paymentInvoiceFor']?.toString() ?? '',Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode),
+          _detailNoteItem(
+              scale,
+              paymentInvoiceFor,
+              paymentDetails['paymentInvoiceFor']?.toString() ?? '',
+              Provider.of<LocalizationService>(context, listen: false)
+                  .selectedLanguageCode),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryHeader(double scale,String paymentStatus) {
+  Widget _buildSummaryHeader(double scale, String paymentStatus) {
     // Determine if icons should be shown based on conditions
     bool canEdit = paymentStatus == 'saved';
     bool canDelete = paymentStatus == 'saved';
@@ -367,7 +476,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         Text(
           paymentSummary,
           style: TextStyle(
-            fontSize: 18*scale,
+            fontSize: 18 * scale,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
@@ -377,11 +486,15 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           children: [
             if (canSend)
               Tooltip(
-                message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('openAsPdf'),
+                message:
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString('openAsPdf'),
                 child: IconButton(
-                  icon: FaIcon(FontAwesomeIcons.filePdf, color: Color(0xFFC62828)),
-                  onPressed: () async{
-                    ShareScreenOptions.showLanguageSelectionAndShare(context, widget.paymentId,ShareOption.OpenPDF);
+                  icon: FaIcon(FontAwesomeIcons.filePdf,
+                      color: Color(0xFFC62828)),
+                  onPressed: () async {
+                    ShareScreenOptions.showLanguageSelectionAndShare(
+                        context, widget.paymentId, ShareOption.OpenPDF);
                   },
                 ),
               ),
@@ -390,9 +503,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               children: [
                 if (canCancel)
                   Tooltip(
-                    message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancelPayment'),
+                    message:
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .getLocalizedString('cancelPayment'),
                     child: IconButton(
-                      icon: Icon(Icons.cancel, color: Colors.red),
+                      icon: Icon(Icons.cancel, color: Color(0xFFC62828)),
                       onPressed: () async {
                         if (widget.paymentId != null) {
                           final int idToCancel = widget.paymentId!;
@@ -410,137 +525,225 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                       },
                     ),
                   ),
-                if (canSend)
-                  ...[
-                    Tooltip(
-                      message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sendPrinter'),
-                      child:IconButton(
-                        icon: Icon(Icons.print, color: Colors.black),
-                        onPressed: () async{
-                          // Function to get the default printer info from SharedPreferences
-                          final prefs = await SharedPreferences.getInstance();
-                          String? printerLabel = prefs.getString('default_device_label') ;
-                          String? printerAddress = prefs.getString('default_device_address');
+                if (canSend) ...[
+                  Tooltip(
+                    message:
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .getLocalizedString('sendPrinter'),
+                    child: IconButton(
+                      icon: Icon(Icons.print, color: Colors.black),
+                      onPressed: () async {
+                        // Function to get the default printer info from SharedPreferences
+                        final prefs = await SharedPreferences.getInstance();
+                        String? printerLabel =
+                            prefs.getString('default_device_label');
+                        String? printerAddress =
+                            prefs.getString('default_device_address');
 
-                          if(printerLabel == null || printerLabel.isEmpty || printerAddress == null || printerAddress.isEmpty){
-                            CustomPopups.showTwoButtonPopup(
-                              context: context,
-                              icon: Icon(Icons.warning, size: 40, color: Colors.red),
-                              message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('noDefaultDeviceSetBody'),
-                              firstButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancel'),
-                              onFirstButtonPressed: () {
-                                // Handle cancel action
-                                print('Cancel button pressed');
-
-                              },
-                              secondButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("printerSettings"),
-                              onSecondButtonPressed: () {
-                                // Handle confirm action
-                                print('Confirm button pressed');
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PrinterSettingScreen(),
-                                  ),
-                                );
-                              },
-                            );
+                        if (printerLabel == null ||
+                            printerLabel.isEmpty ||
+                            printerAddress == null ||
+                            printerAddress.isEmpty) {
+                          CustomPopups.showTwoButtonPopup(
+                            context: context,
+                            icon: Icon(Icons.warning,
+                                size: 40, color: Color(0xFFC62828)),
+                            message: Provider.of<LocalizationService>(context,
+                                    listen: false)
+                                .getLocalizedString('noDefaultDeviceSetBody'),
+                            firstButtonText: Provider.of<LocalizationService>(
+                                    context,
+                                    listen: false)
+                                .getLocalizedString('cancel'),
+                            onFirstButtonPressed: () {
+                              // Handle cancel action
+                              print('Cancel button pressed');
+                            },
+                            secondButtonText: Provider.of<LocalizationService>(
+                                    context,
+                                    listen: false)
+                                .getLocalizedString("printerSettings"),
+                            onSecondButtonPressed: () {
+                              // Handle confirm action
+                              print('Confirm button pressed');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PrinterSettingScreen(),
+                                ),
+                              );
+                            },
+                          );
+                        } else {
+                          if (Platform.isIOS) {
+                            bool isBluetoothOn = await iosPlat.BluetoothService
+                                .isBluetoothPoweredOn();
+                            if (!isBluetoothOn) {
+                              CustomPopups.showCustomResultPopup(
+                                context: context,
+                                icon: Icon(Icons.error,
+                                    color: Color(0xFFC62828), size: 40),
+                                message: Provider.of<LocalizationService>(
+                                        context,
+                                        listen: false)
+                                    .getLocalizedString(
+                                        "bluetooth_off_message"),
+                                buttonText: Provider.of<LocalizationService>(
+                                        context,
+                                        listen: false)
+                                    .getLocalizedString("ok"),
+                                onPressButton: () {
+                                  // Define what happens when the button is pressed
+                                  print('bluetooth is not powered ..');
+                                  return;
+                                },
+                              );
+                            } else
+                              ShareScreenOptions.showLanguageSelectionAndShare(
+                                  context, widget.paymentId, ShareOption.print);
+                          } else if (Platform.isAndroid) {
+                            ShareScreenOptions.showLanguageSelectionAndShare(
+                                context, widget.paymentId, ShareOption.print);
                           }
-                          else {
-                            if(Platform.isIOS){
-                              bool isBluetoothOn = await iosPlat.BluetoothService.isBluetoothPoweredOn();
-                              if(!isBluetoothOn){
-                                CustomPopups.showCustomResultPopup(
-                                  context: context,
-                                  icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-                                  message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("bluetooth_off_message"),
-                                  buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
-                                  onPressButton: () {
-                                    // Define what happens when the button is pressed
-                                    print('bluetooth is not powered ..');
-                                    return ;
-                                  },
-                                );
-                              }
-                              else
-                                ShareScreenOptions.showLanguageSelectionAndShare(context, widget.paymentId,ShareOption.print);
-                            }
-                            else if(Platform.isAndroid){
-
-                              ShareScreenOptions.showLanguageSelectionAndShare(context, widget.paymentId,ShareOption.print);
-                            }
-
-                          }
-                        },
-                      ),),
-                    Tooltip(
-                        message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sendSms'),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.75),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        textStyle: TextStyle(color: Colors.white),
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.message,
-                            color: Colors.green, // Set the color of the icon here
-                          ),
-                          onPressed: () async{
-                            var connectivityResult = await (Connectivity().checkConnectivity());
-                            if(connectivityResult.toString() == '[ConnectivityResult.none]'){
-                              CustomPopups.showLoginFailedDialog(context, Provider.of<LocalizationService>(context, listen: false).getLocalizedString("noInternet"), Provider.of<LocalizationService>(context, listen: false).isLocalizationLoaded ?  Provider.of<LocalizationService>(context, listen: false).getLocalizedString('noInternetConnection')
-                                  : 'No Internet Connection',  Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode);
-                            }
-                            else
-                              ShareScreenOptions.showLanguageSelectionAndShare(context, widget.paymentId,ShareOption.sendSms);
-
-                          },
-                        )
+                        }
+                      },
                     ),
-                    Tooltip(
-                      message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sendEmail'),
-                      child:IconButton(
-                        icon: Icon(Icons.email,  color: Colors.blue,
-                        ),
-                        onPressed: () async{
-                          var connectivityResult = await (Connectivity().checkConnectivity());
-                          if(connectivityResult.toString() == '[ConnectivityResult.none]'){
-                            CustomPopups.showLoginFailedDialog(context, Provider.of<LocalizationService>(context, listen: false).getLocalizedString("noInternet"), Provider.of<LocalizationService>(context, listen: false).isLocalizationLoaded ?  Provider.of<LocalizationService>(context, listen: false).getLocalizedString('noInternetConnection')
-                                : 'No Internet Connection',  Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode);
-                          }
-                          else
-                            ShareScreenOptions.showLanguageSelectionAndShare(context, widget.paymentId,ShareOption.sendEmail);
-                        },
-                      ),),//
-                    Tooltip(
-                      message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sharePayment'),
-                      child:IconButton(
-                        icon:FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green,),
-                        onPressed: () async{
-                          var connectivityResult = await (Connectivity().checkConnectivity());
-                          if(connectivityResult.toString() == '[ConnectivityResult.none]'){
-                            CustomPopups.showLoginFailedDialog(context, Provider.of<LocalizationService>(context, listen: false).getLocalizedString("noInternet"), Provider.of<LocalizationService>(context, listen: false).isLocalizationLoaded ?  Provider.of<LocalizationService>(context, listen: false).getLocalizedString('noInternetConnection')
-                                : 'No Internet Connection',  Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode);
-                          }
-                          else
-                            ShareScreenOptions.showLanguageSelectionAndShare(context, widget.paymentId,ShareOption.sendWhats);
-                        },
+                  ),
+                  Tooltip(
+                      message: Provider.of<LocalizationService>(context,
+                              listen: false)
+                          .getLocalizedString('sendSms'),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.75),
+                        borderRadius: BorderRadius.circular(4),
                       ),
+                      textStyle: TextStyle(color: Colors.white),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.message,
+                          color: Colors.green, // Set the color of the icon here
+                        ),
+                        onPressed: () async {
+                          var connectivityResult =
+                              await (Connectivity().checkConnectivity());
+                          if (connectivityResult.toString() ==
+                              '[ConnectivityResult.none]') {
+                            CustomPopups.showLoginFailedDialog(
+                                context,
+                                Provider.of<LocalizationService>(context,
+                                        listen: false)
+                                    .getLocalizedString("noInternet"),
+                                Provider.of<LocalizationService>(context,
+                                            listen: false)
+                                        .isLocalizationLoaded
+                                    ? Provider.of<LocalizationService>(context,
+                                            listen: false)
+                                        .getLocalizedString(
+                                            'noInternetConnection')
+                                    : 'No Internet Connection',
+                                Provider.of<LocalizationService>(context,
+                                        listen: false)
+                                    .selectedLanguageCode);
+                          } else
+                            ShareScreenOptions.showLanguageSelectionAndShare(
+                                context, widget.paymentId, ShareOption.sendSms);
+                        },
+                      )),
+                  Tooltip(
+                    message:
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .getLocalizedString('sendEmail'),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.email,
+                        color: Colors.blue,
+                      ),
+                      onPressed: () async {
+                        var connectivityResult =
+                            await (Connectivity().checkConnectivity());
+                        if (connectivityResult.toString() ==
+                            '[ConnectivityResult.none]') {
+                          CustomPopups.showLoginFailedDialog(
+                              context,
+                              Provider.of<LocalizationService>(context,
+                                      listen: false)
+                                  .getLocalizedString("noInternet"),
+                              Provider.of<LocalizationService>(context,
+                                          listen: false)
+                                      .isLocalizationLoaded
+                                  ? Provider.of<LocalizationService>(context,
+                                          listen: false)
+                                      .getLocalizedString(
+                                          'noInternetConnection')
+                                  : 'No Internet Connection',
+                              Provider.of<LocalizationService>(context,
+                                      listen: false)
+                                  .selectedLanguageCode);
+                        } else
+                          ShareScreenOptions.showLanguageSelectionAndShare(
+                              context, widget.paymentId, ShareOption.sendEmail);
+                      },
                     ),
-
-                  ],
-
+                  ), //
+                  Tooltip(
+                    message:
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .getLocalizedString('sharePayment'),
+                    child: IconButton(
+                      icon: FaIcon(
+                        FontAwesomeIcons.whatsapp,
+                        color: Colors.green,
+                      ),
+                      onPressed: () async {
+                        var connectivityResult =
+                            await (Connectivity().checkConnectivity());
+                        if (connectivityResult.toString() ==
+                            '[ConnectivityResult.none]') {
+                          CustomPopups.showLoginFailedDialog(
+                              context,
+                              Provider.of<LocalizationService>(context,
+                                      listen: false)
+                                  .getLocalizedString("noInternet"),
+                              Provider.of<LocalizationService>(context,
+                                          listen: false)
+                                      .isLocalizationLoaded
+                                  ? Provider.of<LocalizationService>(context,
+                                          listen: false)
+                                      .getLocalizedString(
+                                          'noInternetConnection')
+                                  : 'No Internet Connection',
+                              Provider.of<LocalizationService>(context,
+                                      listen: false)
+                                  .selectedLanguageCode);
+                        } else
+                          ShareScreenOptions.showLanguageSelectionAndShare(
+                              context, widget.paymentId, ShareOption.sendWhats);
+                      },
+                    ),
+                  ),
+                ],
                 if (canDelete)
                   Tooltip(
-                    message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('deletePayment'),
+                    message:
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .getLocalizedString('deletePayment'),
                     child: IconButton(
                       icon: Icon(Icons.delete, color: Color(0xFFC62828)),
                       onPressed: () {
-                        CustomPopups.showCustomDialog(  context: context,
-                          icon: Icon(Icons.delete, size: 60, color: Color(0xFFC62828)),
-                          title: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('deletePayment'),
-                          message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('deletePaymentBody'),
-                          deleteButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('ok'),
+                        CustomPopups.showCustomDialog(
+                          context: context,
+                          icon: Icon(Icons.delete,
+                              size: 60, color: Color(0xFFC62828)),
+                          title: Provider.of<LocalizationService>(context,
+                                  listen: false)
+                              .getLocalizedString('deletePayment'),
+                          message: Provider.of<LocalizationService>(context,
+                                  listen: false)
+                              .getLocalizedString('deletePaymentBody'),
+                          deleteButtonText: Provider.of<LocalizationService>(
+                                  context,
+                                  listen: false)
+                              .getLocalizedString('ok'),
                           onPressButton: () async {
                             // Show the loading dialog
                             showDialog(
@@ -555,7 +758,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
                             try {
                               // Perform the delete operation
-                              await DatabaseProvider.deletePayment(widget.paymentId);
+                              await DatabaseProvider.deletePayment(
+                                  widget.paymentId);
 
                               // Ensure the loading dialog is shown for at least 1 second
                               await Future.delayed(Duration(seconds: 1));
@@ -570,50 +774,68 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                               Navigator.of(context).pop();
 
                               // Push the HistoryScreen
-                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentHistoryScreen()));
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) =>
+                                      PaymentHistoryScreen()));
                             }
                           },
-
                         );
                       },
                     ),
                   ),
                 if (canEdit)
                   Tooltip(
-                    message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('editPayment'),
+                    message:
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .getLocalizedString('editPayment'),
                     child: IconButton(
                       icon: Icon(Icons.edit, color: Color(0xFFA67438)),
                       onPressed: () {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => RecordPaymentScreen(id: widget.paymentId)),
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  RecordPaymentScreen(id: widget.paymentId)),
                         );
                       },
                     ),
                   ),
                 if (canConfirm)
                   Tooltip(
-                    message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('confirmPayment'),
+                    message:
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .getLocalizedString('confirmPayment'),
                     child: IconButton(
                       icon: Icon(Icons.check_circle, color: Colors.blue),
                       onPressed: () {
                         CustomPopups.showCustomDialog(
                           context: context,
-                          icon: Icon(Icons.check_circle, size: 60.0, color: Color(0xFFC62828)),
-                          title: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('confirmPayment'),
-                          message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('confirmPaymentBody'),
-                          deleteButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('ok'),
+                          icon: Icon(Icons.check_circle,
+                              size: 60.0, color: Color(0xFFC62828)),
+                          title: Provider.of<LocalizationService>(context,
+                                  listen: false)
+                              .getLocalizedString('confirmPayment'),
+                          message: Provider.of<LocalizationService>(context,
+                                  listen: false)
+                              .getLocalizedString('confirmPaymentBody'),
+                          deleteButtonText: Provider.of<LocalizationService>(
+                                  context,
+                                  listen: false)
+                              .getLocalizedString('ok'),
                           onPressButton: () async {
-                            showDialog( context: context,  barrierDismissible: false,  builder: (BuildContext dialogContext) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            },
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext dialogContext) {
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              },
                             );
                             // Simulate a network request/waiting time
-                            await DatabaseProvider.updatePaymentStatus(widget.paymentId,'Confirmed');
+                            await DatabaseProvider.updatePaymentStatus(
+                                widget.paymentId, 'Confirmed');
                             Navigator.pop(context); // pop the dialog
-
                           },
                         );
                       },
@@ -621,21 +843,22 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                   ),
               ],
             ),
-          ],),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _detailItem(double scale ,String title, String value) {
+  Widget _detailItem(double scale, String title, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 6*scale),
+      padding: EdgeInsets.symmetric(vertical: 6 * scale),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             title,
             style: TextStyle(
-              fontSize: 14*scale,
+              fontSize: 14 * scale,
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
@@ -645,7 +868,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               value,
               textAlign: TextAlign.end,
               style: TextStyle(
-                fontSize: 14*scale,
+                fontSize: 14 * scale,
                 color: Colors.black54,
               ),
             ),
@@ -655,7 +878,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     );
   }
 
-  Widget _detailNoteItem(double scale,String title, String value, String languageCode) {
+  Widget _detailNoteItem(
+      double scale, String title, String value, String languageCode) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.h),
       child: Column(
@@ -668,25 +892,29 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 14*scale,
+                    fontSize: 14 * scale,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
-                  textAlign: languageCode == 'ar' ? TextAlign.right : TextAlign.left, // Adjust alignment based on language
+                  textAlign: languageCode == 'ar'
+                      ? TextAlign.right
+                      : TextAlign.left, // Adjust alignment based on language
                 ),
               ),
             ],
           ),
-          SizedBox(height: 5*scale),
+          SizedBox(height: 5 * scale),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(
                   value,
-                  textAlign: languageCode == 'ar' ? TextAlign.left : TextAlign.right, // Opposite alignment for value
+                  textAlign: languageCode == 'ar'
+                      ? TextAlign.left
+                      : TextAlign.right, // Opposite alignment for value
                   style: TextStyle(
-                    fontSize: 14*scale,
+                    fontSize: 14 * scale,
                     color: Colors.black54,
                   ),
                 ),
@@ -699,6 +927,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   }
 
   Widget _divider(double scale) {
-    return Divider(color: const Color(0xFFCCCCCC), height: 10*scale);
+    return Divider(color: const Color(0xFFCCCCCC), height: 10 * scale);
   }
 }

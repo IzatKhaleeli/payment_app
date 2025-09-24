@@ -20,37 +20,41 @@ class NetworkHelper {
     this.timeoutDuration = const Duration(seconds: 4),
   });
 
-
-
   Future<dynamic> getData() async {
     print("api :$url:$map:$headers");
 
     try {
       http.Response response;
       if (method == 'POST') {
-        response = await http.post(
-          Uri.parse(url!),
-          headers: headers ?? {
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: map != null ? jsonEncode(map) : null,
-        ).timeout(timeoutDuration);
+        response = await http
+            .post(
+              Uri.parse(url!),
+              headers: headers ??
+                  {
+                    'Content-Type': 'application/json; charset=UTF-8',
+                  },
+              body: map != null ? jsonEncode(map) : null,
+            )
+            .timeout(timeoutDuration);
       } else if (method == 'GET') {
-        response = await http.get(
-          Uri.parse(url!),
-          headers: headers ?? {
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-        ).timeout(timeoutDuration);
+        response = await http
+            .get(
+              Uri.parse(url!),
+              headers: headers ??
+                  {
+                    'Content-Type': 'application/json; charset=UTF-8',
+                  },
+            )
+            .timeout(timeoutDuration);
       } else {
         throw Exception('Unsupported HTTP method: $method');
       }
 
       if (response.statusCode == 200) {
         print("status is 200");
-        return response.body.isNotEmpty ? jsonDecode(response.body) : {};
-      }
-      else {
+        final decodedBody = utf8.decode(response.bodyBytes);
+        return response.body.isNotEmpty ? jsonDecode(decodedBody) : {};
+      } else {
         print("Response body: ${response.body}");
         print("Error_Status: ${response.statusCode}");
         return {
@@ -59,23 +63,20 @@ class NetworkHelper {
           'body': response.body
         };
       }
-    }
-    on TimeoutException catch (_) {
+    } on TimeoutException catch (_) {
       print('Request timed out.');
       return {
         'error': 'Request timed out',
         'status': 408,
       };
-    }
-    on SocketException catch (e) {
+    } on SocketException catch (e) {
       // Handle network errors
       print('Network error: $e');
       return {
         'error': 'Network error',
         'status': 503,
       };
-    }
-    catch (e) {
+    } catch (e) {
       print("Error during HTTP request: $e");
       return {
         'error': 'Exception: $e',
@@ -83,16 +84,15 @@ class NetworkHelper {
     }
   }
 
-
-
   Future<bool> testConnection() async {
     try {
-      http.Response response = await http.get(Uri.parse(url!)).timeout(timeoutDuration);
+      http.Response response =
+          await http.get(Uri.parse(url!)).timeout(timeoutDuration);
       if (response.statusCode == 200) {
-        print('response'+response.toString());
+        print('response' + response.toString());
         return true;
       } else {
-        print('response'+response.toString());
+        print('response' + response.toString());
         return false;
       }
     } catch (e) {
@@ -109,9 +109,10 @@ class NetworkHelper {
       var request = http.MultipartRequest('POST', Uri.parse(url!));
 
       // Add headers
-      request.headers.addAll(headers ?? {
-        'Content-Type': 'multipart/form-data',
-      });
+      request.headers.addAll(headers ??
+          {
+            'Content-Type': 'multipart/form-data',
+          });
 
       // Add email details
       request.fields['emailDetails'] = emailDetailsJson;
@@ -148,7 +149,8 @@ class NetworkHelper {
           // print('Error Detail: $errorDetail');
 
           // Check if the token is expired
-          if (errorMessage == 'Unauthorized' && errorDetail == 'JWT Authentication Failed') {
+          if (errorMessage == 'Unauthorized' &&
+              errorDetail == 'JWT Authentication Failed') {
             return 401;
           }
         } catch (e) {

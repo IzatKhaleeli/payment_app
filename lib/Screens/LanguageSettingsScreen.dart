@@ -3,19 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../Services/LocalizationService.dart'; // Import your LocalizationService class
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 class LanguageSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    LocalizationService localizationService = Provider.of<LocalizationService>(context);
-    String selectedLanguage = localizationService.selectedLanguageCode; // Get selected language code
+    LocalizationService localizationService =
+        Provider.of<LocalizationService>(context);
+    String selectedLanguage =
+        localizationService.selectedLanguageCode; // Get selected language code
     final size = MediaQuery.of(context).size;
     final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFA60016), // Set app bar color to red
+        backgroundColor: const Color(0xFFC62828), // Set app bar color to red
         title: Text(
           localizationService.getLocalizedString('languageSettings'),
-          style: TextStyle(fontFamily: "NotoSansUI", fontSize: 18*scale, color: Colors.white),
+          style: TextStyle(
+              fontFamily: "NotoSansUI",
+              fontSize: 18 * scale,
+              color: Colors.white),
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
@@ -35,15 +41,16 @@ class LanguageSettingsScreen extends StatelessWidget {
                 Text(
                   localizationService.getLocalizedString('languageSettings'),
                   style: TextStyle(
-                    fontSize: 24* scale,
+                    fontSize: 24 * scale,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  localizationService.getLocalizedString('selectPreferredLanguage'),
+                  localizationService
+                      .getLocalizedString('selectPreferredLanguage'),
                   style: TextStyle(
-                    fontSize: 18* scale,
+                    fontSize: 18 * scale,
                     color: Colors.grey,
                   ),
                 ),
@@ -66,7 +73,7 @@ class LanguageSettingsScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 _LanguageCard(
                   scale: scale,
-                  flag: '🇬🇧', 
+                  flag: '🇬🇧',
                   language: localizationService.getLocalizedString('english'),
                   isSelected: selectedLanguage == 'en',
                   onTap: () {
@@ -84,14 +91,16 @@ class LanguageSettingsScreen extends StatelessWidget {
   void _handleLanguageSelection(BuildContext context, String languageCode) {
     showDialog(
       context: context,
-      barrierDismissible: false, // Prevent user from dismissing dialog by tapping outside
+      barrierDismissible:
+          false, // Prevent user from dismissing dialog by tapping outside
       builder: (BuildContext context) {
         return Center(
           child: SizedBox(
             width: 100,
             height: 100,
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFA60016)), // Customize color if needed
+              valueColor: AlwaysStoppedAnimation<Color>(
+                  Color(0xFFC62828)), // Customize color if needed
             ),
           ),
         );
@@ -101,8 +110,13 @@ class LanguageSettingsScreen extends StatelessWidget {
     // Delay language update until after loading indicator is dismissed
     Future.delayed(Duration(seconds: 2), () {
       Navigator.of(context).pop(); // Close the dialog
-      Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode = languageCode;
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardScreen())); // Navigate to DashboardPage
+      Provider.of<LocalizationService>(context, listen: false)
+          .selectedLanguageCode = languageCode;
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  DashboardScreen())); // Navigate to DashboardPage
     });
   }
 }
@@ -120,7 +134,6 @@ class _LanguageCard extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     required this.scale,
-
   });
 
   @override
@@ -136,13 +149,13 @@ class _LanguageCard extends StatelessWidget {
             children: [
               Text(
                 flag,
-                style:TextStyle(fontSize: 18*scale),
+                style: TextStyle(fontSize: 18 * scale),
               ),
               const SizedBox(width: 16),
               Text(
                 language,
                 style: TextStyle(
-                  fontSize: 16* scale,
+                  fontSize: 16 * scale,
                   color: isSelected ? const Color(0xFFC62828) : Colors.black,
                 ),
               ),

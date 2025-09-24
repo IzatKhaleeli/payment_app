@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../Services/LocalizationService.dart';
 
 class CustomPopups {
-
   static void showCustomDialog({
     required BuildContext context,
     required Icon icon,
@@ -41,20 +40,22 @@ class CustomPopups {
           ),
           actions: [
             TextButton(
-              child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('cancel'), style: TextStyle(color: Colors.grey)),
+              child: Text(
+                  Provider.of<LocalizationService>(context, listen: false)
+                      .getLocalizedString('cancel'),
+                  style: TextStyle(color: Colors.grey)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: Color(0xFFC62828),
               ),
               child: Text(deleteButtonText),
               onPressed: () {
                 Navigator.of(context).pop();
                 onPressButton();
-
               },
             ),
           ],
@@ -98,12 +99,16 @@ class CustomPopups {
               Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFF7F7F7), // Set light red button color
+                    backgroundColor:
+                        Color(0xFFF7F7F7), // Set light red button color
                     elevation: 0, // Remove shadow for a flat button effect
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10), // Rounded corners
+                      borderRadius:
+                          BorderRadius.circular(10), // Rounded corners
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15), // Padding for a larger button
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 15), // Padding for a larger button
                   ),
                   child: Text(
                     buttonText,
@@ -123,8 +128,6 @@ class CustomPopups {
         },
       );
     });
-
-
   }
 
   static void showLoginFailedDialog(BuildContext context, String errorMessage,
@@ -216,11 +219,6 @@ class CustomPopups {
       },
     );
   }
-
-
-
-
-
 
   static void showTwoButtonPopup({
     required BuildContext context,
