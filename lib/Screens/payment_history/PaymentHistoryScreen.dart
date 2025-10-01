@@ -23,6 +23,9 @@ import '../../Custom_Widgets/CustomPopups.dart';
 import '../printerService/iosMethods.dart' as iosPlat;
 import 'widgets/detail_note_item.dart';
 import 'widgets/payment_detail_row.dart';
+import 'widgets/payment_filter_section.dart';
+import 'widgets/payment_records_list.dart';
+import 'widgets/selected_statuses_chip.dart';
 
 class PaymentHistoryScreen extends StatefulWidget {
   @override
@@ -245,8 +248,34 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             padding: EdgeInsets.all(12.w),
             child: Column(
               children: [
-                _buildFilterSection(scale),
-                _buildSelectedStatuses(scale),
+                PaymentFilterSection(
+                  scale: scale,
+                  fromController: _fromDateController,
+                  toController: _toDateController,
+                  onFromDateSelected: (date) {
+                    setState(() => _selectedFromDate = date);
+                    _fetchPayments();
+                  },
+                  onToDateSelected: (date) {
+                    setState(() => _selectedToDate = date);
+                    _fetchPayments();
+                  },
+                  onFilterPressed: () {
+                    _showFilterDialog(scale);
+                  },
+                  fromLabel: from,
+                  toLabel: to,
+                ),
+                SelectedStatusesChip(
+                  scale: scale,
+                  selectedStatuses: _selectedStatuses,
+                  onStatusRemoved: (status) {
+                    setState(() {
+                      _selectedStatuses.remove(status);
+                      _fetchPayments();
+                    });
+                  },
+                ),
                 SizedBox(height: 10.h),
                 Divider(
                   color: Colors.grey[400],
@@ -258,7 +287,12 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                 SizedBox(height: 10.h),
                 Container(
                   margin: EdgeInsets.only(bottom: 50.h),
-                  child: _buildPaymentRecordsList(scale),
+                  child: PaymentRecordsList(
+                    scale: scale,
+                    paymentRecords: _paymentRecords,
+                    itemBuilder: (scale, record) =>
+                        _buildPaymentRecordItem(scale, record),
+                  ),
                 ),
               ],
             ),
@@ -315,151 +349,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildFilterSection(double scale) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildDateField(
-              scale,
-              context,
-              label: from,
-              controller: _fromDateController,
-              onDateSelected: (date) {
-                setState(() => _selectedFromDate = date);
-                _fetchPayments();
-              },
-            ),
-          ),
-          SizedBox(width: 10.w),
-          Expanded(
-            child: _buildDateField(
-              scale,
-              context,
-              label: to,
-              controller: _toDateController,
-              onDateSelected: (date) {
-                setState(() => _selectedToDate = date);
-                _fetchPayments();
-              },
-            ),
-          ),
-          SizedBox(width: 10.w),
-          Container(
-            height: 40.h,
-            decoration: BoxDecoration(
-              color: Color(0xFFC62828),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: IconButton(
-              icon: Icon(Icons.filter_list, color: Colors.white),
-              onPressed: () {
-                _showFilterDialog(scale);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDateField(
-    double scale,
-    BuildContext context, {
-    required String label,
-    required TextEditingController controller,
-    required Function(DateTime) onDateSelected,
-  }) {
-    return TextField(
-      controller: controller,
-      style: TextStyle(fontSize: 11 * scale),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(fontSize: 12 * scale),
-        suffixIcon: const Icon(Icons.calendar_today, color: Color(0xFFC62828)),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        fillColor: Colors.white,
-        filled: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      ),
-      readOnly: true,
-      expands: false,
-      minLines: 1,
-      maxLines: null,
-      onTap: () async {
-        final DateTime? picked = await showDatePicker(
-          context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2100),
-        );
-        if (picked != null) {
-          controller.text = DateFormat('yyyy-MM-dd').format(picked);
-          onDateSelected(picked);
-        }
-      },
-    );
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return ''; // handle null date
-    return DateFormat('yyyy-MM-dd').format(date);
-  }
-
-  Widget _buildSelectedStatuses(double scale) {
-    return Wrap(
-      spacing: 5.0,
-      children: _selectedStatuses.map((status) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 7.0),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
-            decoration: BoxDecoration(
-              color: Colors.grey[200], // Background color
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(
-                color: Colors.transparent, // No visible border
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString(status.toLowerCase()),
-                  style: TextStyle(
-                    fontSize: 12.0 * scale,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      if (!mounted) return;
-                      setState(() {
-                        _selectedStatuses.remove(status);
-                        _fetchPayments();
-                      });
-                    },
-                    child: Icon(
-                      Icons.close,
-                      size: 18.0,
-                      color: Colors.grey[700], // Delete icon color
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 
@@ -535,22 +424,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  Widget _buildPaymentRecordsList(double scale) {
-    return _paymentRecords.isEmpty
-        ? Center(
-            child: Text(Provider.of<LocalizationService>(context, listen: false)
-                .getLocalizedString('noRecordsFound')))
-        : ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: _paymentRecords.length,
-            itemBuilder: (context, index) {
-              return _buildPaymentRecordItem(scale, _paymentRecords[index]);
-            },
-          );
-  }
-
-  String formatDate(DateTime date) {
+  String formatDate(DateTime? date) {
+    if (date == null) return '';
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
@@ -746,7 +621,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                 title: Provider.of<LocalizationService>(context, listen: false)
                     .getLocalizedString('dueDateCheck'),
                 value: record.dueDateCheck != null
-                    ? _formatDate(record.dueDateCheck!)
+                    ? formatDate(record.dueDateCheck!)
                     : '',
               ),
             ],
