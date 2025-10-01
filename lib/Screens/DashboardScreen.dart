@@ -10,10 +10,10 @@ import '../Services/LocalizationService.dart';
 import '../Services/PaymentService.dart';
 import '../Services/apiConstants.dart';
 import '../Services/networking.dart';
-import 'LoginScreen.dart';
-import 'PaymentHistoryScreen.dart';
+import 'payment_history/PaymentHistoryScreen.dart';
 import 'recordPayment/RecordPaymentScreen.dart';
 import 'SettingsScreen.dart';
+import 'record_diconnected_payment/record_diconnected_payment.dart';
 
 class DashboardScreen extends StatefulWidget {
   DashboardScreen({Key? key}) : super(key: key);
@@ -84,6 +84,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           iconData: Icons.payment,
           title: 'recordPayment',
           onTap: () => _navigateTo(RecordPaymentScreen())),
+      DashboardItemModel(
+          iconData: Icons.payment,
+          title: 'recordPaymentDisconnected',
+          onTap: () => _navigateTo(RecordPaymentDisconnectedScreen())),
       DashboardItemModel(
           iconData: Icons.history,
           title: 'paymentHistory',
@@ -245,6 +249,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             switch (dashboardItems[index].title) {
                               case 'recordPayment':
                                 _navigateTo(RecordPaymentScreen());
+                                break;
+                              case 'recordPaymentDisconnected':
+                                _navigateTo(RecordPaymentDisconnectedScreen());
                                 break;
                               case 'paymentHistory':
                                 _navigateTo(PaymentHistoryScreen());

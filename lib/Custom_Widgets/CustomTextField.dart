@@ -24,18 +24,19 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   void initState() {
     super.initState();
-    _isObscured = widget.obscureText;  // Initially uses the value from widget
+    _isObscured = widget.obscureText; // Initially uses the value from widget
   }
 
   void _togglePasswordVisibility() {
     setState(() {
-      _isObscured = !_isObscured;  // Toggle the obscured state
+      _isObscured = !_isObscured; // Toggle the obscured state
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    const textStyle = TextStyle(fontSize: 16, color: Colors.black87, fontFamily: 'NotoSansUI');
+    const textStyle = TextStyle(
+        fontSize: 16, color: Colors.black87, fontFamily: 'NotoSansUI');
     const hintStyle = TextStyle(color: Colors.black45);
     final borderRadius = BorderRadius.circular(8);
 
@@ -58,11 +59,14 @@ class _CustomTextFieldState extends State<CustomTextField> {
           hintText: widget.hint,
           hintStyle: hintStyle,
           prefixIcon: Icon(widget.icon, color: Color(0xFFC62828)),
-          suffixIcon: widget.obscureText ? IconButton(
-            icon: Icon(_isObscured ? Icons.visibility_off : Icons.visibility),
-            color: Color(0xFFC62828),
-            onPressed: _togglePasswordVisibility,
-          ) : null,  // Only add the toggle icon if obscureText is initially true
+          suffixIcon: widget.obscureText
+              ? IconButton(
+                  icon: Icon(
+                      _isObscured ? Icons.visibility_off : Icons.visibility),
+                  color: Color(0xFFC62828),
+                  onPressed: _togglePasswordVisibility,
+                )
+              : null, // Only add the toggle icon if obscureText is initially true
           filled: true,
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.all(18.0),
@@ -74,7 +78,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: borderRadius,
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+            borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary, width: 2),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: borderRadius,

@@ -85,7 +85,9 @@
   "to": "إلى",
   "search": "البحث",
 
-  "recordPayment": "تسجيل دفعة جديدة",
+  "recordPayment": "تسجيل دفعة جديدة",  
+  "recordPaymentDisconnected": " تسجيل دفعة جديدة - خط مفصول ",
+
   "customerDetails": "تفاصيل المشترك",
   "paymentInformation": "معلومات الدفعة",
   "MSISDN": "رقم الهاتف",
@@ -186,7 +188,6 @@
   "smsSubject": "تم استقبال دفعة ",
   "subject": "الموضوع",
   "body": "المحتوى",
-  "to": "إلى",
   "toFieldError": "يرجى إدخال عنوان البريد الإلكتروني",
   "send": "إرسال",
   "phoneNumber": "رقم الهاتف",
@@ -253,5 +254,13 @@
   "updateAppTitle": "تحديث متاح",
   "updateAppBody": "يتوفر إصدار جديد من التطبيق. يرجى التحديث للمتابعة.",
   "update": "تحديث",
-  "later": "لاحقاً"
+  "later": "لاحقاً",
+  "msisdn_payment":"رقم الهاتف للدفعة",
+  "msisdn_receipt":"رقم الهاتف للوصل",
+  "isDisconnected":"مفصول",
+  "pending": "قيد الانتظار",
+  "rejected": "مرفوض",
+  "completed": "مكتمل",
+  "acceptanceStatus": "حالة القبول",
+  "cancellationStatus": "حالة الإلغاء"
 }

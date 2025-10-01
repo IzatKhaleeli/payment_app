@@ -2,25 +2,27 @@ import 'dart:io';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:ooredoo_app/Screens/printerService/PrinterSettingScreen.dart';
-import '../Screens/PaymentCancellationScreen.dart';
-import '../Services/globalError.dart';
-import 'recordPayment/RecordPaymentScreen.dart';
-import '../Screens/ShareScreenOptions.dart';
+import '../PaymentCancellationScreen.dart';
+import '../../Services/globalError.dart';
+import '../recordPayment/RecordPaymentScreen.dart';
+import '../ShareScreenOptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Services/LocalizationService.dart';
+import '../../Services/LocalizationService.dart';
 import 'package:provider/provider.dart';
-import '../Services/database.dart';
-import '../Models/Payment.dart';
-import '../Services/secure_storage.dart';
-import '../Utils/Enum.dart';
-import 'PaymentConfirmationScreen.dart';
-import '../Services/PaymentService.dart';
-import '../Custom_Widgets/CustomPopups.dart';
-import '../Screens/printerService/iosMethods.dart' as iosPlat;
+import '../../Services/database.dart';
+import '../../Models/Payment.dart';
+import '../../Services/secure_storage.dart';
+import '../../Utils/Enum.dart';
+import '../PaymentConfirmationScreen.dart';
+import '../../Services/PaymentService.dart';
+import '../../Custom_Widgets/CustomPopups.dart';
+import '../printerService/iosMethods.dart' as iosPlat;
+import 'widgets/detail_note_item.dart';
+import 'widgets/payment_detail_row.dart';
 
 class PaymentHistoryScreen extends StatefulWidget {
   @override
@@ -633,133 +635,169 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           children: [
             if (record.status.toLowerCase() != 'saved' &&
                 record.status.toLowerCase() != 'confirmed')
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('voucherNumber'),
-                  record.voucherSerialNumber),
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('voucherNumber'),
+                value: record.voucherSerialNumber ?? '',
+              ),
             if (record.status.toLowerCase() == 'saved') ...[
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('transactionDate'),
-                  formatDate((record.lastUpdatedDate!)).toString()),
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('transactionTime'),
-                  formatTime((record.lastUpdatedDate!)).toString())
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('transactionDate'),
+                value: record.lastUpdatedDate != null
+                    ? formatDate(record.lastUpdatedDate!).toString()
+                    : '',
+              ),
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('transactionTime'),
+                value: record.lastUpdatedDate != null
+                    ? formatTime(record.lastUpdatedDate!).toString()
+                    : '',
+              ),
             ] else ...[
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('transactionDate'),
-                  formatDate(record.transactionDate!).toString()),
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('transactionTime'),
-                  formatTime((record.transactionDate!)).toString())
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('transactionDate'),
+                value: record.transactionDate != null
+                    ? formatDate(record.transactionDate!).toString()
+                    : '',
+              ),
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('transactionTime'),
+                value: record.transactionDate != null
+                    ? formatTime(record.transactionDate!).toString()
+                    : '',
+              ),
             ],
-            _paymentDetailRow(
-                scale,
-                Provider.of<LocalizationService>(context, listen: false)
-                    .getLocalizedString('paymentMethod'),
-                Provider.of<LocalizationService>(context, listen: false)
-                    .getLocalizedString(record.paymentMethod.toLowerCase())),
-            _paymentDetailRow(
-                scale,
-                Provider.of<LocalizationService>(context, listen: false)
-                    .getLocalizedString('status'),
-                Provider.of<LocalizationService>(context, listen: false)
-                    .getLocalizedString(record.status.toLowerCase())),
+            PaymentDetailRow(
+              scale: scale,
+              title: Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString('paymentMethod'),
+              value: record.paymentMethod != null
+                  ? Provider.of<LocalizationService>(context, listen: false)
+                      .getLocalizedString(record.paymentMethod!.toLowerCase())
+                  : '',
+            ),
+            PaymentDetailRow(
+              scale: scale,
+              title: Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString('status'),
+              value: record.status != null
+                  ? Provider.of<LocalizationService>(context, listen: false)
+                      .getLocalizedString(record.status!.toLowerCase())
+                  : '',
+            ),
             if (record.msisdn != null && record.msisdn!.isNotEmpty)
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('MSISDN'),
-                  record.msisdn.toString()),
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('MSISDN'),
+                value: record.msisdn?.toString() ?? '',
+              ),
             if (record.prNumber != null && record.prNumber!.isNotEmpty)
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('PR'),
-                  record.prNumber.toString()),
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('PR'),
+                value: record.prNumber?.toString() ?? '',
+              ),
             if (record.paymentMethod.toLowerCase() == 'cash')
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('amount'),
-                  record.amount.toString()),
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('amount'),
+                value: record.amount?.toString() ?? '',
+              ),
             if (record.paymentMethod.toLowerCase() == 'check')
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('amount'),
-                  record.amountCheck.toString()),
-            _paymentDetailRow(
-                scale,
-                Provider.of<LocalizationService>(context, listen: false)
-                    .getLocalizedString('currency'),
-                record.currency.toString()),
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('amount'),
+                value: record.amountCheck?.toString() ?? '',
+              ),
+            PaymentDetailRow(
+              scale: scale,
+              title: Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString('currency'),
+              value: record.currency?.toString() ?? '',
+            ),
             if (record.paymentMethod.toLowerCase() == 'check') ...[
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('checkNumber'),
-                  record.checkNumber.toString()),
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('bankBranchCheck'),
-                  record.bankBranch.toString()),
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('dueDateCheck'),
-                  _formatDate(record.dueDateCheck)),
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('checkNumber'),
+                value: record.checkNumber?.toString() ?? '',
+              ),
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('bankBranchCheck'),
+                value: record.bankBranch?.toString() ?? '',
+              ),
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('dueDateCheck'),
+                value: record.dueDateCheck != null
+                    ? _formatDate(record.dueDateCheck!)
+                    : '',
+              ),
             ],
             if (record.status.toLowerCase() == 'canceldpending' ||
                 record.status.toLowerCase() == 'cancelled') ...[
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('cancellationDate'),
-                  formatDate((record.cancellationDate!)).toString()),
-              _paymentDetailRow(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('cancellationTime'),
-                  formatTime((record.cancellationDate!)).toString()),
-              _detailNoteItem(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('cancelReason'),
-                  (record.cancelReason!),
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .selectedLanguageCode),
-              //lll
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('cancellationDate'),
+                value: record.cancellationDate != null
+                    ? formatDate(record.cancellationDate!).toString()
+                    : '',
+              ),
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('cancellationTime'),
+                value: record.cancellationDate != null
+                    ? formatTime(record.cancellationDate!).toString()
+                    : '',
+              ),
+              DetailNoteItem(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('cancelReason'),
+                value: record.cancelReason?.toString() ?? '',
+                locale: Provider.of<LocalizationService>(context, listen: false)
+                    .selectedLanguageCode,
+              ),
             ],
-            _detailNoteItem(
-                scale,
-                Provider.of<LocalizationService>(context, listen: false)
-                    .getLocalizedString('deposit'),
-                record.isDepositChecked == 0
-                    ? Provider.of<LocalizationService>(context, listen: false)
-                        .getLocalizedString('no')
-                    : Provider.of<LocalizationService>(context, listen: false)
-                        .getLocalizedString('yes'),
-                Provider.of<LocalizationService>(context, listen: false)
-                    .selectedLanguageCode),
+            DetailNoteItem(
+              scale: scale,
+              title: Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString('deposit'),
+              value: Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString(
+                record.isDepositChecked == 0 ? 'no' : 'yes',
+              ),
+              locale: Provider.of<LocalizationService>(context, listen: false)
+                  .selectedLanguageCode,
+            ),
             if (record.paymentInvoiceFor != null &&
                 record.paymentInvoiceFor!.isNotEmpty)
-              _detailNoteItem(
-                  scale,
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString('paymentInvoiceFor'),
-                  record.paymentInvoiceFor.toString(),
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .selectedLanguageCode),
+              DetailNoteItem(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('paymentInvoiceFor'),
+                value: record.paymentInvoiceFor?.toString() ?? '',
+                locale: Provider.of<LocalizationService>(context, listen: false)
+                    .selectedLanguageCode,
+              ),
             SizedBox(height: 10.h),
             Wrap(
                 spacing: 8.0, // Add some spacing between the items
@@ -1235,77 +1273,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             // Optionally add analytics or state management hooks here
           },
         ),
-      ),
-    );
-  }
-
-  Widget _paymentDetailRow(double scale, String title, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 3.h),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title,
-              style: TextStyle(
-                  fontSize: 14 * scale,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.grey.shade500)),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 14 * scale,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87)),
-        ],
-      ),
-    );
-  }
-
-  Widget _detailNoteItem(
-      double scale, String title, String value, String locale) {
-    // Determine if the locale is RTL
-    bool isRtl = locale == 'ar'; // Assuming 'ar' is the locale for Arabic
-
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title
-          Expanded(
-            flex: 2,
-            child: Align(
-              alignment: isRtl ? Alignment.centerRight : Alignment.centerLeft,
-              child: Text(
-                title,
-                textAlign: isRtl ? TextAlign.right : TextAlign.left,
-                style: TextStyle(
-                  fontSize: 14 * scale,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.grey.shade500,
-                  // Text(value, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.black87)),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 8.0),
-          // Value
-          Expanded(
-            flex: 3,
-            child: Align(
-              alignment: isRtl ? Alignment.centerLeft : Alignment.centerRight,
-              child: Text(
-                value,
-                textAlign: isRtl ? TextAlign.left : TextAlign.right,
-                style: TextStyle(
-                  fontSize: 14 * scale,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

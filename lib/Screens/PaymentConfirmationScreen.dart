@@ -16,7 +16,7 @@ import '../Services/PaymentService.dart';
 import '../Services/database.dart';
 import '../Utils/Enum.dart';
 import 'PaymentCancellationScreen.dart';
-import 'PaymentHistoryScreen.dart';
+import 'payment_history/PaymentHistoryScreen.dart';
 import '../Custom_Widgets/CustomPopups.dart';
 import 'recordPayment/RecordPaymentScreen.dart';
 import '../Screens/ShareScreenOptions.dart';
@@ -61,11 +61,16 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   String ok = '';
   String prNumber = '';
   String msisdn = '';
+  String msisdnPayment = '';
+  String msisdnReceipt = '';
   String status = '';
   String theSumOf = '';
   String numberConvertBody = '';
   String languageCode = "";
   String cancelReason = "";
+  String isDisconnected = "";
+  String acceptanceStatus = "";
+  String cancellationStatus = "";
 
   String saved = "";
   String synced = "";
@@ -214,79 +219,51 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     final localizationService =
         Provider.of<LocalizationService>(context, listen: false);
     languageCode = localizationService.selectedLanguageCode;
-    voucherNumber = localizationService.getLocalizedString('voucherNumber') ??
-        'Voucher Number';
+    voucherNumber = localizationService.getLocalizedString('voucherNumber');
     paymentInvoiceFor =
-        localizationService.getLocalizedString('paymentInvoiceFor') ??
-            'Confirm Payment';
-    amountCheck = localizationService.getLocalizedString('amountCheck') ??
-        'Confirm Payment';
-    checkNumber = localizationService.getLocalizedString('checkNumber') ??
-        'Confirm Payment';
-    bankBranch = localizationService.getLocalizedString('bankBranchCheck') ??
-        'Confirm Payment';
-    dueDateCheck = localizationService.getLocalizedString('dueDateCheck') ??
-        'Confirm Payment';
-    amount =
-        localizationService.getLocalizedString('amount') ?? 'Confirm Payment';
-    currency =
-        localizationService.getLocalizedString('currency') ?? 'Confirm Payment';
-    deposit =
-        localizationService.getLocalizedString('deposit') ?? 'Confirm Payment';
+        localizationService.getLocalizedString('paymentInvoiceFor');
+    amountCheck = localizationService.getLocalizedString('amountCheck');
+    checkNumber = localizationService.getLocalizedString('checkNumber');
+    bankBranch = localizationService.getLocalizedString('bankBranchCheck');
+    dueDateCheck = localizationService.getLocalizedString('dueDateCheck');
+    amount = localizationService.getLocalizedString('amount');
+    currency = localizationService.getLocalizedString('currency');
+    deposit = localizationService.getLocalizedString('deposit');
     cancellationDate =
-        localizationService.getLocalizedString('cancellationDate') ??
-            'Confirm Payment';
+        localizationService.getLocalizedString('cancellationDate');
 
-    ok = localizationService.getLocalizedString('ok') ?? 'Confirm Payment';
-    status = localizationService.getLocalizedString('status') ?? '';
-    prNumber =
-        localizationService.getLocalizedString('PR') ?? 'Confirm Payment';
-    msisdn =
-        localizationService.getLocalizedString('MSISDN') ?? 'Confirm Payment';
-    theSumOf =
-        localizationService.getLocalizedString('theSumOf') ?? 'Confirm Payment';
-
-    viewPayment = localizationService.getLocalizedString('viewPayment') ??
-        'Confirm Payment';
-    savePayment =
-        localizationService.getLocalizedString('savePayment') ?? 'Save Payment';
-    confirmPayment = localizationService.getLocalizedString('confirmPayment') ??
-        'Confirm Payment';
-
-    paymentSummary = localizationService.getLocalizedString('paymentSummary') ??
-        'Payment Summary';
-    customerName = localizationService.getLocalizedString('customerName') ??
-        'Customer Name';
-    paymentMethod = localizationService.getLocalizedString('paymentMethod') ??
-        'Payment Method';
-
-    confirm = localizationService.getLocalizedString('confirm') ?? 'Confirm';
+    ok = localizationService.getLocalizedString('ok');
+    status = localizationService.getLocalizedString('status');
+    prNumber = localizationService.getLocalizedString('PR');
+    msisdn = localizationService.getLocalizedString('MSISDN');
+    msisdnReceipt = localizationService.getLocalizedString('msisdn_receipt');
+    msisdnPayment = localizationService.getLocalizedString('msisdn_payment');
+    theSumOf = localizationService.getLocalizedString('theSumOf');
+    viewPayment = localizationService.getLocalizedString('viewPayment');
+    savePayment = localizationService.getLocalizedString('savePayment');
+    confirmPayment = localizationService.getLocalizedString('confirmPayment');
+    paymentSummary = localizationService.getLocalizedString('paymentSummary');
+    customerName = localizationService.getLocalizedString('customerName');
+    paymentMethod = localizationService.getLocalizedString('paymentMethod');
+    confirm = localizationService.getLocalizedString('confirm');
     paymentSuccessful =
-        localizationService.getLocalizedString('paymentSuccessful') ??
-            'Payment Successful';
+        localizationService.getLocalizedString('paymentSuccessful');
     paymentSuccessfulBody =
-        localizationService.getLocalizedString('paymentSuccessfulBody') ??
-            'Your payment was successful!';
-    cancel = localizationService.getLocalizedString('cancel') ?? 'Cancel';
-    cancelReason = localizationService.getLocalizedString('cancelReason') ??
-        'Confirm Payment';
-
-    transactionDate =
-        localizationService.getLocalizedString('transactionDate') ??
-            'Confirm Payment';
-    transactionTime =
-        localizationService.getLocalizedString('transactionTime') ??
-            'Confirm Payment';
-    saved =
-        localizationService.getLocalizedString('saved') ?? 'Confirm Payment';
-    synced =
-        localizationService.getLocalizedString('synced') ?? 'Confirm Payment';
-    confirmed = localizationService.getLocalizedString('confirmed') ??
-        'Confirm Payment';
-    cancelled = localizationService.getLocalizedString('cancelled') ??
-        'Confirm Payment';
-    cancelPending = localizationService.getLocalizedString('cancelpending') ??
-        'Confirm Payment';
+        localizationService.getLocalizedString('paymentSuccessfulBody');
+    cancel = localizationService.getLocalizedString('cancel');
+    cancelReason = localizationService.getLocalizedString('cancelReason');
+    isDisconnected = localizationService.getLocalizedString('isDisconnected');
+    transactionDate = localizationService.getLocalizedString('transactionDate');
+    transactionTime = localizationService.getLocalizedString('transactionTime');
+    saved = localizationService.getLocalizedString('saved');
+    synced = localizationService.getLocalizedString('synced');
+    confirmed = localizationService.getLocalizedString('confirmed');
+    cancelled = localizationService.getLocalizedString('cancelled');
+    cancelPending = localizationService.getLocalizedString('cancelpending');
+    acceptanceStatus =
+        localizationService.getLocalizedString('acceptanceStatus');
+    cancellationStatus =
+        localizationService.getLocalizedString('cancellationStatus');
   }
 
   Widget _buildPaymentDetailCard(double scale) {
@@ -368,16 +345,23 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               scale,
               status,
               Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString(
-                          paymentDetails['status'].toLowerCase()) ??
-                  ''),
+                  .getLocalizedString(paymentDetails['status'].toLowerCase())),
           _divider(scale),
           _detailItem(
               scale, prNumber, paymentDetails['prNumber']?.toString() ?? ''),
           _divider(scale),
-          _detailItem(
-              scale, msisdn, paymentDetails['msisdn']?.toString() ?? ''),
-          _divider(scale),
+          if (paymentDetails['msisdnReceipt'] != null) ...[
+            _detailItem(
+                scale, msisdn, paymentDetails['msisdn']?.toString() ?? ''),
+            _divider(scale),
+            _detailItem(scale, msisdnReceipt,
+                paymentDetails['msisdnReceipt']?.toString() ?? ''),
+            _divider(scale),
+          ] else ...[
+            _detailItem(
+                scale, msisdn, paymentDetails['msisdn']?.toString() ?? ''),
+            _divider(scale),
+          ],
           _detailItem(
               scale,
               paymentMethod,
@@ -450,6 +434,36 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                       .getLocalizedString('no')
                   : Provider.of<LocalizationService>(context, listen: false)
                       .getLocalizedString('yes')),
+          _divider(scale),
+          _detailItem(
+            scale,
+            isDisconnected,
+            paymentDetails['isDisconnected'] == 0
+                ? Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('no')
+                : Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('yes'),
+          ),
+          _divider(scale),
+          _detailItem(
+            scale,
+            acceptanceStatus,
+            paymentDetails['acceptanceStatus'] != null
+                ? Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString(
+                        paymentDetails['acceptanceStatus']!.toLowerCase())
+                : '',
+          ),
+          _divider(scale),
+          _detailItem(
+            scale,
+            cancellationStatus,
+            paymentDetails['cancellationStatus'] != null
+                ? Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString(
+                        paymentDetails['cancellationStatus']!.toLowerCase())
+                : '',
+          ),
           _divider(scale),
           _detailNoteItem(
               scale,

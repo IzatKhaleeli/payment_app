@@ -23,13 +23,12 @@ import 'package:mutex/mutex.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'globalError.dart';
 
-
 class PaymentService {
   static bool _isErrorShowing = false;
 
   static Timer? _networkTimer; // Reference to the Timer
-  static final StreamController<void> _syncController = StreamController<
-      void>.broadcast();
+  static final StreamController<void> _syncController =
+      StreamController<void>.broadcast();
   static Stream<void> get syncStream => _syncController.stream;
   static final Mutex _syncMutex = Mutex();
 
@@ -41,20 +40,20 @@ class PaymentService {
   }
 
   static Future<void> startPeriodicNetworkTest(BuildContext context) async {
-      _cancelNetworkTimer(); // Cancel the existing timer if any.
-      // Start the periodic timer after ensuring sync has completed.
-      _networkTimer = Timer.periodic(Duration(seconds: 4), (Timer timer) async {
-        await _checkNetworkAndSync(context);
-      });
-    }
+    _cancelNetworkTimer(); // Cancel the existing timer if any.
+    // Start the periodic timer after ensuring sync has completed.
+    _networkTimer = Timer.periodic(Duration(seconds: 4), (Timer timer) async {
+      await _checkNetworkAndSync(context);
+    });
+  }
 
   // Check network and start sync if connected
   static Future<void> _checkNetworkAndSync(BuildContext context) async {
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult != ConnectivityResult.none) {
       await syncPayments(context); // Trigger sync if network is available
-    }
-    else print(connectivityResult);
+    } else
+      print(connectivityResult);
   }
 
   static Future<void> syncPayments(BuildContext context) async {
@@ -80,9 +79,8 @@ class PaymentService {
         'tokenID': fullToken,
       };
       // Retrieve all confirmed payments
-      List<Map<String,
-          dynamic>> ConfirmedAndCancelledPendingPayments = await DatabaseProvider
-          .getConfirmedOrCancelledPendingPayments();
+      List<Map<String, dynamic>> ConfirmedAndCancelledPendingPayments =
+          await DatabaseProvider.getConfirmedOrCancelledPendingPayments();
       List<Map<String, dynamic>> confirmedPayments = [];
       List<Map<String, dynamic>> cancelledPendingPayments = [];
 
@@ -121,10 +119,10 @@ class PaymentService {
             print("inside status code 200 of cancel api");
             await DatabaseProvider.updatePaymentStatus(p["id"], 'Cancelled');
             _syncController.add(null);
-            String amount = p["paymentMethod"].toString().toLowerCase() ==
-                'cash'
-                ? (p["amount"]?.toString() ?? '0')
-                : (p["amountCheck"]?.toString() ?? '0');
+            String amount =
+                p["paymentMethod"].toString().toLowerCase() == 'cash'
+                    ? (p["amount"]?.toString() ?? '0')
+                    : (p["amountCheck"]?.toString() ?? '0');
 
             await SmsService.sendSmsRequest(
                 context,
@@ -145,61 +143,62 @@ class PaymentService {
           print('Error syncing confirm or cancel payment: $e');
         }
       }
-    }
-    finally {
+    } finally {
       _syncMutex.release(); // Release lock
-       startPeriodicNetworkTest(context); // Restart periodic checks
+      startPeriodicNetworkTest(context); // Restart periodic checks
       _syncController.add(null); // Notify listeners
     }
   }
 
-  static Future <void> syncPayment(Map<String, dynamic> payment, String apiUrl,
+  static Future<void> syncPayment(Map<String, dynamic> payment, String apiUrl,
       Map<String, String> headers, BuildContext context) async {
-    try{
-    String theSumOf = payment['paymentMethod'].toLowerCase() == 'cash'
-        ? convertAmountToWords(payment['amount'])
-        : convertAmountToWords(payment['amountCheck']);
+    try {
+      String theSumOf = payment['paymentMethod'].toLowerCase() == 'cash'
+          ? convertAmountToWords(payment['amount'])
+          : convertAmountToWords(payment['amountCheck']);
 
-    Map<String, dynamic> body = {
-      'transactionId': payment['transactionId'],
-      'transactionDate': payment['transactionDate'],
-      'accountName': payment['customerName'],
-      'msisdn': payment['msisdn'],
-      'pr': payment['prNumber'],
-      'amount': payment['amount'],
-      'currency': payment['currency'],
-      'paymentMethod': payment['paymentMethod'],
-      'checkNumber': payment['checkNumber'],
-      'checkAmount': payment['amountCheck'],
-      'checkBank': payment['bankBranch'],
-      'notes': payment['paymentInvoiceFor'],
-      'checkDueDate': payment['dueDateCheck'] != null &&
-          payment['dueDateCheck'] != 'null'
-          ? DateTime.parse(payment['dueDateCheck']).toIso8601String()
-          : null,
-      'theSumOf': theSumOf,
-      'isDeposit': payment['isDepositChecked'] == 0 ? false :true
-    };
-    print("body payment to sync :${body}");
+      Map<String, dynamic> body = {
+        'transactionId': payment['transactionId'],
+        'transactionDate': payment['transactionDate'],
+        'accountName': payment['customerName'],
+        'msisdn': payment['msisdn'],
+        'msisdnReceipt': payment['msisdnReceipt'],
+        'pr': payment['prNumber'],
+        'amount': payment['amount'],
+        'currency': payment['currency'],
+        'paymentMethod': payment['paymentMethod'],
+        'checkNumber': payment['checkNumber'],
+        'checkAmount': payment['amountCheck'],
+        'checkBank': payment['bankBranch'],
+        'notes': payment['paymentInvoiceFor'],
+        'checkDueDate':
+            payment['dueDateCheck'] != null && payment['dueDateCheck'] != 'null'
+                ? DateTime.parse(payment['dueDateCheck']).toIso8601String()
+                : null,
+        'theSumOf': theSumOf,
+        'isDeposit': payment['isDepositChecked'] == 0 ? false : true,
+        "isDisconnected": payment['isDisconnected']
+      };
+      print("body payment to sync :${body}");
 
-
-      if(payment["status"].toString().toLowerCase() == "synced")
-        return;
-      print("the payment :${payment['transactionDate']} stats to sync is :${payment["status"]}");
+      if (payment["status"].toString().toLowerCase() == "synced") return;
+      print(
+          "the payment :${payment['transactionDate']} stats to sync is :${payment["status"]}");
       print("before send sync api");
       // Make POST request
-     http.Response? response;
+      http.Response? response;
 
-    try {
-      response = await http.post(
-        Uri.parse(apiUrl),
-        headers: headers,
-        body: json.encode(body),
-      ).timeout(Duration(seconds: 4));
-    }
-    catch (e) {
-      GlobalErrorNotifier.showError("Error: $e");
-    }
+      try {
+        response = await http
+            .post(
+              Uri.parse(apiUrl),
+              headers: headers,
+              body: json.encode(body),
+            )
+            .timeout(Duration(seconds: 4));
+      } catch (e) {
+        GlobalErrorNotifier.showError("Error: $e");
+      }
       if (response!.statusCode == 200) {
         print("inside status code 200 of sync api");
 
@@ -209,16 +208,26 @@ class PaymentService {
         print("voucherSerialNumber : ${voucherSerialNumber!}");
 
         // Update payment in local database
-        await DatabaseProvider.updateSyncedPaymentDetail(payment["id"], voucherSerialNumber, 'Synced');
+        await DatabaseProvider.updateSyncedPaymentDetail(
+            payment["id"], voucherSerialNumber, 'Synced');
         _syncController.add(null);
-        String amount = payment["paymentMethod"].toString().toLowerCase() == 'cash'
-            ? (payment["amount"]?.toString() ?? '0')
-            : (payment["amountCheck"]?.toString() ?? '0');
+        String amount =
+            payment["paymentMethod"].toString().toLowerCase() == 'cash'
+                ? (payment["amount"]?.toString() ?? '0')
+                : (payment["amountCheck"]?.toString() ?? '0');
 
-      //  await SmsService.sendSmsRequest(context, payment["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, payment["currency"], voucherSerialNumber, Provider.of<LocalizationService>(context, listen: false).getLocalizedString(payment["paymentMethod"].toString().toLowerCase()));
-        await SmsService.sendSmsRequest(context, payment["msisdn"],'ar', amount, payment["currency"], voucherSerialNumber, payment["paymentMethod"].toString().toLowerCase()=='cash' ? 'كاش' : 'شيك');
-      }
-      else {
+        //  await SmsService.sendSmsRequest(context, payment["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, payment["currency"], voucherSerialNumber, Provider.of<LocalizationService>(context, listen: false).getLocalizedString(payment["paymentMethod"].toString().toLowerCase()));
+        await SmsService.sendSmsRequest(
+            context,
+            payment["msisdn"],
+            'ar',
+            amount,
+            payment["currency"],
+            voucherSerialNumber,
+            payment["paymentMethod"].toString().toLowerCase() == 'cash'
+                ? 'كاش'
+                : 'شيك');
+      } else {
         Map<String, dynamic> errorResponse = json.decode(response.body);
         print("failed to sync heres the body of response: ${response.body}");
         if (errorResponse['error'] == 'Unauthorized' &&
@@ -226,20 +235,15 @@ class PaymentService {
           await _attemptReLoginAndRetrySync(context);
         } else {
           print('Failed to sync payment: ${response.body}');
-
         }
       }
       print("sync payment try");
-
     } catch (e) {
       print("sync payment error :${e}");
-
     }
-
   }
 
-
-  static Future <void> cancelPayment(Map<String, dynamic> paymentToCancel,
+  static Future<void> cancelPayment(Map<String, dynamic> paymentToCancel,
       String reason, BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? tokenID = prefs.getString('token');
@@ -249,87 +253,100 @@ class PaymentService {
       return;
     }
     String fullToken = "Barer ${tokenID}";
-      Map<String, String> headers = {
-        'Content-Type': 'application/json',
-        'tokenID': fullToken,
-      };
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'tokenID': fullToken,
+    };
 
-      DateFormat formatter = DateFormat('yyyy-MM-ddTHH:mm:ss');
-      String cancelDateTime = formatter.format(DateTime.now());
+    DateFormat formatter = DateFormat('yyyy-MM-ddTHH:mm:ss');
+    String cancelDateTime = formatter.format(DateTime.now());
 
-      // Create the body map with the necessary information
-      Map<String, String> body = {
-        "voucherSerialNumber": paymentToCancel["voucherSerialNumber"],
-        "cancelReason": reason,
-        "cancelTransactionDate": cancelDateTime,
-      };
-      //print(body);
-      try {
-        final response = await http.delete(
-          Uri.parse(apiUrlCancel),
-          headers: headers,
-          body: json.encode(body),
-        );
-        if (response.statusCode == 200) {
-          print("inside status code 200 of cancel api :${response.body}");
-          await DatabaseProvider.cancelPayment(
-              paymentToCancel["voucherSerialNumber"], reason, cancelDateTime, 'Cancelled');
-          _syncController.add(null);
-          String amount = paymentToCancel["paymentMethod"].toString().toLowerCase() == 'cash'
-              ? (paymentToCancel["amount"]?.toString() ?? '0')
-              : (paymentToCancel["amountCheck"]?.toString() ?? '0');
-
-          //await SmsService.sendSmsRequest(context, paymentToCancel["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, paymentToCancel["currency"], paymentToCancel["voucherSerialNumber"], Provider.of<LocalizationService>(context, listen: false).getLocalizedString(paymentToCancel["paymentMethod"].toString().toLowerCase()),isCancel: true);
-          await SmsService.sendSmsRequest(context, paymentToCancel["msisdn"],'ar', amount, paymentToCancel["currency"], paymentToCancel["voucherSerialNumber"], paymentToCancel["paymentMethod"].toString().toLowerCase()=='cash' ? 'كاش' : 'شيك',isCancel: true);
-
-        }
-        else {
-          Map<String, dynamic> errorResponse = json.decode(response.body);
-          print("failed to sync heres the body of response: ${response.body}");
-          if (errorResponse['error'] == 'Unauthorized' &&  errorResponse['errorInDetail'] == 'JWT Authentication Failed')
-          {
-            await DatabaseProvider.cancelPayment(
-                paymentToCancel["voucherSerialNumber"], reason, cancelDateTime,
-                'CancelPending');
-            _syncController.add(null);
-            await _attemptReLoginAndRetrySync(context);
-          } else {
-            print('^ Failed to cancel/sync payment: ${response.body}');
-          }
-        }
-      } catch (e) {
+    // Create the body map with the necessary information
+    Map<String, String> body = {
+      "voucherSerialNumber": paymentToCancel["voucherSerialNumber"],
+      "cancelReason": reason,
+      "cancelTransactionDate": cancelDateTime,
+    };
+    //print(body);
+    try {
+      final response = await http.delete(
+        Uri.parse(apiUrlCancel),
+        headers: headers,
+        body: json.encode(body),
+      );
+      if (response.statusCode == 200) {
+        print("inside status code 200 of cancel api :${response.body}");
         await DatabaseProvider.cancelPayment(
-            paymentToCancel["voucherSerialNumber"], reason, cancelDateTime,
-            'CancelPending');
+            paymentToCancel["voucherSerialNumber"],
+            reason,
+            cancelDateTime,
+            'Cancelled');
         _syncController.add(null);
-        print('Error cancelling payment: $e');
+        String amount =
+            paymentToCancel["paymentMethod"].toString().toLowerCase() == 'cash'
+                ? (paymentToCancel["amount"]?.toString() ?? '0')
+                : (paymentToCancel["amountCheck"]?.toString() ?? '0');
+
+        //await SmsService.sendSmsRequest(context, paymentToCancel["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, paymentToCancel["currency"], paymentToCancel["voucherSerialNumber"], Provider.of<LocalizationService>(context, listen: false).getLocalizedString(paymentToCancel["paymentMethod"].toString().toLowerCase()),isCancel: true);
+        await SmsService.sendSmsRequest(
+            context,
+            paymentToCancel["msisdn"],
+            'ar',
+            amount,
+            paymentToCancel["currency"],
+            paymentToCancel["voucherSerialNumber"],
+            paymentToCancel["paymentMethod"].toString().toLowerCase() == 'cash'
+                ? 'كاش'
+                : 'شيك',
+            isCancel: true);
+      } else {
+        Map<String, dynamic> errorResponse = json.decode(response.body);
+        print("failed to sync heres the body of response: ${response.body}");
+        if (errorResponse['error'] == 'Unauthorized' &&
+            errorResponse['errorInDetail'] == 'JWT Authentication Failed') {
+          await DatabaseProvider.cancelPayment(
+              paymentToCancel["voucherSerialNumber"],
+              reason,
+              cancelDateTime,
+              'CancelPending');
+          _syncController.add(null);
+          await _attemptReLoginAndRetrySync(context);
+        } else {
+          print('^ Failed to cancel/sync payment: ${response.body}');
+        }
       }
+    } catch (e) {
+      await DatabaseProvider.cancelPayment(
+          paymentToCancel["voucherSerialNumber"],
+          reason,
+          cancelDateTime,
+          'CancelPending');
+      _syncController.add(null);
+      print('Error cancelling payment: $e');
+    }
   }
 
   static Future<void> _attemptReLoginAndRetrySync(BuildContext context) async {
     Map<String, String?> credentials = await getCredentials();
     String? username = credentials['username'];
     String? password = credentials['password'];
-     if (username != null && password != null) {
-       LoginState loginState = LoginState();
-       var loginSuccessful = await loginState.login(username, password);
+    if (username != null && password != null) {
+      LoginState loginState = LoginState();
+      var loginSuccessful = await loginState.login(username, password);
 
-       if (loginSuccessful["status"] == 200) {
+      if (loginSuccessful["status"] == 200) {
         print("Re-login successful");
-      }
-       else if(loginSuccessful["status"] == 503){
-           print("Re-login failed.credentials error Unable to sync payment.");
-       }
-       else if(loginSuccessful["status"] == 408){
-         print("Re-login failed.credentials error Unable to sync payment.");
-       }
-       else {
+      } else if (loginSuccessful["status"] == 503) {
+        print("Re-login failed.credentials error Unable to sync payment.");
+      } else if (loginSuccessful["status"] == 408) {
+        print("Re-login failed.credentials error Unable to sync payment.");
+      } else {
         print("Re-login failed. Unable to sync payment.");
         _showSessionExpiredDialog(context); // Show session expired message
       }
     } else {
       print("Username or password is missing. Cannot attempt re-login.");
-     }
+    }
   }
 
   static Future<int> attemptReLogin(BuildContext context) async {
@@ -341,20 +358,17 @@ class PaymentService {
       var loginSuccessful = await loginState.login(username, password);
       if (loginSuccessful["status"] == 200) {
         return 200;
-      } else if(loginSuccessful["status"] == 400) {
+      } else if (loginSuccessful["status"] == 400) {
         print("Re-login failed.credentials error Unable to sync payment.");
         _showSessionExpiredDialog(context); // Show session expired message
         return 400;
-      }
-      else if(loginSuccessful["status"] == 503){
+      } else if (loginSuccessful["status"] == 503) {
         print("Re-login failed. Network issue.");
         return 503;
-      }
-      else if(loginSuccessful["status"] == 408){
+      } else if (loginSuccessful["status"] == 408) {
         print("Re-login failed. Network issue.");
         return 408;
-      }
-      else {
+      } else {
         print("Re-login failed.credentials error Unable to sync payment.");
         _showSessionExpiredDialog(context); // Show session expired message
         return 400;
@@ -371,16 +385,20 @@ class PaymentService {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sesstionExpiredTitle')),
-          content: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('sesstionExpiredBody')),
+          title: Text(Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString('sesstionExpiredTitle')),
+          content: Text(Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString('sesstionExpiredBody')),
           actions: [
             TextButton(
               onPressed: () async {
                 await Future.delayed(Duration(seconds: 1));
                 Navigator.of(context).pop(); // Close the dialog
                 showLoadingAndNavigate(context); // Navigate to login screen
-              },//
-              child: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('ok'),
+              }, //
+              child: Text(
+                Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('ok'),
               ),
             ),
           ],
@@ -389,7 +407,7 @@ class PaymentService {
     );
   }
 
-  static Future <void> getExpiredPaymentsNumber() async {
+  static Future<void> getExpiredPaymentsNumber() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? tokenID = prefs.getString('token');
     if (tokenID == null) {
@@ -418,18 +436,17 @@ class PaymentService {
         }
         print("number of ays to delete before is : ${days}");
         await DatabaseProvider.deleteRecordsOlderThan(days);
-      }
-      else {
-        print('Failed to get the number of days. Status code: ${response.statusCode}');
+      } else {
+        print(
+            'Failed to get the number of days. Status code: ${response.statusCode}');
       }
     } catch (e) {
       // Handle the error if needed
       print('Error deleting expired payment: $e');
     }
-
   }
 
-    static Future <bool> getMinVersion() async {
+  static Future<bool> getMinVersion() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? tokenID = prefs.getString('token');
     if (tokenID == null) {
@@ -443,14 +460,16 @@ class PaymentService {
         'Content-Type': 'application/json',
         'tokenID': fullToken,
       };
-      final response = await http.get(
-        Uri.parse(apiUrlMinVersion),
-        headers: headers,
-      )
-     .timeout(const Duration(seconds: 5)); 
+      final response = await http
+          .get(
+            Uri.parse(apiUrlMinVersion),
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode != 200) {
-        print('Failed to get the min version. Status code: ${response.statusCode}');
+        print(
+            'Failed to get the min version. Status code: ${response.statusCode}');
         return false;
       }
       String backendVersion = response.body.trim();
@@ -494,9 +513,7 @@ class PaymentService {
       }
       return false;
     }
-
   }
-
 
   static Future<void> showLoadingAndNavigate(BuildContext context) async {
     final size = MediaQuery.of(context).size;
@@ -515,7 +532,8 @@ class PaymentService {
                 width: 130.w,
                 height: 100.h,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2), // Semi-transparent white for glass effect
+                  color: Colors.white.withOpacity(
+                      0.2), // Semi-transparent white for glass effect
                   borderRadius: BorderRadius.circular(10.r),
                   border: Border.all(
                     color: Colors.white.withOpacity(0.2),
@@ -540,12 +558,13 @@ class PaymentService {
                     ),
                     SizedBox(height: 10.h),
                     Text(
-                      Provider.of<LocalizationService>(context, listen: false).getLocalizedString('pleaseWait'),
+                      Provider.of<LocalizationService>(context, listen: false)
+                          .getLocalizedString('pleaseWait'),
                       style: TextStyle(
                         decoration: TextDecoration.none,
                         color: Colors.white,
                         fontFamily: 'NotoSansUI',
-                        fontSize: 12*scale,
+                        fontSize: 12 * scale,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -574,7 +593,7 @@ class PaymentService {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => LoginScreen()),
-          (route) => false, // This disables popping the LoginScreen route
+      (route) => false, // This disables popping the LoginScreen route
     );
   }
 
@@ -590,7 +609,7 @@ class PaymentService {
   }
 
   // Show only loading (no logout logic)
-  static void showLoadingOnly(BuildContext context,double scale) {
+  static void showLoadingOnly(BuildContext context, double scale) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -620,21 +639,21 @@ class PaymentService {
                         return DecoratedBox(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: index.isEven
-                                ? Colors.white
-                                : Colors.grey[300],
+                            color:
+                                index.isEven ? Colors.white : Colors.grey[300],
                           ),
                         );
                       },
                     ),
                     SizedBox(height: 10),
                     Text(
-                      Provider.of<LocalizationService>(context, listen: false).getLocalizedString('pleaseWait'),
+                      Provider.of<LocalizationService>(context, listen: false)
+                          .getLocalizedString('pleaseWait'),
                       style: TextStyle(
                         decoration: TextDecoration.none,
                         color: Colors.white,
                         fontFamily: 'NotoSansUI',
-                        fontSize: 14*scale,
+                        fontSize: 14 * scale,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -650,7 +669,8 @@ class PaymentService {
 
 // When logout is done
   static Future<void> completeLogout(BuildContext context) async {
-    await Future.delayed(const Duration(milliseconds: 500)); // small delay for UX feel
+    await Future.delayed(
+        const Duration(milliseconds: 500)); // small delay for UX feel
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
@@ -663,9 +683,7 @@ class PaymentService {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => LoginScreen()),
-          (route) => false,
+      (route) => false,
     );
   }
-
-
 }

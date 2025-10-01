@@ -33,7 +33,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   final TextEditingController _amountCheckController = TextEditingController();
   final TextEditingController _checkNumberController = TextEditingController();
   final TextEditingController _dueDateCheckController = TextEditingController();
-  final TextEditingController _paymentInvoiceForController = TextEditingController();
+  final TextEditingController _paymentInvoiceForController =
+      TextEditingController();
   final FocusNode _customerNameFocusNode = FocusNode();
   final FocusNode _msisdnFocusNode = FocusNode();
   final FocusNode _prNumberFocusNode = FocusNode();
@@ -42,7 +43,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   final FocusNode _checkNumberFocusNode = FocusNode();
   final FocusNode _dueDateCheckFocusNode = FocusNode();
   final FocusNode _paymentInvoiceForNode = FocusNode();
-  String? _selectedPaymentMethod='';
+  String? _selectedPaymentMethod = '';
   List<String> _paymentMethods = ['cash', 'check'];
   late AnimationController _animationController;
   late Animation<double> _buttonScaleAnimation;
@@ -74,12 +75,14 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   String MSISDN = "";
   String cash = "";
   String check = "";
-  String requiredFields="";
+  String requiredFields = "";
 
   Future<void> _loadCurrencies() async {
     try {
-      List<Map<String, dynamic>> currencyMaps = await DatabaseProvider.getAllCurrencies();
-      List<Currency> currencies = currencyMaps.map((map) => Currency.fromMap(map)).toList();
+      List<Map<String, dynamic>> currencyMaps =
+          await DatabaseProvider.getAllCurrencies();
+      List<Currency> currencies =
+          currencyMaps.map((map) => Currency.fromMap(map)).toList();
       setState(() {
         _currenciesDB = currencies;
       });
@@ -90,7 +93,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
   Future<void> _loadBanks() async {
     try {
-      List<Map<String, dynamic>> bankMaps = await DatabaseProvider.getAllBanks();
+      List<Map<String, dynamic>> bankMaps =
+          await DatabaseProvider.getAllBanks();
       List<Bank> banks = bankMaps.map((map) => Bank.fromMap(map)).toList();
       setState(() {
         _banksDB = banks;
@@ -116,14 +120,15 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
   }
-  
-  void _initializeLocalizationStrings(){
+
+  void _initializeLocalizationStrings() {
     final localizationService =
-    Provider.of<LocalizationService>(context, listen: false);
+        Provider.of<LocalizationService>(context, listen: false);
     requiredFields = localizationService.getLocalizedString('requiredFields');
     recordPayment = localizationService.getLocalizedString('recordPayment');
     customerDetails = localizationService.getLocalizedString('customerDetails');
-    paymentInformation = localizationService.getLocalizedString('paymentInformation');
+    paymentInformation =
+        localizationService.getLocalizedString('paymentInformation');
     savePayment = localizationService.getLocalizedString('savePayment');
     confirmPayment = localizationService.getLocalizedString('confirmPayment');
     paymentMethod = localizationService.getLocalizedString('paymentMethod');
@@ -142,7 +147,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
     MSISDN = localizationService.getLocalizedString('MSISDN');
     cash = localizationService.getLocalizedString('cash');
     check = localizationService.getLocalizedString('check');
-    paymentInvoiceFor = localizationService.getLocalizedString('paymentInvoiceFor');
+    paymentInvoiceFor =
+        localizationService.getLocalizedString('paymentInvoiceFor');
     // Localize and ensure unique values
     _paymentMethods = _paymentMethods
         .map((method) => localizationService.getLocalizedString(method))
@@ -153,32 +159,31 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   void _initializeFields() async {
     if (widget.id != null) {
       int id = widget.id!;
-      Map<String, dynamic>? paymentToEdit = await DatabaseProvider.getPaymentById(id);
+      Map<String, dynamic>? paymentToEdit =
+          await DatabaseProvider.getPaymentById(id);
       print("the paymentToEdit from db is :${paymentToEdit} ");
       if (paymentToEdit != null) {
         Payment payment = Payment.fromMap(paymentToEdit);
         print(" the payment to edit after parse is :${payment}");
-          setState(() {
-            _selectedPaymentMethod = cash;
-            _selectedCurrencyDB=payment.currency;
-
-          });
-          if (payment.paymentMethod == "Check") {
+        setState(() {
+          _selectedPaymentMethod = cash;
+          _selectedCurrencyDB = payment.currency;
+        });
+        if (payment.paymentMethod == "Check") {
           setState(() {
             _selectedPaymentMethod = check;
-            _selectedCurrencyDB=payment.currency;
-            _selectedBankDB=payment.bankBranch;
+            _selectedCurrencyDB = payment.currency;
+            _selectedBankDB = payment.bankBranch;
           });
         }
         _customerNameController.text = payment.customerName;
         _msisdnController.text = payment.msisdn ?? '';
-        _prNumberController.text = payment.prNumber?? '' ;
-        _amountController.text = payment.amount.toString()?? '';
-        _amountCheckController.text = payment.amountCheck.toString()?? '';
-        _checkNumberController.text = payment.checkNumber.toString()?? '';
-        _paymentInvoiceForController.text = payment.paymentInvoiceFor?? '';
-        _dueDateCheckController.text = payment.dueDateCheck.toString()?? '';
-
+        _prNumberController.text = payment.prNumber ?? '';
+        _amountController.text = payment.amount.toString() ?? '';
+        _amountCheckController.text = payment.amountCheck.toString() ?? '';
+        _checkNumberController.text = payment.checkNumber.toString() ?? '';
+        _paymentInvoiceForController.text = payment.paymentInvoiceFor ?? '';
+        _dueDateCheckController.text = payment.dueDateCheck.toString() ?? '';
       } else {
         print('No payment found with ID $id');
       }
@@ -186,50 +191,53 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
     if (widget.paymentParams != null) {
       print("the paymentParams from parameter not null ");
-      Map<String, dynamic> paymentParams = widget.paymentParams!; // Ensure id is not null
+      Map<String, dynamic> paymentParams =
+          widget.paymentParams!; // Ensure id is not null
       if (paymentParams != null) {
         print("check1");
         setState(() {
           _selectedPaymentMethod = cash;
-          _selectedCurrencyDB=paymentParams["currency"];
+          _selectedCurrencyDB = paymentParams["currency"];
         });
         print("check2");
 
         if (paymentParams["paymentMethod"] == "Check") {
           setState(() {
             _selectedPaymentMethod = check;
-            _selectedCurrencyDB=paymentParams["currency"];
-            _selectedBankDB=paymentParams["bankBranch"];
+            _selectedCurrencyDB = paymentParams["currency"];
+            _selectedBankDB = paymentParams["bankBranch"];
           });
         }
 
         _customerNameController.text = paymentParams["customerName"];
 
-        _msisdnController.text = paymentParams["msisdn"]?? '';
+        _msisdnController.text = paymentParams["msisdn"] ?? '';
 
-        _prNumberController.text = paymentParams["prNumber"]?? '' ;
+        _prNumberController.text = paymentParams["prNumber"] ?? '';
 
-        _amountController.text = paymentParams["amount"].toString()?? '';
+        _amountController.text = paymentParams["amount"].toString() ?? '';
 
-        _amountCheckController.text = paymentParams["amountCheck"].toString()?? '';
+        _amountCheckController.text =
+            paymentParams["amountCheck"].toString() ?? '';
 
-        _checkNumberController.text = paymentParams["checkNumber"].toString()?? '';
+        _checkNumberController.text =
+            paymentParams["checkNumber"].toString() ?? '';
 
-        _paymentInvoiceForController.text = paymentParams["paymentInvoiceFor"]?? '';
+        _paymentInvoiceForController.text =
+            paymentParams["paymentInvoiceFor"] ?? '';
 
-        _dueDateCheckController.text = paymentParams["dueDateCheck"].toString()?? '';
+        _dueDateCheckController.text =
+            paymentParams["dueDateCheck"].toString() ?? '';
 
-        isDepositChecked = paymentParams["isDepositChecked"] == 0 ? false :true ;
+        isDepositChecked =
+            paymentParams["isDepositChecked"] == 0 ? false : true;
         print("isDepositChecked initialzation :${isDepositChecked}");
-
       }
-    }
-
-    else {
-      _selectedPaymentMethod=cash;
+    } else {
+      _selectedPaymentMethod = cash;
     }
   }
-  
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -272,7 +280,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         title: Text(recordPayment,
             style: TextStyle(
                 color: Colors.white,
-                fontSize: 22*scale,
+                fontSize: 22 * scale,
                 fontFamily: 'NotoSansUI')),
         backgroundColor: const Color(0xFFC62828),
       ),
@@ -281,7 +289,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
           FocusScope.of(context).unfocus();
         },
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(15*scale),
+          padding: EdgeInsets.all(15 * scale),
           child: Column(
             children: [
               _buildExpandableSection(
@@ -295,25 +303,16 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                     customerName,
                     Icons.person_outline,
                     focusNode: _customerNameFocusNode,
-                      required:true,
+                    required: true,
                   ),
                   _buildTextField(
-                    scale,
-                    _msisdnController,
-                    MSISDN,
-                    Icons.phone_android,
-                    focusNode: _msisdnFocusNode,
-                      isNumeric : true,
-                      required:true
-                  ),
+                      scale, _msisdnController, MSISDN, Icons.phone_android,
+                      focusNode: _msisdnFocusNode,
+                      isNumeric: true,
+                      required: true),
                   _buildTextField(
-                    scale,
-                    _prNumberController,
-                    PR,
-                    Icons.numbers_sharp,
-                    focusNode: _prNumberFocusNode,
-                      isNumeric : true
-                  ),
+                      scale, _prNumberController, PR, Icons.numbers_sharp,
+                      focusNode: _prNumberFocusNode, isNumeric: true),
                 ],
                 checkIfFilled: () {
                   return _customerNameController.text.isNotEmpty;
@@ -325,69 +324,76 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                 iconData: Icons.payment,
                 children: [
                   //
-                  _buildDropdown(scale,paymentMethod, _paymentMethods,required: true),
-                  if (_selectedPaymentMethod == cash)
-                    ...[
-                      _buildTextField(
-                        scale,
-                        _amountController,
-                        amount, null ,
+                  _buildDropdown(scale, paymentMethod, _paymentMethods,
+                      required: true),
+                  if (_selectedPaymentMethod == cash) ...[
+                    _buildTextField(scale, _amountController, amount, null,
                         focusNode: _amountFocusNode,
-                          required:true,
-                          isNumeric : true,
-                          isDecimal: true
-                      ),
-                      _buildDropdownCurrencyDynamic(scale,currency, _currenciesDB,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true),
-                    ],
+                        required: true,
+                        isNumeric: true,
+                        isDecimal: true),
+                    _buildDropdownCurrencyDynamic(
+                        scale,
+                        currency,
+                        _currenciesDB,
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .selectedLanguageCode,
+                        required: true),
+                  ],
 
-                  if (_selectedPaymentMethod == check)
-                    ...[
-                      _buildTextField(
-                        scale,
-                        _amountCheckController,
-                        amountCheck,
-                        null ,
+                  if (_selectedPaymentMethod == check) ...[
+                    _buildTextField(
+                        scale, _amountCheckController, amountCheck, null,
                         focusNode: _amountCheckFocusNode,
-                          required:true,
-                          isNumeric : true,
-                          isDecimal: true
-                      ),
-                      _currenciesDB.isEmpty
-                          ?                       
-                          _buildDropdownCurrencyDynamic(scale,currency, [],Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true)
-:
-                      _buildDropdownCurrencyDynamic(scale,currency, _currenciesDB,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true),
-                      _buildTextField(
-                        scale,
-                        _checkNumberController,
-                        checkNumber,
+                        required: true,
+                        isNumeric: true,
+                        isDecimal: true),
+                    _currenciesDB.isEmpty
+                        ? _buildDropdownCurrencyDynamic(
+                            scale,
+                            currency,
+                            [],
+                            Provider.of<LocalizationService>(context,
+                                    listen: false)
+                                .selectedLanguageCode,
+                            required: true)
+                        : _buildDropdownCurrencyDynamic(
+                            scale,
+                            currency,
+                            _currenciesDB,
+                            Provider.of<LocalizationService>(context,
+                                    listen: false)
+                                .selectedLanguageCode,
+                            required: true),
+                    _buildTextField(scale, _checkNumberController, checkNumber,
                         Icons.receipt_long_outlined,
                         focusNode: _checkNumberFocusNode,
-                          required:true,
-                          isNumeric : true
-                      ),
-                      _buildDropdownBankDynamic(
-                        scale,bankBranchCheck, _banksDB,Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, required: true),
-                      _buildTextField(
+                        required: true,
+                        isNumeric: true),
+                    _buildDropdownBankDynamic(
                         scale,
-                        _dueDateCheckController,
-                        dueDateCheck,
-                        Icons.date_range_outlined,
+                        bankBranchCheck,
+                        _banksDB,
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .selectedLanguageCode,
+                        required: true),
+                    _buildTextField(scale, _dueDateCheckController,
+                        dueDateCheck, Icons.date_range_outlined,
                         focusNode: _dueDateCheckFocusNode,
-                          isDate: true,
-                          required:true
-                      ),
-                    ],
+                        isDate: true,
+                        required: true),
+                  ],
                   record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
                     scale: scale,
-                    isChecked: isDepositChecked,  // Bind to the state variable
+                    isChecked: isDepositChecked, // Bind to the state variable
                     onChanged: (newValue) {
                       setState(() {
-                        isDepositChecked = newValue ?? false;  // Update the state variable
+                        isDepositChecked =
+                            newValue ?? false; // Update the state variable
                       });
                     },
                     required: true,
-                    context: context ,  // Optional, mark as required if needed
+                    context: context, // Optional, mark as required if needed
                   ),
                   _buildTextField(
                     scale,
@@ -405,8 +411,9 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                   } else if (_selectedPaymentMethod == check) {
                     return _amountCheckController.text.isNotEmpty &&
                         _checkNumberController.text.isNotEmpty &&
-                        _dueDateCheckController.text.isNotEmpty && _selectedCurrencyDB != null && _selectedBankDB != null;
-
+                        _dueDateCheckController.text.isNotEmpty &&
+                        _selectedCurrencyDB != null &&
+                        _selectedBankDB != null;
                   }
                   return false;
                 },
@@ -415,7 +422,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                 children: [
                   // Expanded(child: _buildSaveButton()), // Takes full width
                   // SizedBox(width: 16.w), // Adjust spacing between buttons
-                  Expanded(child: _buildConfirmedButton(scale)), // Takes full width
+                  Expanded(
+                      child: _buildConfirmedButton(scale)), // Takes full width
                 ],
               ),
             ],
@@ -445,13 +453,13 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
           children: [
             Row(
               children: [
-                Icon(iconData, size: 24*scale, color: iconColor),
+                Icon(iconData, size: 24 * scale, color: iconColor),
                 const SizedBox(width: 12),
                 Text(
                   title,
                   style: TextStyle(
                     fontFamily: 'NotoSansUI',
-                    fontSize: 14*scale,
+                    fontSize: 14 * scale,
                     fontWeight: FontWeight.bold,
                     color: iconColor,
                   ),
@@ -464,7 +472,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               children: [
                 ...children,
                 SizedBox(height: 10),
-                _buildRequiredFieldsIndicator(scale,checkIfFilled),
+                _buildRequiredFieldsIndicator(scale, checkIfFilled),
               ],
             ),
           ],
@@ -473,7 +481,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
     );
   }
 
-  Widget _buildRequiredFieldsIndicator(double scale,bool Function() checkIfFilled) {
+  Widget _buildRequiredFieldsIndicator(
+      double scale, bool Function() checkIfFilled) {
     return Row(
       children: [
         Text(
@@ -484,15 +493,15 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
           requiredFields,
           style: TextStyle(
             color: Colors.grey[600],
-            fontSize: 12*scale,
+            fontSize: 12 * scale,
           ),
         ),
       ],
     );
   }
 
-
-  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+  Future<void> _selectDate(
+      BuildContext context, TextEditingController controller) async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -507,18 +516,17 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   }
 
   Widget _buildTextField(
-      double scale,
-      TextEditingController controller,
-      String labelText,
-      IconData? icon, {
-        int maxLines = 1,
-        required FocusNode focusNode,
-        bool required = false,
-        bool isDate = false,
-        bool isNumeric = false,
-        bool isDecimal = false, // New flag to handle decimal input
-      }) {
-
+    double scale,
+    TextEditingController controller,
+    String labelText,
+    IconData? icon, {
+    int maxLines = 1,
+    required FocusNode focusNode,
+    bool required = false,
+    bool isDate = false,
+    bool isNumeric = false,
+    bool isDecimal = false, // New flag to handle decimal input
+  }) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       child: Column(
@@ -529,7 +537,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               text: labelText,
               style: TextStyle(
                 fontFamily: 'NotoSansUI',
-                fontSize: 12*scale,
+                fontSize: 12 * scale,
                 color: Colors.grey[500],
               ),
               children: <TextSpan>[
@@ -538,30 +546,35 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                     text: ' *',
                     style: TextStyle(
                       color: Color(0xFFC62828),
-                      fontSize: 12*scale,
+                      fontSize: 12 * scale,
                     ),
                   ),
               ],
             ),
           ),
-          const SizedBox(height: 5), // Adjust spacing between label and text field
+          const SizedBox(
+              height: 5), // Adjust spacing between label and text field
           TextField(
             controller: controller,
             focusNode: focusNode,
             maxLines: maxLines,
             readOnly: isDate,
-            keyboardType: isNumeric ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+            keyboardType: isNumeric
+                ? const TextInputType.numberWithOptions(decimal: true)
+                : TextInputType.text,
             inputFormatters: isDecimal
                 ? [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')), // Allow digits and dot
-              DecimalInputFormatter(), // Ensure proper handling of decimal inputs
-            ]   : null,
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r'[0-9.]')), // Allow digits and dot
+                    DecimalInputFormatter(), // Ensure proper handling of decimal inputs
+                  ]
+                : null,
             decoration: InputDecoration(
               prefixIcon: icon != null
                   ? Padding(
-                padding: EdgeInsets.symmetric(horizontal: 7),
-                child: Icon(icon, color: Color(0xFFC62828)),
-              )
+                      padding: EdgeInsets.symmetric(horizontal: 7),
+                      child: Icon(icon, color: Color(0xFFC62828)),
+                    )
                   : null,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -580,7 +593,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               fillColor: Colors.white,
               filled: true,
             ),
-            style: TextStyle(fontSize: 14*scale, color: Colors.black),
+            style: TextStyle(fontSize: 14 * scale, color: Colors.black),
             onTap: isDate ? () => _selectDate(context, controller) : null,
           ),
         ],
@@ -588,8 +601,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
     );
   }
 
-
-  Widget _buildDropdown(double scale,String label, List<String> items, {bool required = false}) {
+  Widget _buildDropdown(double scale, String label, List<String> items,
+      {bool required = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       child: Column(
@@ -600,7 +613,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               text: label,
               style: TextStyle(
                 fontFamily: 'NotoSansUI',
-                fontSize: 12*scale,
+                fontSize: 12 * scale,
                 color: Colors.grey[500],
               ),
               children: <TextSpan>[
@@ -609,13 +622,14 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                     text: ' *',
                     style: TextStyle(
                       color: Color(0xFFC62828),
-                      fontSize: 12*scale,
+                      fontSize: 12 * scale,
                     ),
                   ),
               ],
             ),
           ),
-          const SizedBox(height: 4), // Adjust spacing between label and dropdown
+          const SizedBox(
+              height: 4), // Adjust spacing between label and dropdown
           DropdownButtonFormField<String>(
             decoration: InputDecoration(
               contentPadding: EdgeInsets.symmetric(horizontal: 12.w),
@@ -656,7 +670,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                 child: Text(
                   value,
                   style: TextStyle(
-                    fontSize: 12*scale,
+                    fontSize: 12 * scale,
                   ),
                 ),
               );
@@ -669,21 +683,19 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
   Widget _buildDropdownCurrencyDynamic(
     double scale,
-      String label,
-      List<Currency> items,
-      String languageCode, {
-        bool required = false,
-      }) {
+    String label,
+    List<Currency> items,
+    String languageCode, {
+    bool required = false,
+  }) {
     // Find the Currency object with the id matching _selectedCurrencyDB
 
     Currency? initialCurrency;
     if (_selectedCurrencyDB != null && items.isNotEmpty) {
       initialCurrency = items.firstWhere(
-            (currency) => currency.id == _selectedCurrencyDB,
-
+        (currency) => currency.id == _selectedCurrencyDB,
       );
-    }
-    else if (items.any((currency) => currency.id == 'ILS')) {
+    } else if (items.any((currency) => currency.id == 'ILS')) {
       initialCurrency = items.firstWhere((currency) => currency.id == 'ILS');
       if (initialCurrency != null) {
         setState(() {
@@ -691,7 +703,6 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         });
       }
       print("check21");
-
     }
 
     return Padding(
@@ -704,7 +715,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               text: label,
               style: TextStyle(
                 fontFamily: 'NotoSansUI',
-                fontSize: 12*scale,
+                fontSize: 12 * scale,
                 color: Colors.grey[500],
               ),
               children: <TextSpan>[
@@ -713,7 +724,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                     text: ' *',
                     style: TextStyle(
                       color: Color(0xFFC62828),
-                      fontSize: 12*scale,
+                      fontSize: 12 * scale,
                     ),
                   ),
               ],
@@ -757,9 +768,11 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               return DropdownMenuItem<Currency>(
                 value: currency,
                 child: Text(
-                  languageCode == 'ar' ? currency.arabicName! : currency.englishName!,
+                  languageCode == 'ar'
+                      ? currency.arabicName!
+                      : currency.englishName!,
                   style: TextStyle(
-                    fontSize: 12*scale,
+                    fontSize: 12 * scale,
                   ),
                 ),
               );
@@ -772,21 +785,21 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
   Widget _buildDropdownBankDynamic(
     double scale,
-      String label,
-      List<Bank> items,
-      String languageCode, {
-        bool required = false,
-      }) {
+    String label,
+    List<Bank> items,
+    String languageCode, {
+    bool required = false,
+  }) {
     // Find the Bank object with the id matching _selectedBankDB
     Bank? initialBank;
 
-if (items.isNotEmpty && _selectedBankDB != null) {
+    if (items.isNotEmpty && _selectedBankDB != null) {
       try {
         initialBank = items.firstWhere(
           (bank) => bank.id == _selectedBankDB,
         );
       } catch (e) {
-        initialBank = null; 
+        initialBank = null;
       }
     }
 
@@ -800,7 +813,7 @@ if (items.isNotEmpty && _selectedBankDB != null) {
               text: label,
               style: TextStyle(
                 fontFamily: 'NotoSansUI',
-                fontSize: 12*scale,
+                fontSize: 12 * scale,
                 color: Colors.grey[500],
               ),
               children: <TextSpan>[
@@ -809,13 +822,14 @@ if (items.isNotEmpty && _selectedBankDB != null) {
                     text: ' *',
                     style: TextStyle(
                       color: Color(0xFFC62828),
-                      fontSize: 12*scale,
+                      fontSize: 12 * scale,
                     ),
                   ),
               ],
             ),
           ),
-          const SizedBox(height: 5), // Adjust spacing between label and dropdown
+          const SizedBox(
+              height: 5), // Adjust spacing between label and dropdown
           DropdownButtonFormField<Bank>(
             value: initialBank, // Set the initial value
             decoration: InputDecoration(
@@ -844,24 +858,28 @@ if (items.isNotEmpty && _selectedBankDB != null) {
               filled: true,
               fillColor: Colors.white,
             ),
-            onChanged: items.isEmpty ? null : (Bank? newValue) {
-              setState(() {
-                _selectedBankDB = newValue?.id;
-              });
-            },
+            onChanged: items.isEmpty
+                ? null
+                : (Bank? newValue) {
+                    setState(() {
+                      _selectedBankDB = newValue?.id;
+                    });
+                  },
             items: items.isEmpty
                 ? []
-                :items.map<DropdownMenuItem<Bank>>((Bank bank) {
-              return DropdownMenuItem<Bank>(
-                value: bank,
-                child: Text(
-                  languageCode == 'ar' ? bank.arabicName! : bank.englishName!,
-                  style: TextStyle(
-                    fontSize: 12*scale,
-                  ),
-                ),
-              );
-            }).toList(),
+                : items.map<DropdownMenuItem<Bank>>((Bank bank) {
+                    return DropdownMenuItem<Bank>(
+                      value: bank,
+                      child: Text(
+                        languageCode == 'ar'
+                            ? bank.arabicName!
+                            : bank.englishName!,
+                        style: TextStyle(
+                          fontSize: 12 * scale,
+                        ),
+                      ),
+                    );
+                  }).toList(),
           ),
         ],
       ),
@@ -869,16 +887,24 @@ if (items.isNotEmpty && _selectedBankDB != null) {
   }
 
   bool _validateFields() {
-    String isRequired =Provider.of<LocalizationService>(context, listen: false).getLocalizedString('isRequired');
-    String mustContainOnlyNumber =Provider.of<LocalizationService>(context, listen: false).getLocalizedString('mustContainOnlyNumber');
-    String invalidMSISDN = Provider.of<LocalizationService>(context, listen: false).getLocalizedString('invalidMSISDN');
-    String maxLengthExceeded = Provider.of<LocalizationService>(context, listen: false).getLocalizedString('maxLengthExceeded');
+    String isRequired = Provider.of<LocalizationService>(context, listen: false)
+        .getLocalizedString('isRequired');
+    String mustContainOnlyNumber =
+        Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString('mustContainOnlyNumber');
+    String invalidMSISDN =
+        Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString('invalidMSISDN');
+    String maxLengthExceeded =
+        Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString('maxLengthExceeded');
 
     // Validate customer name
     if (_customerNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('customerName')} ${isRequired}'),
+          content: Text(
+              '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('customerName')} ${isRequired}'),
           backgroundColor: Color(0xFFC62828),
         ),
       );
@@ -888,13 +914,14 @@ if (items.isNotEmpty && _selectedBankDB != null) {
     if (_msisdnController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('MSISDN')} ${isRequired}'),
+          content: Text(
+              '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('MSISDN')} ${isRequired}'),
           backgroundColor: Color(0xFFC62828),
         ),
       );
       return false;
-    }
-    else if (!_msisdnController.text.isEmpty && _msisdnController.text.length != 10){
+    } else if (!_msisdnController.text.isEmpty &&
+        _msisdnController.text.length != 10) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(maxLengthExceeded),
@@ -908,7 +935,8 @@ if (items.isNotEmpty && _selectedBankDB != null) {
     if (_selectedPaymentMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('paymentMethod')} ${isRequired}'),
+          content: Text(
+              '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('paymentMethod')} ${isRequired}'),
           backgroundColor: Color(0xFFC62828),
         ),
       );
@@ -933,7 +961,8 @@ if (items.isNotEmpty && _selectedBankDB != null) {
       if (!RegExp(r'^[0-9]+$').hasMatch(_prNumberController.text)) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('PR')} ${mustContainOnlyNumber}'),
+            content: Text(
+                '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('PR')} ${mustContainOnlyNumber}'),
             backgroundColor: Color(0xFFC62828),
           ),
         );
@@ -957,7 +986,9 @@ if (items.isNotEmpty && _selectedBankDB != null) {
       if (double.tryParse(_amountController.text) == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('invalidAmount')),
+            content: Text(
+                Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('invalidAmount')),
             backgroundColor: Color(0xFFC62828),
           ),
         );
@@ -983,7 +1014,9 @@ if (items.isNotEmpty && _selectedBankDB != null) {
       if (double.tryParse(_amountCheckController.text) == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('invalidAmount')),
+            content: Text(
+                Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('invalidAmount')),
             backgroundColor: Color(0xFFC62828),
           ),
         );
@@ -994,7 +1027,8 @@ if (items.isNotEmpty && _selectedBankDB != null) {
       if (!RegExp(r'^[0-9]*$').hasMatch(_checkNumberController.text)) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('checkNumber')} ${mustContainOnlyNumber}'),
+            content: Text(
+                '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('checkNumber')} ${mustContainOnlyNumber}'),
             backgroundColor: Color(0xFFC62828),
           ),
         );
@@ -1027,7 +1061,7 @@ if (items.isNotEmpty && _selectedBankDB != null) {
                 confirmPayment,
                 style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14*scale,
+                    fontSize: 14 * scale,
                     fontFamily: 'NotoSansUI'),
               ),
             ),
@@ -1059,7 +1093,7 @@ if (items.isNotEmpty && _selectedBankDB != null) {
                 savePayment,
                 style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14*scale,
+                    fontSize: 14 * scale,
                     fontFamily: 'NotoSansUI'),
               ),
             ),
@@ -1075,23 +1109,24 @@ if (items.isNotEmpty && _selectedBankDB != null) {
     CustomPopups.showCustomDialog(
       context: context,
       icon: Icon(Icons.check_circle, size: 60.0, color: Color(0xFFC62828)),
-      title: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('confirmPayment'),
-      message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('confirmPaymentBody'),
-      deleteButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('ok'),
-      onPressButton: ()  {
-
-      // Convert the instance to a map
-      Map<String, dynamic> paymentMap = paymentDetails.toMap();
-      // Print all keys and values
-      paymentMap.forEach((key, value) {
-        print('$key: $value');
-      });
-      _agreedPayment(paymentDetails);
-    },
+      title: Provider.of<LocalizationService>(context, listen: false)
+          .getLocalizedString('confirmPayment'),
+      message: Provider.of<LocalizationService>(context, listen: false)
+          .getLocalizedString('confirmPaymentBody'),
+      deleteButtonText: Provider.of<LocalizationService>(context, listen: false)
+          .getLocalizedString('ok'),
+      onPressButton: () {
+        // Convert the instance to a map
+        Map<String, dynamic> paymentMap = paymentDetails.toMap();
+        // Print all keys and values
+        paymentMap.forEach((key, value) {
+          print('$key: $value');
+        });
+        _agreedPayment(paymentDetails);
+      },
     );
 
     print("_confirmPayment method finished");
-
   }
 
   void _savePayment() {
@@ -1101,74 +1136,115 @@ if (items.isNotEmpty && _selectedBankDB != null) {
     CustomPopups.showCustomDialog(
       context: context,
       icon: Icon(Icons.warning, size: 60.0, color: Color(0xFFC62828)),
-      message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('savePaymentBody'),
-      deleteButtonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('ok'),
-      title: Provider.of<LocalizationService>(context, listen: false).getLocalizedString('savePayment'),
-      onPressButton: ()  {
+      message: Provider.of<LocalizationService>(context, listen: false)
+          .getLocalizedString('savePaymentBody'),
+      deleteButtonText: Provider.of<LocalizationService>(context, listen: false)
+          .getLocalizedString('ok'),
+      title: Provider.of<LocalizationService>(context, listen: false)
+          .getLocalizedString('savePayment'),
+      onPressButton: () {
         print("dd");
 
         _agreedPayment(paymentDetails);
         print("ff");
-
-      },);
+      },
+    );
   }
 
   Payment _preparePaymentObject(String status) {
     DateTime? parseDueDate;
-    if (_selectedPaymentMethod!.toLowerCase() == 'cash' || _selectedPaymentMethod!.toLowerCase() == 'كاش') {
-      if ([_customerNameController.text, _amountController.text, _selectedCurrencyDB, _selectedPaymentMethod]
-          .any((element) => element == null || element.isEmpty)) {
+    if (_selectedPaymentMethod!.toLowerCase() == 'cash' ||
+        _selectedPaymentMethod!.toLowerCase() == 'كاش') {
+      if ([
+        _customerNameController.text,
+        _amountController.text,
+        _selectedCurrencyDB,
+        _selectedPaymentMethod
+      ].any((element) => element == null || element.isEmpty)) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(fieldsMissedMessageError),
             backgroundColor: Color(0xFFC62828),
           ),
         );
-        return Payment(customerName: '', paymentMethod: '', status: '',isDepositChecked: 0);
+        return Payment(
+            customerName: '',
+            paymentMethod: '',
+            status: '',
+            isDepositChecked: 0);
       }
-    }
-    else if (_selectedPaymentMethod!.toLowerCase() == 'check' || _selectedPaymentMethod!.toLowerCase() == 'شيك') {
-      if ([_customerNameController.text, _selectedPaymentMethod, _amountCheckController.text,
-        _checkNumberController.text, _selectedBankDB,_selectedCurrencyDB, _dueDateCheckController.text]
-          .any((element) => element == null || element.isEmpty)) {
+    } else if (_selectedPaymentMethod!.toLowerCase() == 'check' ||
+        _selectedPaymentMethod!.toLowerCase() == 'شيك') {
+      if ([
+        _customerNameController.text,
+        _selectedPaymentMethod,
+        _amountCheckController.text,
+        _checkNumberController.text,
+        _selectedBankDB,
+        _selectedCurrencyDB,
+        _dueDateCheckController.text
+      ].any((element) => element == null || element.isEmpty)) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(fieldsMissedMessageError),
             backgroundColor: Color(0xFFC62828),
           ),
         );
-        return Payment(customerName: '', paymentMethod: '', status: '', isDepositChecked: 0,);
+        return Payment(
+          customerName: '',
+          paymentMethod: '',
+          status: '',
+          isDepositChecked: 0,
+        );
       }
 
-      if (_selectedPaymentMethod!.toLowerCase() == 'check' || _selectedPaymentMethod!.toLowerCase() == 'شيك') {
+      if (_selectedPaymentMethod!.toLowerCase() == 'check' ||
+          _selectedPaymentMethod!.toLowerCase() == 'شيك') {
         if (_dueDateCheckController.text.isNotEmpty) {
-          parseDueDate = DateFormat('yyyy-MM-dd').parse(_dueDateCheckController.text);
+          parseDueDate =
+              DateFormat('yyyy-MM-dd').parse(_dueDateCheckController.text);
         }
       }
-
     }
-    Payment paymentDetail= Payment(
-      customerName: _customerNameController.text,
-      msisdn: _msisdnController.text.isNotEmpty?_msisdnController.text: null,
-      prNumber: _prNumberController.text!,
-      paymentMethod: _selectedPaymentMethod!,
-      amount: _selectedPaymentMethod!.toLowerCase() == 'cash' ||_selectedPaymentMethod!.toLowerCase() == 'كاش'? double.tryParse(_amountController.text) : null,
-      currency: _selectedCurrencyDB,
-      paymentInvoiceFor: _paymentInvoiceForController.text.length>0?_paymentInvoiceForController.text:null,
-      amountCheck: _selectedPaymentMethod!.toLowerCase() == 'check'||_selectedPaymentMethod!.toLowerCase() == 'شيك' ? double.tryParse(_amountCheckController.text) : null,
-      checkNumber: _selectedPaymentMethod!.toLowerCase() == 'check' ||_selectedPaymentMethod!.toLowerCase() == 'شيك'?  int.tryParse(_checkNumberController.text) : null,
-      bankBranch: _selectedPaymentMethod!.toLowerCase() == 'check' ||_selectedPaymentMethod!.toLowerCase() == 'شيك'? _selectedBankDB : null,
-      dueDateCheck: parseDueDate , // Formatting the date
-      id:widget.id !=null ? widget.id : null,
-      status: status,
-      isDepositChecked:isDepositChecked == false ? 0:1
-    );
+    Payment paymentDetail = Payment(
+        customerName: _customerNameController.text,
+        msisdn:
+            _msisdnController.text.isNotEmpty ? _msisdnController.text : null,
+        prNumber: _prNumberController.text!,
+        paymentMethod: _selectedPaymentMethod!,
+        amount: _selectedPaymentMethod!.toLowerCase() == 'cash' ||
+                _selectedPaymentMethod!.toLowerCase() == 'كاش'
+            ? double.tryParse(_amountController.text)
+            : null,
+        currency: _selectedCurrencyDB,
+        paymentInvoiceFor: _paymentInvoiceForController.text.length > 0
+            ? _paymentInvoiceForController.text
+            : null,
+        amountCheck: _selectedPaymentMethod!.toLowerCase() == 'check' ||
+                _selectedPaymentMethod!.toLowerCase() == 'شيك'
+            ? double.tryParse(_amountCheckController.text)
+            : null,
+        checkNumber: _selectedPaymentMethod!.toLowerCase() == 'check' ||
+                _selectedPaymentMethod!.toLowerCase() == 'شيك'
+            ? int.tryParse(_checkNumberController.text)
+            : null,
+        bankBranch: _selectedPaymentMethod!.toLowerCase() == 'check' ||
+                _selectedPaymentMethod!.toLowerCase() == 'شيك'
+            ? _selectedBankDB
+            : null,
+        dueDateCheck: parseDueDate, // Formatting the date
+        id: widget.id != null ? widget.id : null,
+        status: status,
+        isDepositChecked: isDepositChecked == false ? 0 : 1);
     return paymentDetail;
   }
 
   void _agreedPayment(Payment paymentDetails) async {
-    showDialog( context: context,  barrierDismissible: false,  builder: (BuildContext dialogContext) {
-      return Center(
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return Center(
           child: CircularProgressIndicator(),
         );
       },
@@ -1177,44 +1253,19 @@ if (items.isNotEmpty && _selectedBankDB != null) {
     // Simulate a network request/waiting time
     await Future.delayed(Duration(seconds: 2));
     int idPaymentStored;
-    try{
-      if(paymentDetails.paymentMethod == "كاش") {
+    try {
+      if (paymentDetails.paymentMethod == "كاش") {
         paymentDetails.paymentMethod = 'Cash';
-      }
-      else if(paymentDetails.paymentMethod == "شيك"){
+      } else if (paymentDetails.paymentMethod == "شيك") {
         paymentDetails.paymentMethod = 'Check';
       }
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? usernameLogin = prefs.getString('usernameLogin');
       print("the user created is ${usernameLogin}");
-      if(paymentDetails.id == null)
-      {
-
+      if (paymentDetails.id == null) {
         print("no id , create new payment ");
-        idPaymentStored= await DatabaseProvider.savePayment({
+        idPaymentStored = await DatabaseProvider.savePayment({
           'userId': usernameLogin!.toLowerCase(),
-          'customerName': paymentDetails.customerName,
-          'paymentMethod': paymentDetails.paymentMethod,
-          'status':paymentDetails.status,
-          'msisdn': paymentDetails.msisdn,
-          'prNumber': paymentDetails.prNumber,
-          'amount': paymentDetails.amount ,
-          'currency':  paymentDetails.currency,
-          'amountCheck':  paymentDetails.amountCheck,
-          'checkNumber':  paymentDetails.checkNumber,
-          'bankBranch': paymentDetails.bankBranch ,
-          'dueDateCheck':  paymentDetails.dueDateCheck.toString(),
-          'paymentInvoiceFor': paymentDetails.paymentInvoiceFor ,
-          'isDepositChecked':paymentDetails.isDepositChecked,
-        });
-         }
-      else {
-        print("id , update exist payment :");
-        final int id = paymentDetails.id!;
-        idPaymentStored=id;
-        print(paymentDetails.paymentMethod);
-        await DatabaseProvider.updatePayment(id, {
-          'userId':usernameLogin!.toLowerCase(),
           'customerName': paymentDetails.customerName,
           'paymentMethod': paymentDetails.paymentMethod,
           'status': paymentDetails.status,
@@ -1227,19 +1278,47 @@ if (items.isNotEmpty && _selectedBankDB != null) {
           'bankBranch': paymentDetails.bankBranch,
           'dueDateCheck': paymentDetails.dueDateCheck.toString(),
           'paymentInvoiceFor': paymentDetails.paymentInvoiceFor,
-          'isDepositChecked':paymentDetails.isDepositChecked,
+          'isDepositChecked': paymentDetails.isDepositChecked,
+        });
+      } else {
+        print("id , update exist payment :");
+        final int id = paymentDetails.id!;
+        idPaymentStored = id;
+        print(paymentDetails.paymentMethod);
+        await DatabaseProvider.updatePayment(id, {
+          'userId': usernameLogin!.toLowerCase(),
+          'customerName': paymentDetails.customerName,
+          'paymentMethod': paymentDetails.paymentMethod,
+          'status': paymentDetails.status,
+          'msisdn': paymentDetails.msisdn,
+          'prNumber': paymentDetails.prNumber,
+          'amount': paymentDetails.amount,
+          'currency': paymentDetails.currency,
+          'amountCheck': paymentDetails.amountCheck,
+          'checkNumber': paymentDetails.checkNumber,
+          'bankBranch': paymentDetails.bankBranch,
+          'dueDateCheck': paymentDetails.dueDateCheck.toString(),
+          'paymentInvoiceFor': paymentDetails.paymentInvoiceFor,
+          'isDepositChecked': paymentDetails.isDepositChecked,
         });
       }
       print("_agreedPaymentMethodFinished");
       Navigator.pop(context); // pop the dialog
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PaymentConfirmationScreen(paymentId: idPaymentStored))); // Navigate to view payment screen after agreed
-    }catch (e) {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PaymentConfirmationScreen(
+                  paymentId:
+                      idPaymentStored))); // Navigate to view payment screen after agreed
+    } catch (e) {
       Navigator.pop(context);
       CustomPopups.showCustomResultPopup(
         context: context,
         icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-        message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("unexpectedError")}:\n $e',
-        buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+        message:
+            '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("unexpectedError")}:\n $e',
+        buttonText: Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString("ok"),
         onPressButton: () {
           print('errorSavingPayment');
         },
@@ -1255,5 +1334,4 @@ if (items.isNotEmpty && _selectedBankDB != null) {
     _selectedCurrencyDB = null;
     _selectedBankDB = null;
   }
-
 }

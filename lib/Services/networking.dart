@@ -21,8 +21,6 @@ class NetworkHelper {
   });
 
   Future<dynamic> getData() async {
-    print("api :$url:$map:$headers");
-
     try {
       http.Response response;
       if (method == 'POST') {
@@ -31,29 +29,39 @@ class NetworkHelper {
               Uri.parse(url!),
               headers: headers ??
                   {
-                    'Content-Type': 'application/json; charset=UTF-8',
+                    'Content-Type': 'application/json',
                   },
               body: map != null ? jsonEncode(map) : null,
             )
             .timeout(timeoutDuration);
+        print("after send request");
       } else if (method == 'GET') {
         response = await http
             .get(
               Uri.parse(url!),
               headers: headers ??
                   {
-                    'Content-Type': 'application/json; charset=UTF-8',
+                    'Content-Type': 'application/json ',
                   },
             )
             .timeout(timeoutDuration);
       } else {
         throw Exception('Unsupported HTTP method: $method');
       }
-
+      print("Response status: ${response.statusCode}, body: ${response.body}");
       if (response.statusCode == 200) {
         print("status is 200");
         final decodedBody = utf8.decode(response.bodyBytes);
-        return response.body.isNotEmpty ? jsonDecode(decodedBody) : {};
+        if (decodedBody.trim().startsWith('{') ||
+            decodedBody.trim().startsWith('[')) {
+          return response.body.isNotEmpty ? jsonDecode(decodedBody) : {};
+        } else {
+          print("Unexpected response format: $decodedBody");
+          return {
+            'error': 'Request Rejected',
+            'status': 'Request Rejected',
+          };
+        }
       } else {
         print("Response body: ${response.body}");
         print("Error_Status: ${response.statusCode}");
@@ -129,10 +137,8 @@ class NetworkHelper {
       );
       request.files.add(multipartFile);
 
-      // Send request
       var response = await request.send().timeout(timeoutDuration);
 
-      // Get response body
       final responseBody = await response.stream.bytesToString();
 
       if (response.statusCode == 200) {
@@ -142,13 +148,9 @@ class NetworkHelper {
         try {
           final decodedResponse = jsonDecode(responseBody);
 
-          // Access individual fields
           String errorMessage = decodedResponse['error'];
           String errorDetail = decodedResponse['errorInDetail'];
-          // print('Error: $errorMessage');
-          // print('Error Detail: $errorDetail');
 
-          // Check if the token is expired
           if (errorMessage == 'Unauthorized' &&
               errorDetail == 'JWT Authentication Failed') {
             return 401;

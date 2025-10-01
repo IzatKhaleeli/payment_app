@@ -7,21 +7,15 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseProvider {
   static const _databaseName = 'payments.db';
-  static const _databaseVersion = 3;
-
-  // Singleton instance of the database
+  static const _databaseVersion = 4;
   static Database? _database;
-
-  // Private constructor to prevent instantiation
   DatabaseProvider._();
 
-  // Get the singleton instance of the database
   static Future<Database> get database async {
     _database ??= await _initDatabase();
     return _database!;
   }
 
-  // Initialize the database
   static Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _databaseName);
@@ -29,11 +23,12 @@ class DatabaseProvider {
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
-      onUpgrade: _onUpgrade, // Handle database schema upgrades
+      onUpgrade: _onUpgrade,
     );
   }
 
-  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+  static Future<void> _onUpgrade(
+      Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('''
       ALTER TABLE payments ADD COLUMN isDepositChecked BOOLEAN DEFAULT 0;
@@ -44,9 +39,23 @@ class DatabaseProvider {
       ALTER TABLE payments ADD COLUMN transactionId TEXT;
     ''');
     }
+    if (oldVersion < 4) {
+      await db.execute('''
+      ALTER TABLE payments ADD COLUMN msisdnReceipt TEXT;
+    ''');
+      await db.execute('''
+      ALTER TABLE payments ADD COLUMN isDisconnected BOOLEAN DEFAULT 0;
+    ''');
+
+      await db.execute('''
+    ALTER TABLE payments ADD COLUMN acceptanceStatus TEXT;
+  ''');
+      await db.execute('''
+    ALTER TABLE payments ADD COLUMN cancelStatus TEXT;
+  ''');
+    }
   }
 
-  // Create tables in the database
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE payments (
@@ -70,7 +79,11 @@ class DatabaseProvider {
         cancellationDate TEXT,
         userId ,
         isDepositChecked BOOLEAN DEFAULT 0,
-        transactionId TEXT
+        transactionId TEXT,
+        msisdnReceipt TEXT,
+        isDisconnected BOOLEAN DEFAULT 0,
+          acceptanceStatus TEXT,
+          cancelStatus TEXT
       )
       
     ''');
@@ -92,7 +105,8 @@ class DatabaseProvider {
     ''');
   }
 
-  static Future<List<Map<String, dynamic>>> getAllPayments(String userId) async {
+  static Future<List<Map<String, dynamic>>> getAllPayments(
+      String userId) async {
     print("printAllPayments method , database.dart started");
 
     Database db = await database;
@@ -108,7 +122,8 @@ class DatabaseProvider {
   }
 
   //Retrieve ConfirmedPayments
-  static Future<List<Map<String, dynamic>>> getConfirmedOrCancelledPendingPayments() async {
+  static Future<List<Map<String, dynamic>>>
+      getConfirmedOrCancelledPendingPayments() async {
     Database db = await database;
     List<Map<String, dynamic>> payments = await db.query(
       'payments',
@@ -117,7 +132,6 @@ class DatabaseProvider {
     );
     return payments;
   }
-
 
   //Retrieve a specific payment
   static Future<Map<String, dynamic>?> getPaymentById(int id) async {
@@ -130,7 +144,8 @@ class DatabaseProvider {
     return result.isNotEmpty ? result.first : null;
   }
 
-  static Future<void> updateSyncedPaymentDetail(int id, String voucherSerialNumber, String status) async {
+  static Future<void> updateSyncedPaymentDetail(
+      int id, String voucherSerialNumber, String status) async {
     try {
       Database db = await database;
 
@@ -155,7 +170,6 @@ class DatabaseProvider {
 
       if (updatedRows > 0) {
         print('Payment details updated successfully for payment with id $id');
-
       } else {
         throw Exception('Payment with id $id not found');
       }
@@ -208,7 +222,8 @@ class DatabaseProvider {
           );
           print('Transaction date updated to now for payment with id $id');
         } else {
-          print('Transaction date already exists for payment with id $id. Skipping update.');
+          print(
+              'Transaction date already exists for payment with id $id. Skipping update.');
         }
       } else {
         throw Exception('Payment with id $id not found');
@@ -220,7 +235,8 @@ class DatabaseProvider {
   }
 
   // Update last Update Date
-  static Future<void> updateLastUpdatedDate(int id, String lastUpdatedDate) async {
+  static Future<void> updateLastUpdatedDate(
+      int id, String lastUpdatedDate) async {
     try {
       Database db = await database;
       await db.update(
@@ -236,49 +252,48 @@ class DatabaseProvider {
     }
   }
 
-  // Edit payment information
-  static Future<void> updatePayment(int id, Map<String, dynamic> updatedData) async {
+  static Future<void> updatePayment(
+      int id, Map<String, dynamic> updatedData) async {
     print("updatePayment method in database.dart started");
     print(updatedData);
-    updatedData['lastUpdatedDate'] = formatDateTimeWithMilliseconds(DateTime.now());
-    if(updatedData["status"].toLowerCase() == "confirmed"){
-      updatedData['transactionDate'] = formatDateTimeWithMilliseconds(DateTime.now());
-
+    updatedData['lastUpdatedDate'] =
+        formatDateTimeWithMilliseconds(DateTime.now());
+    if (updatedData["status"].toLowerCase() == "confirmed") {
+      updatedData['transactionDate'] =
+          formatDateTimeWithMilliseconds(DateTime.now());
     }
-     Database db = await database;
-     await db.update('payments', updatedData, where: 'id = ?', whereArgs: [id]);
+    Database db = await database;
+    await db.update('payments', updatedData, where: 'id = ?', whereArgs: [id]);
     print("updatePayment method in database.dart finished");
-
   }
 
-  // Save a new payment record
   static Future<int> savePayment(Map<String, dynamic> paymentData) async {
     print("savePayment method in database.dart started");
     Database db = await database;
 
-    // Check if the status is 'Confirmed' and set the transaction date
-    if (paymentData['status'] != null && paymentData['status'].toLowerCase() == 'confirmed') {
-      paymentData['transactionDate'] = formatDateTimeWithMilliseconds(DateTime.now());
-      paymentData['lastUpdatedDate'] = formatDateTimeWithMilliseconds(DateTime.now());
-    } else if (paymentData['status'] != null && paymentData['status'].toLowerCase() == 'saved') {
+    if (paymentData['status'] != null &&
+        paymentData['status'].toLowerCase() == 'confirmed') {
+      paymentData['transactionDate'] =
+          formatDateTimeWithMilliseconds(DateTime.now());
+      paymentData['lastUpdatedDate'] =
+          formatDateTimeWithMilliseconds(DateTime.now());
+    } else if (paymentData['status'] != null &&
+        paymentData['status'].toLowerCase() == 'saved') {
       // Set the last updated date to now
-      paymentData['lastUpdatedDate'] = formatDateTimeWithMilliseconds(DateTime.now());
+      paymentData['lastUpdatedDate'] =
+          formatDateTimeWithMilliseconds(DateTime.now());
     }
 
-    // Generate transactionId
     var uuid = Uuid();
     paymentData['transactionId'] = uuid.v4();
 
-    // Insert the payment data into the database and return the ID of the new row
     int id = await db.insert('payments', paymentData);
     print("the id of new payment is to return : ${id}");
     Map<String, dynamic>? newPayment = await getPaymentById(id);
     print("the new payment after saved to db : $newPayment");
     print("savePayment method in database.dart finished");
-
     return id;
   }
-
 
   // Delete a payment by ID
   static Future<void> deletePayment(int id) async {
@@ -294,7 +309,8 @@ class DatabaseProvider {
     DateTime thresholdDate = now.subtract(Duration(days: days));
 
     // Start of day for threshold date
-    DateTime startOfDay = DateTime(thresholdDate.year, thresholdDate.month, thresholdDate.day);
+    DateTime startOfDay =
+        DateTime(thresholdDate.year, thresholdDate.month, thresholdDate.day);
 
     // Log the threshold date for debugging
     print('Deleting records older than: ${startOfDay.toIso8601String()}');
@@ -316,8 +332,6 @@ class DatabaseProvider {
     }
   }
 
-
-
   // Clear Date base
   static Future<void> clearDatabase() async {
     Database db = await database;
@@ -327,14 +341,18 @@ class DatabaseProvider {
 
   static String formatDateTimeWithMilliseconds(DateTime dateTime) {
     final DateFormat formatter = DateFormat('yyyy-MM-ddTHH:mm:ss.SSS');
-    print(formatter.format(dateTime)); // This should print the date and time without milliseconds
+    print(formatter.format(
+        dateTime)); // This should print the date and time without milliseconds
     return formatter.format(dateTime);
   }
 
   // Cancel a payment by voucherSerialNumber
 // Cancel a payment by voucherSerialNumber
-  static Future<void> cancelPayment(String voucherSerialNumber, String cancelReason,String formattedCancelDateTime ,String newStatus) async {
-
+  static Future<void> cancelPayment(
+      String voucherSerialNumber,
+      String cancelReason,
+      String formattedCancelDateTime,
+      String newStatus) async {
     print("cancelPayment method, database.dart started");
     try {
       Database db = await database;
@@ -350,7 +368,8 @@ class DatabaseProvider {
         whereArgs: [voucherSerialNumber],
       );
 
-     print('Payment with voucherSerialNumber $voucherSerialNumber has been cancelled with these details : ${cancelReason}:${formattedCancelDateTime}');
+      print(
+          'Payment with voucherSerialNumber $voucherSerialNumber has been cancelled with these details : ${cancelReason}:${formattedCancelDateTime}');
     } catch (e) {
       print('Error cancelling payment: $e');
       throw Exception('Failed to cancel payment');
@@ -361,8 +380,8 @@ class DatabaseProvider {
   static Future<List<Map<String, dynamic>>> getPaymentsWithDateFilter(
       DateTime? fromDate,
       DateTime? toDate,
-      List<String>? statuses ,String userId) async {
-
+      List<String>? statuses,
+      String userId) async {
     Database db = await database;
 
     // Start with the base query
@@ -373,18 +392,19 @@ class DatabaseProvider {
       query += ' AND transactionDate >= "${fromDate.toIso8601String()}"';
     }
     if (toDate != null && toDate.toString().isNotEmpty) {
-      DateTime endOfDay = DateTime(toDate.year, toDate.month, toDate.day, 23, 59, 59);
+      DateTime endOfDay =
+          DateTime(toDate.year, toDate.month, toDate.day, 23, 59, 59);
       query += ' AND transactionDate <= "${endOfDay.toIso8601String()}"';
     }
 
     // Add status filters if they are provided
     if (statuses != null && statuses.isNotEmpty) {
       // Escape single quotes in statuses
-      statuses = statuses.map((status) => status.replaceAll("'", "''")).toList();
+      statuses =
+          statuses.map((status) => status.replaceAll("'", "''")).toList();
       String statusList = statuses.map((status) => "'$status'").join(', ');
       query += ' AND status IN ($statusList)';
     }
-
 
     // Execute the query
     List<Map<String, dynamic>> result = await db.rawQuery(query);
@@ -396,7 +416,8 @@ class DatabaseProvider {
   // Insert a currency record
   static Future<void> insertCurrency(Map<String, dynamic> currencyData) async {
     Database db = await database;
-    await db.insert('currencies', currencyData, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('currencies', currencyData,
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   // Retrieve all currency records
@@ -418,7 +439,8 @@ class DatabaseProvider {
   }
 
   // Update a currency record
-  static Future<void> updateCurrency(String id, Map<String, dynamic> updatedData) async {
+  static Future<void> updateCurrency(
+      String id, Map<String, dynamic> updatedData) async {
     Database db = await database;
     await db.update(
       'currencies',
@@ -430,7 +452,8 @@ class DatabaseProvider {
 
   static Future<void> clearAllCurrencies() async {
     final db = await database;
-    await db.delete('currencies'); // Replace 'currencies' with your actual table name
+    await db.delete(
+        'currencies'); // Replace 'currencies' with your actual table name
   }
 
   // Delete a currency record by ID
@@ -453,7 +476,8 @@ class DatabaseProvider {
   //crud operations for bank
   static Future<void> insertBank(Map<String, dynamic> bankData) async {
     Database db = await database;
-    await db.insert('banks', bankData, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('banks', bankData,
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   static Future<List<Map<String, dynamic>>> getAllBanks() async {
@@ -471,7 +495,8 @@ class DatabaseProvider {
     return result.isNotEmpty ? result.first : null;
   }
 
-  static Future<void> updateBank(String id, Map<String, dynamic> updatedData) async {
+  static Future<void> updateBank(
+      String id, Map<String, dynamic> updatedData) async {
     Database db = await database;
     await db.update(
       'banks',
@@ -490,5 +515,4 @@ class DatabaseProvider {
     Database db = await database;
     await db.delete('banks');
   }
-
 }
