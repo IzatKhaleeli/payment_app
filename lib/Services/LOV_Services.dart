@@ -7,7 +7,6 @@ import '../Services/networking.dart';
 import 'apiConstants.dart';
 
 class LovApiService {
-
   // Generic method to fetch lists from the backend
   static Future<List<T>> fetchList<T>(String listName, Function fromMap) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -20,13 +19,13 @@ class LovApiService {
     };
 
     final String url = '$apiUrlLOV$listName';
-    final NetworkHelper networkHelper = NetworkHelper(url: url, headers: headers,method:'GET');
+    final NetworkHelper networkHelper =
+        NetworkHelper(url: url, headers: headers, method: 'GET');
     final response = await networkHelper.getData();
 
     if (response != null) {
-      print('finished load $listName');
-      print('fetchList|response  $response');
-
+      // print('finished load $listName');
+      // print('fetchList|response  $response');
     } else {
       throw Exception('Failed to load $listName');
     }
@@ -35,7 +34,8 @@ class LovApiService {
 
   // Fetch all currencies from the backend
   static Future<List<Currency>> fetchCurrencies() async {
-    return fetchList<Currency>('CURRENCY', (json) => Currency.fromMapArabic(json));
+    return fetchList<Currency>(
+        'CURRENCY', (json) => Currency.fromMapArabic(json));
   }
 
   // Fetch all banks from the backend

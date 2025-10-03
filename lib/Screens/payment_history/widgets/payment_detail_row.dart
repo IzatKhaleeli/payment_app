@@ -17,22 +17,35 @@ class PaymentDetailRow extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 3.0 * scale),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start, // allow multi-line value
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14 * scale,
-              fontWeight: FontWeight.w400,
-              color: Colors.grey.shade500,
+          // Title
+          Expanded(
+            flex: 1,
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 14 * scale,
+                fontWeight: FontWeight.w400,
+                color: Colors.grey.shade500,
+              ),
+              softWrap: true,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14 * scale,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+          const SizedBox(width: 8.0),
+          // Value aligned to end
+          Expanded(
+            flex: 1,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 14 * scale,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+              softWrap: true,
+              textAlign: TextAlign.right, // keep at end
             ),
           ),
         ],

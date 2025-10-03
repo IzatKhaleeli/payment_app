@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:ooredoo_app/Screens/dashboard_item.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Models/LoginState.dart';
 import '../Services/LocalizationService.dart';
 import '../Services/PaymentService.dart';
 import '../Services/apiConstants.dart';
@@ -27,6 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late SharedPreferences prefs;
   String? usernameLogin;
   Timer? _timer;
+  int hasDisconnectedPermission = 0;
 
   @override
   void initState() {
@@ -35,6 +37,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _getUsername();
     _initializeDashboardItems();
     _scheduleDailyTask();
+    _loadPermission();
   }
 
   void _scheduleDailyTask() {
@@ -121,11 +124,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Future<void> _loadPermission() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      hasDisconnectedPermission = prefs.getInt('disconnectedPermission') ?? 0;
+    });
+    print("Loaded hasDisconnectedPermission: $hasDisconnectedPermission");
+  }
+
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: Size(360, 690));
     final size = MediaQuery.of(context).size;
     final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
+
+    final filteredDashboardItems = dashboardItems.where((item) {
+      if (item.title == 'recordPaymentDisconnected' &&
+          hasDisconnectedPermission != 1) {
+        return false;
+      }
+      return true;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -212,20 +231,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                // total available height inside Expanded
                 final double availableHeight = constraints.maxHeight;
 
-                // spacing between items
-                final double spacing = 10.h * (dashboardItems.length - 1);
-
-                // each item's height (equally divided space)
+                final double spacing =
+                    10.h * (filteredDashboardItems.length - 1);
                 final double itemHeight = (availableHeight - spacing - 32) /
-                    dashboardItems.length; // 32 for top+bottom padding
+                    filteredDashboardItems.length;
 
-                // item width = full width - left/right padding
                 final double itemWidth = constraints.maxWidth - 32;
 
-                // calculate aspect ratio
                 final double aspectRatio = itemWidth / itemHeight;
 
                 return GridView.builder(
@@ -236,17 +250,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     mainAxisSpacing: 10.h,
                     childAspectRatio: aspectRatio, // dynamic height
                   ),
-                  itemCount: dashboardItems.length,
+                  itemCount: filteredDashboardItems.length,
                   itemBuilder: (context, index) {
+                    final item = filteredDashboardItems[index];
+
                     return Consumer<LocalizationService>(
                       builder: (context, localizationService, _) {
                         return DashboardItem(
                           scale: scale,
-                          iconData: dashboardItems[index].iconData,
+                          iconData: item.iconData,
                           title: localizationService
-                              .getLocalizedString(dashboardItems[index].title),
+                              .getLocalizedString(item.title),
                           onTap: () async {
-                            switch (dashboardItems[index].title) {
+                            switch (item.title) {
                               case 'recordPayment':
                                 _navigateTo(RecordPaymentScreen());
                                 break;

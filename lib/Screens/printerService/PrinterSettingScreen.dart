@@ -11,7 +11,6 @@ import 'setAsDefaultBottomSheet.dart';
 import 'iosMethods.dart' as iosPlat;
 import 'package:flutter/services.dart';
 
-
 class PrinterSettingScreen extends StatefulWidget {
   const PrinterSettingScreen({Key? key}) : super(key: key);
 
@@ -30,7 +29,8 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
   List<BluetoothDevice> pairedDevices = [];
 
   //for ios
-  List<Map<String, String>> discoveredDevices = []; // List to store discovered devices
+  List<Map<String, String>> discoveredDevices =
+      []; // List to store discovered devices
   bool isScanning = false; // To track the scanning state
 
   // Retrieve the default device address from SharedPreferences
@@ -46,8 +46,7 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
   Future<void> _showLoadingTwiceScreen() async {
     // Wait for scanning to complete
     await scanDevices();
-    if(Platform.isIOS)
-      await scanDevices();
+    if (Platform.isIOS) await scanDevices();
     setState(() {
       isLoading = false; // Stop loading after scan completes
     });
@@ -92,267 +91,36 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString("printerSettings")),
+        title: Text(Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString("printerSettings")),
       ),
-      body: isLoading ?
-      Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFC62828)), // Color of the spinner
-        ),
-      ) :
-      ((Platform.isAndroid && pairedDevices.isEmpty) ||
-          (Platform.isIOS && discoveredDevices.isEmpty)) ?
-      Padding(
-        padding: const EdgeInsets.all(0.0),
-        child: Column(
-          children: [
-          Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if(defaultDeviceLabel != null && defaultDeviceAddress != null)
-              ...[Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 10, left: 10, top: 20),
-                  child: Text(
-                    Provider.of<LocalizationService>(context, listen: false)
-                        .getLocalizedString("defaultPrinter"),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black54,
-                    ),
-                  ),
-                ),
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Color(0xFFC62828)), // Color of the spinner
               ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
-                  child: Card(
-                    elevation: 3.0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0), // Rounded corners for the Card
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(3.0),
-                      child: ListTile(
-                        title: Text(
-                          defaultDeviceLabel?? '',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFC62828), // Highlight default device
-                          ),
-                        ),
-                        subtitle: Text(
-                          defaultDeviceAddress ?? '',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                        trailing: ElevatedButton(
-                          onPressed: null, // Default device button is disabled
-                          child: Container(
-                            width: 90, // Fixed width for button
-                            height: 30,
-                            child: Center(
-                              child: Text(
-                                Provider.of<LocalizationService>(context, listen: false)
-                                    .getLocalizedString("default"),
-                                style: TextStyle(fontSize: 12),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Divider(
-                  color: Colors.grey,
-                  thickness: 1.0,
-                  indent: 12.0,
-                  endIndent: 12.0,
-                ),],
-            ],
-          ),
-            Center(
-              child: Text(
-                Provider.of<LocalizationService>(context, listen: false)
-                    .getLocalizedString("noBluetoothDevicesFound"),
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Expanded(child: SizedBox.shrink()), // Push the button to the bottom
-            customButton(
-                context,
-                isLoading,
-                _showLoadingScreen,
-                Provider.of<LocalizationService>(context, listen: false)
-                    .getLocalizedString("scan")
-            ),
-          ],
-        ),
-      ):
-      Column(
-        children: [
-          // Make sure this ListView.builder is in the correct position inside the Column
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                  children: [
-                    if (Platform.isAndroid)
+            )
+          : ((Platform.isAndroid && pairedDevices.isEmpty) ||
+                  (Platform.isIOS && discoveredDevices.isEmpty))
+              ? Padding(
+                  padding: const EdgeInsets.all(0.0),
+                  child: Column(
+                    children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if(defaultDeviceLabel != null && defaultDeviceAddress != null)
-                          ...[Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 10, left: 10, top: 20),
-                              child: Text(
-                                Provider.of<LocalizationService>(context, listen: false)
-                                    .getLocalizedString("defaultPrinter"),
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                          ),
+                          if (defaultDeviceLabel != null &&
+                              defaultDeviceAddress != null) ...[
                             Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
-                              child: Card(
-                                elevation: 3.0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.0), // Rounded corners for the Card
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(3.0),
-                                  child: ListTile(
-                                    title: Text(
-                                      defaultDeviceLabel?? '',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFFC62828), // Highlight default device
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      defaultDeviceAddress ?? '',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.normal,
-                                      ),
-                                    ),
-                                    trailing: ElevatedButton(
-                                      onPressed: null, // Default device button is disabled
-                                      child: Container(
-                                        width: 90, // Fixed width for button
-                                        height: 30,
-                                        child: Center(
-                                          child: Text(
-                                            Provider.of<LocalizationService>(context, listen: false)
-                                                .getLocalizedString("default"),
-                                            style: TextStyle(fontSize: 12),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Divider(
-                              color: Colors.grey,
-                              thickness: 1.0,
-                              indent: 12.0,
-                              endIndent: 12.0,
-                            ),],
-
-                          ListView.builder(
-                            shrinkWrap: true, // Ensures it takes only the space it needs
-                            physics: NeverScrollableScrollPhysics(), // Avoid nested scrolling issues
-                            itemCount: pairedDevices.length,
-                            itemBuilder: (context, index) {
-                              final device = pairedDevices[index];
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 10.0),
-                                child: Card(
-                                  elevation: 3.0,
-                                  child: ListTile(
-                                    title: Text(
-                                      device.name ??
-                                          Provider.of<LocalizationService>(context, listen: false)
-                                              .getLocalizedString("unknown"),
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      device.address ?? "",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.normal,
-                                      ),
-                                    ),
-                                    trailing: ElevatedButton(
-                                      onPressed: () {
-                                        showModalBottomSheet(
-                                          context: context,
-                                          isScrollControlled: true,
-                                          builder: (BuildContext context) {
-                                            return SetAsDefaultBottomSheet(deviceAddress: device.address! ,deviceName: device.name!);
-                                          },
-                                        ).then((_) {
-                                          // Refresh default device status
-                                          _getDefaultDevice();
-                                        });
-                                      },
-                                      child: Container(
-                                        width: 90, // Fixed width for button
-                                        height: 30,
-                                        child: Center(
-                                          child: Text(
-                                            defaultDeviceAddress == device.address
-                                                ? Provider.of<LocalizationService>(context, listen: false)
-                                                .getLocalizedString("default")
-                                                : Provider.of<LocalizationService>(context, listen: false)
-                                                .getLocalizedString("setAsDefault"),
-                                            style: TextStyle(fontSize: 13),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      )
-                    else if (Platform.isIOS) ...[
-                      // If there is a default device, display it first with "Default Printer:" title.
-                      if (defaultDeviceAddress != null)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12.0),
                               child: Padding(
-                                padding: const EdgeInsets.only(right: 10,left: 10,top:10),
+                                padding: const EdgeInsets.only(
+                                    right: 10, left: 10, top: 20),
                                 child: Text(
-                                  Provider.of<LocalizationService>(context, listen: false)
+                                  Provider.of<LocalizationService>(context,
+                                          listen: false)
                                       .getLocalizedString("defaultPrinter"),
                                   style: TextStyle(
                                     fontSize: 16,
@@ -363,38 +131,44 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 12.0),
                               child: Card(
                                 elevation: 3.0,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.0), // Rounded corners for the Card
+                                  borderRadius: BorderRadius.circular(
+                                      8.0), // Rounded corners for the Card
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(3.0),
                                   child: ListTile(
                                     title: Text(
-                                      defaultDeviceLabel?? '',
+                                      defaultDeviceLabel ?? '',
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFFC62828), // Highlight default device
+                                        color: Color(
+                                            0xFFC62828), // Highlight default device
                                       ),
                                     ),
                                     subtitle: Text(
                                       defaultDeviceAddress ?? '',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.normal,
                                       ),
                                     ),
                                     trailing: ElevatedButton(
-                                      onPressed: null, // Default device button is disabled
+                                      onPressed:
+                                          null, // Default device button is disabled
                                       child: Container(
                                         width: 90, // Fixed width for button
                                         height: 30,
                                         child: Center(
                                           child: Text(
-                                            Provider.of<LocalizationService>(context, listen: false)
+                                            Provider.of<LocalizationService>(
+                                                    context,
+                                                    listen: false)
                                                 .getLocalizedString("default"),
                                             style: TextStyle(fontSize: 12),
                                             textAlign: TextAlign.center,
@@ -413,88 +187,403 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
                               endIndent: 12.0,
                             ),
                           ],
-                        ),
-
-                    ],
-
-                    ...discoveredDevices.map((device) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-                        child: Card(
-                          elevation: 3.0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0), // Rounded corners for the Card
+                        ],
+                      ),
+                      Center(
+                        child: Text(
+                          Provider.of<LocalizationService>(context,
+                                  listen: false)
+                              .getLocalizedString("noBluetoothDevicesFound"),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black54,
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(3.0),
-                            child: ListTile(
-                              title: Text(
-                                device['name'] ?? Provider.of<LocalizationService>(context, listen: false)
-                                    .getLocalizedString("unknown"),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: (isConnected && defaultDeviceAddress == device['address'])
-                                      ? Color(0xFFC62828)
-                                      : Colors.black,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Expanded(
+                          child: SizedBox
+                              .shrink()), // Push the button to the bottom
+                      customButton(
+                          context,
+                          isLoading,
+                          _showLoadingScreen,
+                          Provider.of<LocalizationService>(context,
+                                  listen: false)
+                              .getLocalizedString("scan")),
+                    ],
+                  ),
+                )
+              : Column(
+                  children: [
+                    // Make sure this ListView.builder is in the correct position inside the Column
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(children: [
+                          if (Platform.isAndroid)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (defaultDeviceLabel != null &&
+                                    defaultDeviceAddress != null) ...[
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12.0),
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                          right: 10, left: 10, top: 20),
+                                      child: Text(
+                                        Provider.of<LocalizationService>(
+                                                context,
+                                                listen: false)
+                                            .getLocalizedString(
+                                                "defaultPrinter"),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10.0, horizontal: 12.0),
+                                    child: Card(
+                                      elevation: 3.0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            8.0), // Rounded corners for the Card
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(3.0),
+                                        child: ListTile(
+                                          title: Text(
+                                            defaultDeviceLabel ?? '',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(
+                                                  0xFFC62828), // Highlight default device
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            defaultDeviceAddress ?? '',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                          ),
+                                          trailing: ElevatedButton(
+                                            onPressed:
+                                                null, // Default device button is disabled
+                                            child: Container(
+                                              width:
+                                                  90, // Fixed width for button
+                                              height: 30,
+                                              child: Center(
+                                                child: Text(
+                                                  Provider.of<LocalizationService>(
+                                                          context,
+                                                          listen: false)
+                                                      .getLocalizedString(
+                                                          "default"),
+                                                  style:
+                                                      TextStyle(fontSize: 12),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Divider(
+                                    color: Colors.grey,
+                                    thickness: 1.0,
+                                    indent: 12.0,
+                                    endIndent: 12.0,
+                                  ),
+                                ],
+                                ListView.builder(
+                                  shrinkWrap:
+                                      true, // Ensures it takes only the space it needs
+                                  physics:
+                                      NeverScrollableScrollPhysics(), // Avoid nested scrolling issues
+                                  itemCount: pairedDevices.length,
+                                  itemBuilder: (context, index) {
+                                    final device = pairedDevices[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 6.0, horizontal: 10.0),
+                                      child: Card(
+                                        elevation: 3.0,
+                                        child: ListTile(
+                                          title: Text(
+                                            device.name ??
+                                                Provider.of<LocalizationService>(
+                                                        context,
+                                                        listen: false)
+                                                    .getLocalizedString(
+                                                        "unknown"),
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            device.address ?? "",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                          ),
+                                          trailing: ElevatedButton(
+                                            onPressed: () {
+                                              showModalBottomSheet(
+                                                context: context,
+                                                isScrollControlled: true,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return SetAsDefaultBottomSheet(
+                                                      deviceAddress:
+                                                          device.address!,
+                                                      deviceName: device.name!);
+                                                },
+                                              ).then((_) {
+                                                // Refresh default device status
+                                                _getDefaultDevice();
+                                              });
+                                            },
+                                            child: Container(
+                                              width:
+                                                  90, // Fixed width for button
+                                              height: 30,
+                                              child: Center(
+                                                child: Text(
+                                                  defaultDeviceAddress ==
+                                                          device.address
+                                                      ? Provider.of<
+                                                                  LocalizationService>(
+                                                              context,
+                                                              listen: false)
+                                                          .getLocalizedString(
+                                                              "default")
+                                                      : Provider.of<
+                                                                  LocalizationService>(
+                                                              context,
+                                                              listen: false)
+                                                          .getLocalizedString(
+                                                              "setAsDefault"),
+                                                  style:
+                                                      TextStyle(fontSize: 13),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
+                              ],
+                            )
+                          else if (Platform.isIOS) ...[
+                            // If there is a default device, display it first with "Default Printer:" title.
+                            if (defaultDeviceAddress != null)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12.0),
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                          right: 10, left: 10, top: 10),
+                                      child: Text(
+                                        Provider.of<LocalizationService>(
+                                                context,
+                                                listen: false)
+                                            .getLocalizedString(
+                                                "defaultPrinter"),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10.0, horizontal: 12.0),
+                                    child: Card(
+                                      elevation: 3.0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            8.0), // Rounded corners for the Card
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(3.0),
+                                        child: ListTile(
+                                          title: Text(
+                                            defaultDeviceLabel ?? '',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(
+                                                  0xFFC62828), // Highlight default device
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            defaultDeviceAddress ?? '',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          trailing: ElevatedButton(
+                                            onPressed:
+                                                null, // Default device button is disabled
+                                            child: Container(
+                                              width:
+                                                  90, // Fixed width for button
+                                              height: 30,
+                                              child: Center(
+                                                child: Text(
+                                                  Provider.of<LocalizationService>(
+                                                          context,
+                                                          listen: false)
+                                                      .getLocalizedString(
+                                                          "default"),
+                                                  style:
+                                                      TextStyle(fontSize: 12),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Divider(
+                                    color: Colors.grey,
+                                    thickness: 1.0,
+                                    indent: 12.0,
+                                    endIndent: 12.0,
+                                  ),
+                                ],
                               ),
-                              subtitle: Text(
-                                device['address'] ?? '',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                          ],
+                          ...discoveredDevices.map((device) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 12.0),
+                              child: Card(
+                                elevation: 3.0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      8.0), // Rounded corners for the Card
                                 ),
-                              ),
-                              trailing: ElevatedButton(
-                                onPressed: (isConnected && defaultDeviceAddress == device['address'])
-                                    ? null : () async {
-
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    builder: (BuildContext context) {
-                                      return SetAsDefaultBottomSheet(deviceAddress: device['address']! ,deviceName: device["name"]!);
-                                    },
-                                  ).then((_) {
-                                    // Refresh default device status
-                                    _getDefaultDevice();
-                                  });
-                                },
-                                child: Container(
-                                  width: 90, // Fixed width for button
-                                  height: 30,
-                                  child: Center(
-                                    child: Text(
-                                      defaultDeviceAddress == device['address']
-                                          ? Provider.of<LocalizationService>(context, listen: false)
-                                          .getLocalizedString("default")
-                                          : Provider.of<LocalizationService>(context, listen: false)
-                                          .getLocalizedString("setAsDefault"),
-                                      style: TextStyle(fontSize: 12),
-                                      textAlign: TextAlign.center,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(3.0),
+                                  child: ListTile(
+                                    title: Text(
+                                      device['name'] ??
+                                          Provider.of<LocalizationService>(
+                                                  context,
+                                                  listen: false)
+                                              .getLocalizedString("unknown"),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: (isConnected &&
+                                                defaultDeviceAddress ==
+                                                    device['address'])
+                                            ? Color(0xFFC62828)
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      device['address'] ?? '',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    trailing: ElevatedButton(
+                                      onPressed: (isConnected &&
+                                              defaultDeviceAddress ==
+                                                  device['address'])
+                                          ? null
+                                          : () async {
+                                              showModalBottomSheet(
+                                                context: context,
+                                                isScrollControlled: true,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return SetAsDefaultBottomSheet(
+                                                      deviceAddress:
+                                                          device['address']!,
+                                                      deviceName:
+                                                          device["name"]!);
+                                                },
+                                              ).then((_) {
+                                                // Refresh default device status
+                                                _getDefaultDevice();
+                                              });
+                                            },
+                                      child: Container(
+                                        width: 90, // Fixed width for button
+                                        height: 30,
+                                        child: Center(
+                                          child: Text(
+                                            defaultDeviceAddress ==
+                                                    device['address']
+                                                ? Provider.of<
+                                                            LocalizationService>(
+                                                        context,
+                                                        listen: false)
+                                                    .getLocalizedString(
+                                                        "default")
+                                                : Provider.of<
+                                                            LocalizationService>(
+                                                        context,
+                                                        listen: false)
+                                                    .getLocalizedString(
+                                                        "setAsDefault"),
+                                            style: TextStyle(fontSize: 12),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ]
-              ),
-            ),
-          ),
+                            );
+                          }).toList(),
+                        ]),
+                      ),
+                    ),
 
-
-          customButton(context, isLoading, _showLoadingScreen, Provider.of<LocalizationService>(context, listen: false).getLocalizedString("scan")),
-        ],
-      ),
+                    customButton(
+                        context,
+                        isLoading,
+                        _showLoadingScreen,
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .getLocalizedString("scan")),
+                  ],
+                ),
     );
   }
 
-  Widget customButton(BuildContext context, bool isLoading, VoidCallback onPressed, String buttonText) {
+  Widget customButton(BuildContext context, bool isLoading,
+      VoidCallback onPressed, String buttonText) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -502,17 +591,23 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
         children: [
           // Container wrapping the button with 1/3 screen width and specific height
           Container(
-            width: MediaQuery.of(context).size.width / 3, // 1/3 of the screen width
+            width: MediaQuery.of(context).size.width /
+                3, // 1/3 of the screen width
             height: 50, // Set height for the button
-            margin: EdgeInsets.only(bottom: 20), // Add bottom margin (adjust the value as needed)
+            margin: EdgeInsets.only(
+                bottom: 20), // Add bottom margin (adjust the value as needed)
             child: ElevatedButton(
-              onPressed: isLoading ? null : onPressed, // Use the passed in callback function
+              onPressed: isLoading
+                  ? null
+                  : onPressed, // Use the passed in callback function
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Color(0xFFC62828), // Text color
+                foregroundColor: Colors.white,
+                backgroundColor: Color(0xFFC62828), // Text color
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12), // Rounded corners
                 ),
-                padding: EdgeInsets.symmetric(vertical: 12), // Add vertical padding for better spacing
+                padding: EdgeInsets.symmetric(
+                    vertical: 12), // Add vertical padding for better spacing
                 elevation: 4, // Button elevation (shadow)
               ),
               child: Text(
@@ -528,9 +623,6 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
       ),
     );
   }
-
-
-
 
   Future<bool> ios_checkBluetoothStatus() async {
     bool isBluetoothOn = await iosPlat.BluetoothService.isBluetoothPoweredOn();
@@ -563,16 +655,18 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
 
   Future<void> ios_startScan() async {
     bool bluetoothStatus = await ios_checkBluetoothStatus();
-    if(!bluetoothStatus){
+    if (!bluetoothStatus) {
       CustomPopups.showCustomResultPopup(
         context: context,
         icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-        message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("bluetooth_off_message"),
-        buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+        message: Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString("bluetooth_off_message"),
+        buttonText: Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString("ok"),
         onPressButton: () {
           // Define what happens when the button is pressed
           print('bluetooth is not powered ..');
-          return ;
+          return;
         },
       );
     }
@@ -599,21 +693,20 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
           });
         }
       });
-
     });
 
     print(discoveredDevices);
-
   }
 
   /// Retrieve paired Bluetooth devices and update the state.
   void android_getPairedDevices() async {
     setState(() {
       isLoading = true;
-      pairedDevices.clear();  // Clear the device list before new scan
+      pairedDevices.clear(); // Clear the device list before new scan
     });
     try {
-      List<BluetoothDevice> devices = await AndroidBluetoothFeatures.startScan();
+      List<BluetoothDevice> devices =
+          await AndroidBluetoothFeatures.startScan();
       setState(() {
         pairedDevices = devices;
       });

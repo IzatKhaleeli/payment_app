@@ -141,15 +141,15 @@
 
   "cancellationDate": "تاريخ الغاء الدفعة",
   "cancellationTime": "وقت الغاء الدفعة",
+  "submittedtocancel": "تم الإرسال للإلغاء",
 
   "cancelReason": "سبب الإلغاء",
 
   "saved": "تم الحفظ",
   "synced": "تمت المزامنة",
   "confirmed": "تم التأكيد",
-  "cancelled": "تم الإرسال للإلغاء",
-  "cancelpending": "جاري الإلغاء",
-
+  "Cancelled": "تم الإرسال للإلغاء",
+  "CancelPending": "جاري الإلغاء",
   "sharePayment": "مشاركة الدفعة",
   "editPayment": "تعديل الدفعة",
 
@@ -260,7 +260,14 @@
   "isDisconnected":"مفصول",
   "pending": "قيد الانتظار",
   "rejected": "مرفوض",
+  "accepted": "مقبول",
   "completed": "مكتمل",
   "acceptanceStatus": "حالة القبول",
-  "cancellationStatus": "حالة الإلغاء"
+  "cancellationStatus": "حالة الإلغاء",
+  "clearAll": "مسح الكل",
+  "applyFilters": "تطبيق الفلاتر",
+  "selected": "محدد",
+  "filterOptions": "خيارات الفلترة",
+  "notSelectedYet":"غير محدد"
+
 }

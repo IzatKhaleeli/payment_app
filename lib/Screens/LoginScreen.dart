@@ -147,7 +147,6 @@ class LoginScreen extends StatelessWidget {
                                               await loginState.login(
                                                   loginState.username,
                                                   loginState.password);
-                                          print("loginResult :${loginResult}");
                                           if (loginResult["status"] == 200) {
                                             var versionChecker =
                                                 await PaymentService
@@ -175,8 +174,9 @@ class LoginScreen extends StatelessWidget {
                                               print("App is up-to-date.");
 
                                               await saveCredentials(
-                                                  loginState.username,
-                                                  loginState.password);
+                                                loginState.username,
+                                                loginState.password,
+                                              );
                                               await LOVCompareService
                                                   .compareAndSyncCurrencies();
                                               await LOVCompareService

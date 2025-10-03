@@ -48,12 +48,18 @@ class LoginState with ChangeNotifier {
     var userData;
     try {
       userData = await helper.getData();
-
       if (userData.containsKey('token')) {
         String token = userData['token'].toString().substring(6);
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('usernameLogin', username.toLowerCase());
         await prefs.setString('token', token);
+
+        if (userData.containsKey('hasDisconnectedPermission')) {
+          int permission =
+              userData['hasDisconnectedPermission'] == true ? 1 : 0;
+          await prefs.setInt('disconnectedPermission', permission);
+          print("saved permission is ${permission}");
+        }
 
         return {
           'success': true,

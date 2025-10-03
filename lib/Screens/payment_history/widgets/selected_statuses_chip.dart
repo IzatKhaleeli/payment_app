@@ -2,64 +2,72 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../Services/LocalizationService.dart';
 
-typedef StatusRemovedCallback = void Function(String status);
-
-class SelectedStatusesChip extends StatelessWidget {
+class SelectedFiltersSummary extends StatelessWidget {
   final double scale;
-  final List<String> selectedStatuses;
-  final StatusRemovedCallback onStatusRemoved;
+  final int statusCount;
+  final int cancellationCount;
+  final VoidCallback? onClearStatus;
+  final VoidCallback? onClearAcceptance;
+  final VoidCallback? onClearCancellation;
 
-  const SelectedStatusesChip({
+  const SelectedFiltersSummary({
     Key? key,
     required this.scale,
-    required this.selectedStatuses,
-    required this.onStatusRemoved,
+    required this.statusCount,
+    required this.cancellationCount,
+    this.onClearStatus,
+    this.onClearAcceptance,
+    this.onClearCancellation,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final localizationService =
+        Provider.of<LocalizationService>(context, listen: false);
+
+    final items = <Map<String, dynamic>>[
+      {
+        "label": localizationService.getLocalizedString("status"),
+        "count": statusCount,
+        "onClear": onClearStatus,
+      },
+      {
+        "label": localizationService.getLocalizedString("cancellationStatus"),
+        "count": cancellationCount,
+        "onClear": onClearCancellation,
+      },
+    ];
+
     return Wrap(
-      spacing: 5.0,
-      children: selectedStatuses.map((status) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 7.0),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
-            decoration: BoxDecoration(
-              color: Colors.grey[200], // Background color
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(
-                color: Colors.transparent, // No visible border
+      spacing: 8.0,
+      children: items.where((item) => item["count"] > 0).map((item) {
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "${item['label']} (${item['count']} ${localizationService.getLocalizedString('selected')})",
+                style: TextStyle(
+                  fontSize: 12.0 * scale,
+                  color: Colors.grey[600],
+                ),
               ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString(status.toLowerCase()),
-                  style: TextStyle(
-                    fontSize: 12.0 * scale,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.grey[600],
+              const SizedBox(width: 6.0),
+              if (item['onClear'] != null)
+                GestureDetector(
+                  onTap: item['onClear'],
+                  child: Icon(
+                    Icons.close,
+                    size: 16.0,
+                    color: Colors.grey[700],
                   ),
                 ),
-                const SizedBox(width: 8.0),
-                Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      onStatusRemoved(status);
-                    },
-                    child: Icon(
-                      Icons.close,
-                      size: 18.0,
-                      color: Colors.grey[700], // Delete icon color
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
         );
       }).toList(),

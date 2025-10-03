@@ -88,7 +88,7 @@ class PaymentService {
       for (var payment in ConfirmedAndCancelledPendingPayments) {
         if (payment['status'] == 'Confirmed') {
           confirmedPayments.add(payment);
-        } else if (payment['status'] == 'CancelPending') {
+        } else if (payment['cancellationStatus'] == 'CancelPending') {
           cancelledPendingPayments.add(payment);
         }
       }
@@ -98,8 +98,8 @@ class PaymentService {
       }
 
       for (var p in cancelledPendingPayments) {
-        if (p['status'] != 'CancelPending') {
-          continue; // Skip this payment if it's not in 'CancelPending' status
+        if (p['cancellationStatus'] != 'CancelPending') {
+          continue;
         }
 
         Map<String, String> body = {
@@ -117,7 +117,8 @@ class PaymentService {
           );
           if (response.statusCode == 200) {
             print("inside status code 200 of cancel api");
-            await DatabaseProvider.updatePaymentStatus(p["id"], 'Cancelled');
+            await DatabaseProvider.updateCancellationStatus(
+                p["id"], 'Cancelled');
             _syncController.add(null);
             String amount =
                 p["paymentMethod"].toString().toLowerCase() == 'cash'
@@ -582,33 +583,31 @@ class PaymentService {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('language_code');
-    await prefs.setString('language_code', 'ar'); // Set default language
+    await prefs.setString('language_code', 'ar');
     await prefs.remove('usernameLogin');
+    await prefs.remove('disconnectedPermission');
+
     _cancelNetworkTimer();
 
-    // Dismiss the loading dialog
-    Navigator.of(context).pop(); // Dismiss the progress indicator dialog
+    Navigator.of(context).pop();
 
-    // Navigate to the login screen
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => LoginScreen()),
-      (route) => false, // This disables popping the LoginScreen route
+      (route) => false,
     );
   }
 
   static String convertAmountToWords(dynamic amount) {
     if (amount == null) {
-      return ''; // Handle the case where amount is null
+      return '';
     }
 
-    // Convert to int if amount is a double
     int amountInt = (amount is double) ? amount.toInt() : amount as int;
 
     return NumberToWordsEnglish.convert(amountInt);
   }
 
-  // Show only loading (no logout logic)
   static void showLoadingOnly(BuildContext context, double scale) {
     showDialog(
       context: context,
@@ -669,17 +668,18 @@ class PaymentService {
 
 // When logout is done
   static Future<void> completeLogout(BuildContext context) async {
-    await Future.delayed(
-        const Duration(milliseconds: 500)); // small delay for UX feel
+    await Future.delayed(const Duration(milliseconds: 500));
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('language_code');
     await prefs.setString('language_code', 'ar');
     await prefs.remove('usernameLogin');
+    await prefs.remove('disconnectedPermission');
+
     _cancelNetworkTimer();
 
-    Navigator.of(context).pop(); // Dismiss loading dialog
+    Navigator.of(context).pop();
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => LoginScreen()),

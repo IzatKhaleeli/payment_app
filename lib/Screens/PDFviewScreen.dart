@@ -13,7 +13,8 @@ class PdfPreviewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString("pdfPreview")),
+        title: Text(Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString("pdfPreview")),
       ),
       body: PDFView(
         filePath: filePath,

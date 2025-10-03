@@ -48,10 +48,7 @@ class DatabaseProvider {
     ''');
 
       await db.execute('''
-    ALTER TABLE payments ADD COLUMN acceptanceStatus TEXT;
-  ''');
-      await db.execute('''
-    ALTER TABLE payments ADD COLUMN cancelStatus TEXT;
+    ALTER TABLE payments ADD COLUMN cancellationStatus TEXT;
   ''');
     }
   }
@@ -82,8 +79,7 @@ class DatabaseProvider {
         transactionId TEXT,
         msisdnReceipt TEXT,
         isDisconnected BOOLEAN DEFAULT 0,
-          acceptanceStatus TEXT,
-          cancelStatus TEXT
+        cancellationStatus TEXT
       )
       
     ''');
@@ -125,11 +121,13 @@ class DatabaseProvider {
   static Future<List<Map<String, dynamic>>>
       getConfirmedOrCancelledPendingPayments() async {
     Database db = await database;
+
     List<Map<String, dynamic>> payments = await db.query(
       'payments',
-      where: 'status IN (?, ?)',
+      where: 'status = ? OR cancellationStatus = ?',
       whereArgs: ['Confirmed', 'CancelPending'],
     );
+
     return payments;
   }
 
@@ -188,6 +186,28 @@ class DatabaseProvider {
       await db.update(
         'payments',
         {'status': status},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      print('Payment status updated successfully for payment with id $id');
+
+      // If the status is 'Confirmed', also update the transaction date
+      if (status.toLowerCase() == 'confirmed') {
+        await updateTransactionDate(id);
+      }
+    } catch (e) {
+      print('Error updating payment status: $e');
+      throw Exception('Failed to update payment status');
+    }
+  }
+
+  static Future<void> updateCancellationStatus(int id, String status) async {
+    try {
+      Database db = await database;
+      // Update payment status
+      await db.update(
+        'payments',
+        {'cancellationStatus': status},
         where: 'id = ?',
         whereArgs: [id],
       );
@@ -360,7 +380,7 @@ class DatabaseProvider {
       await db.update(
         'payments',
         {
-          'status': newStatus,
+          'cancellationStatus': newStatus,
           'cancelReason': cancelReason,
           'cancellationDate': formattedCancelDateTime,
         },
@@ -412,7 +432,6 @@ class DatabaseProvider {
   }
 
   // CRUD operations for the currencies table
-
   // Insert a currency record
   static Future<void> insertCurrency(Map<String, dynamic> currencyData) async {
     Database db = await database;

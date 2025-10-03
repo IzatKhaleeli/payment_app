@@ -258,7 +258,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     saved = localizationService.getLocalizedString('saved');
     synced = localizationService.getLocalizedString('synced');
     confirmed = localizationService.getLocalizedString('confirmed');
-    cancelled = localizationService.getLocalizedString('cancelled');
+    cancelled = localizationService.getLocalizedString('Cancelled');
     cancelPending = localizationService.getLocalizedString('cancelpending');
     acceptanceStatus =
         localizationService.getLocalizedString('acceptanceStatus');

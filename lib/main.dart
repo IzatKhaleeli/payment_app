@@ -83,7 +83,7 @@ class MyApp extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: primaryRed, width: 2),
+          borderSide: const BorderSide(color: primaryRed, width: 2),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -99,13 +99,13 @@ class MyApp extends StatelessWidget {
           elevation: 2,
         ),
       ),
-      textTheme: TextTheme(
+      textTheme: const TextTheme(
         titleMedium: TextStyle(color: primaryRed, fontWeight: FontWeight.bold),
         bodyMedium: TextStyle(color: Colors.black),
       ),
     );
     if (isJailbroken) {
-      return MaterialApp(
+      return const MaterialApp(
         home: Scaffold(
           body: Center(
             child: Text(

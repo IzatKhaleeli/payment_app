@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:ooredoo_app/Screens/printerService/PrinterSettingScreen.dart';
+import '../../core/api_service/status_api_service.dart';
+import '../../core/utils/enum/cancellation_status_enum.dart';
 import '../PaymentCancellationScreen.dart';
 import '../../Services/globalError.dart';
 import '../recordPayment/RecordPaymentScreen.dart';
@@ -22,6 +24,7 @@ import '../../Services/PaymentService.dart';
 import '../../Custom_Widgets/CustomPopups.dart';
 import '../printerService/iosMethods.dart' as iosPlat;
 import 'widgets/detail_note_item.dart';
+import 'widgets/filter_dialog.dart';
 import 'widgets/payment_detail_row.dart';
 import 'widgets/payment_filter_section.dart';
 import 'widgets/payment_records_list.dart';
@@ -43,6 +46,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   String search = '';
   late StreamSubscription _syncSubscription;
   List<String> _selectedStatuses = [];
+  List<CancellationStatus> _selectedCancellationStatuses = [];
   List<Payment> _paymentRecords = [];
   Map<String, String> _currencies = {};
   Map<String, String> _banks = {};
@@ -175,7 +179,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               voucherSerialNumber: serialNumber,
               cancelReason: payment['cancelReason'],
               cancellationDate: cancellationDate,
-              isDepositChecked: payment['isDepositChecked']);
+              isDepositChecked: payment['isDepositChecked'],
+              isDisconnected: payment['isDisconnected'],
+              cancellationStatus: CancellationStatusExtension.fromString(
+                  payment['cancellationStatus']),
+              msisdnReceipt: payment['msisdnReceipt']);
         }).toList();
         _paymentRecords.sort((a, b) {
           // Determine the date to use for sorting for each record
@@ -191,6 +199,67 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     }
   }
 
+  Future<void> _fetchPortalStatuses() async {
+    try {
+      List<String> voucherSerials = ["W-382", "W-383"];
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? tokenID = prefs.getString('token');
+      if (tokenID == null) {
+        print('Token not found');
+        return;
+      }
+      var fullToken = "Barer ${tokenID}";
+
+      var headers = {
+        'Content-Type': 'application/json',
+        'tokenID': fullToken,
+      };
+
+      final response = await PaymentApiService.getPortalStatuses(
+          body: voucherSerials, headers: headers);
+
+      if (response is Map<String, dynamic>) {
+        final int status = response['status'] ?? 0;
+        final bool success = response['success'] ?? false;
+        final dynamic data = response['data'];
+
+        if (success && status == 200 && data is List) {
+          print("Portal Statuses Response:");
+          for (var item in data) {
+            print(
+              "Voucher: ${item['voucherSerialNumber']}, "
+              "Acceptance: ${item['acceptanceStatus']}, "
+              "Cancel: ${item['cancelStatus']}",
+            );
+          }
+        } else if (status == 401) {
+          int tokenStatus = await PaymentService.attemptReLogin(context);
+          if (tokenStatus == 200) {
+            print("Token refreshed, retrying...");
+            await _fetchPortalStatuses(); // retry
+          } else {
+            print("Unable to refresh token");
+          }
+        } else if (status == 408) {
+          print("Request timed out");
+        } else if (status == 429) {
+          print("Too many requests");
+        } else {
+          print("Error: Status $status, Data: $data");
+        }
+      } else {
+        print("Unexpected response format: $response");
+      }
+    } on SocketException {
+      print("Network error occurred");
+    } on TimeoutException {
+      print("Request timed out");
+    } catch (e) {
+      print("Error fetching portal statuses: $e");
+    }
+  }
+
   void _initializeLocalizationStrings() {
     final localizationService =
         Provider.of<LocalizationService>(context, listen: false);
@@ -202,12 +271,15 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
 
   @override
   void initState() {
-    _fetchPayments();
     super.initState();
-    // Initialize the localization strings
     _initializeLocalizationStrings();
+
+    _fetchPayments();
+
+    _fetchPortalStatuses();
+
     _syncSubscription = PaymentService.syncStream.listen((_) {
-      _fetchPayments(); // Refresh payment records
+      _fetchPayments();
     });
   }
 
@@ -244,57 +316,79 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
       ),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            padding: EdgeInsets.all(12.w),
-            child: Column(
-              children: [
-                PaymentFilterSection(
-                  scale: scale,
-                  fromController: _fromDateController,
-                  toController: _toDateController,
-                  onFromDateSelected: (date) {
-                    setState(() => _selectedFromDate = date);
-                    _fetchPayments();
-                  },
-                  onToDateSelected: (date) {
-                    setState(() => _selectedToDate = date);
-                    _fetchPayments();
-                  },
-                  onFilterPressed: () {
-                    _showFilterDialog(scale);
-                  },
-                  fromLabel: from,
-                  toLabel: to,
-                ),
-                SelectedStatusesChip(
-                  scale: scale,
-                  selectedStatuses: _selectedStatuses,
-                  onStatusRemoved: (status) {
-                    setState(() {
-                      _selectedStatuses.remove(status);
-                      _fetchPayments();
-                    });
-                  },
-                ),
-                SizedBox(height: 10.h),
-                Divider(
-                  color: Colors.grey[400],
-                  height: 3,
-                  thickness: 2,
-                  indent: 8,
-                  endIndent: 8,
-                ),
-                SizedBox(height: 10.h),
-                Container(
-                  margin: EdgeInsets.only(bottom: 50.h),
-                  child: PaymentRecordsList(
+          RefreshIndicator(
+            onRefresh: () async {
+              await _fetchPortalStatuses();
+            },
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(12.w),
+              child: Column(
+                children: [
+                  PaymentFilterSection(
                     scale: scale,
-                    paymentRecords: _paymentRecords,
-                    itemBuilder: (scale, record) =>
-                        _buildPaymentRecordItem(scale, record),
+                    fromController: _fromDateController,
+                    toController: _toDateController,
+                    onFromDateSelected: (date) {
+                      setState(() => _selectedFromDate = date);
+                      _fetchPayments();
+                    },
+                    onToDateSelected: (date) {
+                      setState(() => _selectedToDate = date);
+                      _fetchPayments();
+                    },
+                    onFilterPressed: () {
+                      showFilterDialog(
+                        context: context,
+                        scale: scale,
+                        selectedStatuses: _selectedStatuses,
+                        selectedCancellationStatuses:
+                            _selectedCancellationStatuses,
+                        onApply: () {
+                          _fetchPayments();
+                          setState(() {});
+                        },
+                      );
+                    },
+                    fromLabel: from,
+                    toLabel: to,
                   ),
-                ),
-              ],
+                  SelectedFiltersSummary(
+                    scale: scale,
+                    statusCount: _selectedStatuses.length,
+                    cancellationCount: _selectedCancellationStatuses.length,
+                    onClearStatus: () {
+                      setState(() {
+                        _selectedStatuses.clear();
+                        _fetchPayments();
+                      });
+                    },
+                    onClearCancellation: () {
+                      setState(() {
+                        _selectedCancellationStatuses.clear();
+                        _fetchPayments();
+                      });
+                    },
+                  ),
+                  SizedBox(height: 10.h),
+                  Divider(
+                    color: Colors.grey[400],
+                    height: 3,
+                    thickness: 2,
+                    indent: 8,
+                    endIndent: 8,
+                  ),
+                  SizedBox(height: 10.h),
+                  Container(
+                    margin: EdgeInsets.only(bottom: 50.h),
+                    child: PaymentRecordsList(
+                      scale: scale,
+                      paymentRecords: _paymentRecords,
+                      itemBuilder: (scale, record) =>
+                          _buildPaymentRecordItem(scale, record),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           ValueListenableBuilder<String?>(
@@ -352,80 +446,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  void _showFilterDialog(double scale) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(
-                Provider.of<LocalizationService>(context, listen: false)
-                    .getLocalizedString('selectStatus'),
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14 * scale), // Make the text bold
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <String>[
-                  'Confirmed',
-                  'Synced',
-                  'CancelPending',
-                  'Cancelled'
-                ].map((String status) {
-                  return CheckboxListTile(
-                    title: Text(
-                      Provider.of<LocalizationService>(context, listen: false)
-                          .getLocalizedString(status.toLowerCase()),
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16 *
-                              scale), // Set the title (status) text color to black
-                    ),
-                    value: _selectedStatuses.contains(status),
-                    activeColor: const Color(0xFFC62828),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value == true) {
-                          _selectedStatuses.add(status);
-                        } else {
-                          _selectedStatuses.remove(status);
-                        }
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-              actions: [
-                TextButton(
-                  child: Text(
-                      Provider.of<LocalizationService>(context, listen: false)
-                          .getLocalizedString('cancel'),
-                      style: TextStyle(color: Color(0xFFC62828))),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                ElevatedButton(
-                    child: Text(
-                        Provider.of<LocalizationService>(context, listen: false)
-                            .getLocalizedString('ok')),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      _fetchPayments();
-                      setState(() {});
-                    }),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
   String formatDate(DateTime? date) {
-    if (date == null) return '';
+    if (date == null) return ''; // handle null date
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
@@ -437,7 +459,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     IconData statusIcon;
     Color statusColor;
 
-    // Determine icon and color based on payment status
     switch (record.status.toLowerCase()) {
       case 'saved':
         statusIcon = Icons.save_rounded;
@@ -452,21 +473,27 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         statusColor = Colors.green;
 
         break;
-      case 'cancelled':
+      case 'cancelled': //WELL BE DELETED
         statusIcon = Icons.cancel;
         statusColor = Color(0xFFC62828);
         break;
-      case 'canceldpending':
+      case 'canceldpending': //WILL BE DELETED
         statusIcon = Icons.payment;
         statusColor = Color(0xFFC62828);
-
+        break;
+      case 'accepted':
+        statusIcon = Icons.check_circle;
+        statusColor = Colors.green;
+        break;
+      case 'rejected':
+        statusIcon = Icons.cancel;
+        statusColor = Color(0xFFC62828);
         break;
       default:
         statusIcon = Icons.payment;
-        statusColor = Color(0xFFC62828); // Default color
+        statusColor = Color(0xFFC62828);
         break;
     }
-
     return Card(
       elevation: 2,
       margin: EdgeInsets.symmetric(vertical: 4.h, horizontal: 3.w),
@@ -492,7 +519,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                   softWrap: true,
                 ),
               ),
-              SizedBox(width: 8), // Add some space between name and date
+              SizedBox(width: 8),
               Text(
                 formatDate(record.transactionDate!)
                     .toString(), // Format and display the transaction date
@@ -514,7 +541,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                 scale: scale,
                 title: Provider.of<LocalizationService>(context, listen: false)
                     .getLocalizedString('voucherNumber'),
-                value: record.voucherSerialNumber ?? '',
+                value: record.voucherSerialNumber,
               ),
             if (record.status.toLowerCase() == 'saved') ...[
               PaymentDetailRow(
@@ -576,6 +603,25 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                     .getLocalizedString('MSISDN'),
                 value: record.msisdn?.toString() ?? '',
               ),
+            if (record.isDisconnected == 1) ...[
+              DetailNoteItem(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('isDisconnected'),
+                value: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString(
+                  record.isDisconnected == 0 ? 'no' : 'yes',
+                ),
+                locale: Provider.of<LocalizationService>(context, listen: false)
+                    .selectedLanguageCode,
+              ),
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('msisdn_receipt'),
+                value: record.msisdnReceipt?.toString() ?? '',
+              ),
+            ], //
             if (record.prNumber != null && record.prNumber!.isNotEmpty)
               PaymentDetailRow(
                 scale: scale,
@@ -625,8 +671,18 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                     : '',
               ),
             ],
-            if (record.status.toLowerCase() == 'canceldpending' ||
-                record.status.toLowerCase() == 'cancelled') ...[
+            if (record.cancellationStatus != null)
+              PaymentDetailRow(
+                scale: scale,
+                title: Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('cancellationStatus'),
+                value: record.cancellationStatus != null
+                    ? Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString(record.cancellationStatus!.value)
+                    : Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString('notSelectedYet'),
+              ),
+            if (record.cancellationDate != null) ...[
               PaymentDetailRow(
                 scale: scale,
                 title: Provider.of<LocalizationService>(context, listen: false)
@@ -675,429 +731,261 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               ),
             SizedBox(height: 10.h),
             Wrap(
-                spacing: 8.0, // Add some spacing between the items
-                runSpacing: 8.0, // Spacing between rows if they wrap
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Tooltip(
+                          message: Provider.of<LocalizationService>(context,
+                                  listen: false)
+                              .getLocalizedString('viewPayment'),
+                          child: IconButton(
+                            icon: Icon(Icons.visibility, color: Colors.blue),
+                            onPressed: () {
+                              if (record.id != null) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        PaymentConfirmationScreen(
+                                            paymentId: record.id!),
+                                  ),
+                                );
+                              } else {
+                                // Handle the case when record.id is null
+                                print('Error: record.id is null');
+                              }
+                            },
+                          ),
+                        ),
+                        if (record.status.toLowerCase() == 'synced' ||
+                            record.status.toLowerCase() == 'accepted' ||
+                            record.status.toLowerCase() == 'rejected')
                           Tooltip(
                             message: Provider.of<LocalizationService>(context,
                                     listen: false)
-                                .getLocalizedString('viewPayment'),
+                                .getLocalizedString('openAsPdf'),
                             child: IconButton(
-                              icon: Icon(Icons.visibility,
-                                  color: Colors
-                                      .blue), // View icon always on the left
-                              onPressed: () {
-                                if (record.id != null) {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          PaymentConfirmationScreen(
-                                              paymentId: record.id!),
-                                    ),
-                                  );
-                                } else {
-                                  // Handle the case when record.id is null
-                                  print('Error: record.id is null');
-                                }
+                              icon: FaIcon(
+                                FontAwesomeIcons.filePdf,
+                                color: Color(0xFFC62828),
+                                size: 22,
+                              ),
+                              onPressed: () async {
+                                ShareScreenOptions
+                                    .showLanguageSelectionAndShare(context,
+                                        record.id!, ShareOption.OpenPDF);
                               },
                             ),
                           ),
-                          if (record.status.toLowerCase() == 'synced')
+                      ],
+                    ),
+                    Row(children: [
+                      if (record.status.toLowerCase() == 'synced' &&
+                          record.cancellationStatus == null) ...[
+                        Row(
+                          children: [
                             Tooltip(
                               message: Provider.of<LocalizationService>(context,
                                       listen: false)
-                                  .getLocalizedString('openAsPdf'),
+                                  .getLocalizedString('cancelPayment'),
                               child: IconButton(
-                                icon: FaIcon(
-                                  FontAwesomeIcons.filePdf,
-                                  color: Color(0xFFC62828),
-                                  size: 22,
-                                ),
+                                icon: Icon(Icons.cancel,
+                                    color: Color(0xFFC62828), size: 22),
                                 onPressed: () async {
-                                  ShareScreenOptions
-                                      .showLanguageSelectionAndShare(context,
-                                          record.id!, ShareOption.OpenPDF);
+                                  if (record.id != null) {
+                                    final int idToCancel = record.id!;
+
+                                    final bool result = await showDialog<bool>(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return PaymentCancellationScreen(
+                                                id: idToCancel);
+                                          },
+                                        ) ??
+                                        false; // Default to false if dialog is dismissed
+
+                                    if (result == true) {
+                                      // If cancellation was successful, refresh the payment details
+                                      _fetchPayments();
+                                    }
+                                  }
                                 },
                               ),
                             ),
-                        ],
-                      ),
-                      // Icons to be shown based on status
-                      Row(children: [
-                        if (record.status.toLowerCase() == 'saved') ...[
-                          Row(
-                            children: [
-                              Tooltip(
-                                message: Provider.of<LocalizationService>(
-                                        context,
-                                        listen: false)
-                                    .getLocalizedString('deletePayment'),
-                                child: IconButton(
-                                  icon: Icon(Icons.delete,
-                                      color: Color(0xFFC62828)),
-                                  onPressed: () async {
-                                    CustomPopups.showCustomDialog(
+                          ],
+                        ),
+                      ],
+                    ]),
+                    Row(children: [
+                      if (record.status.toLowerCase() == 'synced' ||
+                          record.status.toLowerCase() == 'accepted') ...[
+                        Row(
+                          children: [
+                            Tooltip(
+                              message: Provider.of<LocalizationService>(context,
+                                      listen: false)
+                                  .getLocalizedString('sendPrinter'),
+                              child: IconButton(
+                                icon: Icon(Icons.print,
+                                    color: Colors.black, size: 22),
+                                onPressed: () async {
+                                  // Function to get the default printer info from SharedPreferences
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  String? printerLabel =
+                                      prefs.getString('default_device_label');
+                                  String? printerAddress =
+                                      prefs.getString('default_device_address');
+
+                                  if (printerLabel == null ||
+                                      printerLabel.isEmpty ||
+                                      printerAddress == null ||
+                                      printerAddress.isEmpty) {
+                                    CustomPopups.showTwoButtonPopup(
                                       context: context,
-                                      icon: Icon(Icons.delete,
-                                          size: 60, color: Color(0xFFC62828)),
-                                      title: Provider.of<LocalizationService>(
-                                              context,
-                                              listen: false)
-                                          .getLocalizedString('deletePayment'),
+                                      icon: Icon(Icons.warning,
+                                          size: 40, color: Color(0xFFC62828)),
                                       message: Provider.of<LocalizationService>(
                                               context,
                                               listen: false)
                                           .getLocalizedString(
-                                              'deletePaymentBody'),
-                                      deleteButtonText:
+                                              'noDefaultDeviceSetBody'),
+                                      firstButtonText:
                                           Provider.of<LocalizationService>(
                                                   context,
                                                   listen: false)
-                                              .getLocalizedString('delete'),
-                                      onPressButton: () async {
-                                        final int id = record.id!;
-                                        await DatabaseProvider.deletePayment(
-                                            id);
-                                        _fetchPayments();
+                                              .getLocalizedString('cancel'),
+                                      onFirstButtonPressed: () {
+                                        // Handle cancel action
+                                        print('Cancel button pressed');
                                       },
-                                    );
-                                  },
-                                ),
-                              ),
-                              Tooltip(
-                                message: Provider.of<LocalizationService>(
-                                        context,
-                                        listen: false)
-                                    .getLocalizedString('editPayment'),
-                                child: IconButton(
-                                  icon: Icon(Icons.edit,
-                                      color: Color(0xFFA67438), size: 22),
-                                  onPressed: () {
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              RecordPaymentScreen(
-                                                  id: record.id)),
-                                    );
-                                  },
-                                ),
-                              ),
-                              Tooltip(
-                                message: Provider.of<LocalizationService>(
-                                        context,
-                                        listen: false)
-                                    .getLocalizedString('confirmPayment'),
-                                child: IconButton(
-                                  icon: Icon(Icons.check_circle,
-                                      color: Colors.green, size: 22),
-                                  onPressed: () async {
-                                    CustomPopups.showCustomDialog(
-                                      context: context,
-                                      icon: Icon(Icons.check_circle,
-                                          size: 50,
-                                          color: Color(
-                                              0xFFC62828)), // Customize your icon as needed
-                                      title: Provider.of<LocalizationService>(
-                                              context,
-                                              listen: false)
-                                          .getLocalizedString('confirmPayment'),
-                                      message: Provider.of<LocalizationService>(
-                                              context,
-                                              listen: false)
-                                          .getLocalizedString(
-                                              'confirmPaymentBody'),
-                                      deleteButtonText:
+                                      secondButtonText:
                                           Provider.of<LocalizationService>(
                                                   context,
                                                   listen: false)
-                                              .getLocalizedString('confirm'),
-                                      onPressButton: () async {
-                                        if (record.id != null) {
-                                          Map<String, String?> credentials =
-                                              await getCredentials();
-                                          String? username =
-                                              credentials['username'];
-                                          String? password =
-                                              credentials['password'];
-                                          print(
-                                              "the username and password to relogin is :${username} : ${password}");
-                                          final int idToConfirm = record.id!;
-                                          await DatabaseProvider
-                                              .updatePaymentStatus(
-                                                  idToConfirm, 'Confirmed');
-                                          await PaymentService.syncPayments(
-                                              context);
-
-                                          _syncSubscription = PaymentService
-                                              .syncStream
-                                              .listen((_) {
-                                            if (!mounted)
-                                              return; // <- Add this safety check
-                                            _fetchPayments();
-                                            setState(() {});
-                                          });
-                                        }
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ] else if (record.status.toLowerCase() == 'synced') ...[
-                          Row(
-                            children: [
-                              Tooltip(
-                                message: Provider.of<LocalizationService>(
-                                        context,
-                                        listen: false)
-                                    .getLocalizedString('cancelPayment'),
-                                child: IconButton(
-                                  icon: Icon(Icons.cancel,
-                                      color: Color(0xFFC62828), size: 22),
-                                  onPressed: () async {
-                                    if (record.id != null) {
-                                      final int idToCancel = record.id!;
-
-                                      final bool result = await showDialog<
-                                              bool>(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return PaymentCancellationScreen(
-                                                  id: idToCancel);
-                                            },
-                                          ) ??
-                                          false; // Default to false if dialog is dismissed
-
-                                      if (result == true) {
-                                        // If cancellation was successful, refresh the payment details
-                                        _fetchPayments();
-                                      }
-                                    }
-                                  },
-                                ),
-                              ),
-                              Tooltip(
-                                message: Provider.of<LocalizationService>(
-                                        context,
-                                        listen: false)
-                                    .getLocalizedString('sendPrinter'),
-                                child: IconButton(
-                                  icon: Icon(Icons.print,
-                                      color: Colors.black, size: 22),
-                                  onPressed: () async {
-                                    // Function to get the default printer info from SharedPreferences
-                                    final prefs =
-                                        await SharedPreferences.getInstance();
-                                    String? printerLabel =
-                                        prefs.getString('default_device_label');
-                                    String? printerAddress = prefs
-                                        .getString('default_device_address');
-
-                                    if (printerLabel == null ||
-                                        printerLabel.isEmpty ||
-                                        printerAddress == null ||
-                                        printerAddress.isEmpty) {
-                                      CustomPopups.showTwoButtonPopup(
-                                        context: context,
-                                        icon: Icon(Icons.warning,
-                                            size: 40, color: Color(0xFFC62828)),
-                                        message:
-                                            Provider.of<LocalizationService>(
-                                                    context,
-                                                    listen: false)
-                                                .getLocalizedString(
-                                                    'noDefaultDeviceSetBody'),
-                                        firstButtonText:
-                                            Provider.of<LocalizationService>(
-                                                    context,
-                                                    listen: false)
-                                                .getLocalizedString('cancel'),
-                                        onFirstButtonPressed: () {
-                                          // Handle cancel action
-                                          print('Cancel button pressed');
-                                        },
-                                        secondButtonText:
-                                            Provider.of<LocalizationService>(
-                                                    context,
-                                                    listen: false)
-                                                .getLocalizedString(
-                                                    "printerSettings"),
-                                        onSecondButtonPressed: () {
-                                          // Handle confirm action
-                                          print('Confirm button pressed');
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  PrinterSettingScreen(),
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    } else {
-                                      if (Platform.isIOS) {
-                                        bool isBluetoothOn =
-                                            await iosPlat.BluetoothService
-                                                .isBluetoothPoweredOn();
-                                        if (!isBluetoothOn) {
-                                          CustomPopups.showCustomResultPopup(
-                                            context: context,
-                                            icon: Icon(Icons.error,
-                                                color: Color(0xFFC62828),
-                                                size: 40),
-                                            message: Provider.of<
-                                                        LocalizationService>(
-                                                    context,
-                                                    listen: false)
-                                                .getLocalizedString(
-                                                    "bluetooth_off_message"),
-                                            buttonText: Provider.of<
-                                                        LocalizationService>(
-                                                    context,
-                                                    listen: false)
-                                                .getLocalizedString("ok"),
-                                            onPressButton: () {
-                                              // Define what happens when the button is pressed
-                                              print(
-                                                  'bluetooth is not powered ..');
-                                              return;
-                                            },
-                                          );
-                                        } else
-                                          ShareScreenOptions
-                                              .showLanguageSelectionAndShare(
-                                                  context,
-                                                  record.id!,
-                                                  ShareOption.print);
-                                      } else if (Platform.isAndroid) {
-                                        ShareScreenOptions
-                                            .showLanguageSelectionAndShare(
-                                                context,
-                                                record.id!,
-                                                ShareOption.print);
-                                      }
-                                    }
-                                  },
-                                ),
-                              ),
-                              Tooltip(
-                                message: Provider.of<LocalizationService>(
-                                        context,
-                                        listen: false)
-                                    .getLocalizedString('sendEmail'),
-                                child: IconButton(
-                                  icon: Icon(
-                                    Icons.email,
-                                    color: Colors.blue,
-                                    size: 22,
-                                  ),
-                                  onPressed: () async {
-                                    var connectivityResult =
-                                        await (Connectivity()
-                                            .checkConnectivity());
-                                    if (connectivityResult.toString() ==
-                                        '[ConnectivityResult.none]') {
-                                      CustomPopups.showLoginFailedDialog(
+                                              .getLocalizedString(
+                                                  "printerSettings"),
+                                      onSecondButtonPressed: () {
+                                        // Handle confirm action
+                                        print('Confirm button pressed');
+                                        Navigator.push(
                                           context,
-                                          Provider.of<LocalizationService>(
-                                                  context,
-                                                  listen: false)
-                                              .getLocalizedString("noInternet"),
-                                          Provider.of<LocalizationService>(
-                                                      context,
-                                                      listen: false)
-                                                  .isLocalizationLoaded
-                                              ? Provider.of<
-                                                          LocalizationService>(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PrinterSettingScreen(),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  } else {
+                                    if (Platform.isIOS) {
+                                      bool isBluetoothOn =
+                                          await iosPlat.BluetoothService
+                                              .isBluetoothPoweredOn();
+                                      if (!isBluetoothOn) {
+                                        CustomPopups.showCustomResultPopup(
+                                          context: context,
+                                          icon: Icon(Icons.error,
+                                              color: Color(0xFFC62828),
+                                              size: 40),
+                                          message:
+                                              Provider.of<LocalizationService>(
                                                       context,
                                                       listen: false)
                                                   .getLocalizedString(
-                                                      'noInternetConnection')
-                                              : 'No Internet Connection',
-                                          Provider.of<LocalizationService>(
-                                                  context,
-                                                  listen: false)
-                                              .selectedLanguageCode);
-                                    } else
-                                      ShareScreenOptions
-                                          .showLanguageSelectionAndShare(
-                                              context,
-                                              record.id!,
-                                              ShareOption.sendEmail);
-                                  },
-                                ),
-                              ),
-                              Tooltip(
-                                  message: Provider.of<LocalizationService>(
-                                          context,
-                                          listen: false)
-                                      .getLocalizedString('sendSms'),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.75),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  textStyle: TextStyle(color: Colors.white),
-                                  child: IconButton(
-                                    icon: Icon(
-                                      Icons.message,
-                                      color: Colors
-                                          .green, // Set the color of the icon here
-                                      size: 22,
-                                    ),
-                                    onPressed: () async {
-                                      var connectivityResult =
-                                          await (Connectivity()
-                                              .checkConnectivity());
-                                      if (connectivityResult.toString() ==
-                                          '[ConnectivityResult.none]') {
-                                        CustomPopups.showLoginFailedDialog(
-                                            context,
-                                            Provider.of<LocalizationService>(
-                                                    context,
-                                                    listen: false)
-                                                .getLocalizedString(
-                                                    "noInternet"),
-                                            Provider.of<LocalizationService>(
-                                                        context,
-                                                        listen: false)
-                                                    .isLocalizationLoaded
-                                                ? Provider.of<
-                                                            LocalizationService>(
-                                                        context,
-                                                        listen: false)
-                                                    .getLocalizedString(
-                                                        'noInternetConnection')
-                                                : 'No Internet Connection',
-                                            Provider.of<LocalizationService>(
-                                                    context,
-                                                    listen: false)
-                                                .selectedLanguageCode);
+                                                      "bluetooth_off_message"),
+                                          buttonText:
+                                              Provider.of<LocalizationService>(
+                                                      context,
+                                                      listen: false)
+                                                  .getLocalizedString("ok"),
+                                          onPressButton: () {
+                                            // Define what happens when the button is pressed
+                                            print(
+                                                'bluetooth is not powered ..');
+                                            return;
+                                          },
+                                        );
                                       } else
                                         ShareScreenOptions
                                             .showLanguageSelectionAndShare(
                                                 context,
                                                 record.id!,
-                                                ShareOption.sendSms);
-                                    },
-                                  )),
-                              Tooltip(
+                                                ShareOption.print);
+                                    } else if (Platform.isAndroid) {
+                                      ShareScreenOptions
+                                          .showLanguageSelectionAndShare(
+                                              context,
+                                              record.id!,
+                                              ShareOption.print);
+                                    }
+                                  }
+                                },
+                              ),
+                            ),
+                            Tooltip(
+                              message: Provider.of<LocalizationService>(context,
+                                      listen: false)
+                                  .getLocalizedString('sendEmail'),
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.email,
+                                  color: Colors.blue,
+                                  size: 22,
+                                ),
+                                onPressed: () async {
+                                  var connectivityResult = await (Connectivity()
+                                      .checkConnectivity());
+                                  if (connectivityResult.toString() ==
+                                      '[ConnectivityResult.none]') {
+                                    CustomPopups.showLoginFailedDialog(
+                                        context,
+                                        Provider.of<LocalizationService>(
+                                                context,
+                                                listen: false)
+                                            .getLocalizedString("noInternet"),
+                                        Provider.of<LocalizationService>(
+                                                    context,
+                                                    listen: false)
+                                                .isLocalizationLoaded
+                                            ? Provider.of<LocalizationService>(
+                                                    context,
+                                                    listen: false)
+                                                .getLocalizedString(
+                                                    'noInternetConnection')
+                                            : 'No Internet Connection',
+                                        Provider.of<LocalizationService>(
+                                                context,
+                                                listen: false)
+                                            .selectedLanguageCode);
+                                  } else
+                                    ShareScreenOptions
+                                        .showLanguageSelectionAndShare(context,
+                                            record.id!, ShareOption.sendEmail);
+                                },
+                              ),
+                            ),
+                            Tooltip(
                                 message: Provider.of<LocalizationService>(
                                         context,
                                         listen: false)
-                                    .getLocalizedString('sharePayment'),
+                                    .getLocalizedString('sendSms'),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.75),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                textStyle: TextStyle(color: Colors.white),
                                 child: IconButton(
-                                  icon: FaIcon(
-                                    FontAwesomeIcons.whatsapp,
-                                    color: Colors.green,
+                                  icon: Icon(
+                                    Icons.message,
+                                    color: Colors
+                                        .green, // Set the color of the icon here
                                     size: 22,
                                   ),
                                   onPressed: () async {
@@ -1132,23 +1020,163 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                           .showLanguageSelectionAndShare(
                                               context,
                                               record.id!,
-                                              ShareOption.sendWhats);
+                                              ShareOption.sendSms);
                                   },
+                                )),
+                            Tooltip(
+                              message: Provider.of<LocalizationService>(context,
+                                      listen: false)
+                                  .getLocalizedString('sharePayment'),
+                              child: IconButton(
+                                icon: FaIcon(
+                                  FontAwesomeIcons.whatsapp,
+                                  color: Colors.green,
+                                  size: 22,
                                 ),
+                                onPressed: () async {
+                                  var connectivityResult = await (Connectivity()
+                                      .checkConnectivity());
+                                  if (connectivityResult.toString() ==
+                                      '[ConnectivityResult.none]') {
+                                    CustomPopups.showLoginFailedDialog(
+                                        context,
+                                        Provider.of<LocalizationService>(
+                                                context,
+                                                listen: false)
+                                            .getLocalizedString("noInternet"),
+                                        Provider.of<LocalizationService>(
+                                                    context,
+                                                    listen: false)
+                                                .isLocalizationLoaded
+                                            ? Provider.of<LocalizationService>(
+                                                    context,
+                                                    listen: false)
+                                                .getLocalizedString(
+                                                    'noInternetConnection')
+                                            : 'No Internet Connection',
+                                        Provider.of<LocalizationService>(
+                                                context,
+                                                listen: false)
+                                            .selectedLanguageCode);
+                                  } else
+                                    ShareScreenOptions
+                                        .showLanguageSelectionAndShare(context,
+                                            record.id!, ShareOption.sendWhats);
+                                },
                               ),
-                            ],
-                          ),
-                        ],
-                      ])
-                    ],
-                  ),
-                ]),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ])
+                  ],
+                ),
+              ],
+            ),
           ],
           onExpansionChanged: (bool expanded) {
             // Optionally add analytics or state management hooks here
           },
         ),
       ),
+    );
+  }
+
+  Widget buildPaymentActions({
+    required BuildContext context,
+    required dynamic record, // replace `dynamic` with your record type
+    required VoidCallback fetchPayments,
+    required bool mounted,
+  }) {
+    final localizationService =
+        Provider.of<LocalizationService>(context, listen: false);
+
+    if (record.status.toLowerCase() != 'saved') {
+      return const SizedBox.shrink(); // Return empty widget if not 'saved'
+    }
+
+    return Row(
+      children: [
+        // Delete Button
+        Tooltip(
+          message: localizationService.getLocalizedString('deletePayment'),
+          child: IconButton(
+            icon: const Icon(Icons.delete, color: Color(0xFFC62828)),
+            onPressed: () async {
+              CustomPopups.showCustomDialog(
+                context: context,
+                icon: const Icon(Icons.delete,
+                    size: 60, color: Color(0xFFC62828)),
+                title: localizationService.getLocalizedString('deletePayment'),
+                message:
+                    localizationService.getLocalizedString('deletePaymentBody'),
+                deleteButtonText:
+                    localizationService.getLocalizedString('delete'),
+                onPressButton: () async {
+                  final int id = record.id!;
+                  await DatabaseProvider.deletePayment(id);
+                  fetchPayments();
+                },
+              );
+            },
+          ),
+        ),
+
+        // Edit Button
+        Tooltip(
+          message: localizationService.getLocalizedString('editPayment'),
+          child: IconButton(
+            icon: const Icon(Icons.edit, color: Color(0xFFA67438), size: 22),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RecordPaymentScreen(id: record.id),
+                ),
+              );
+            },
+          ),
+        ),
+
+        // Confirm Button
+        Tooltip(
+          message: localizationService.getLocalizedString('confirmPayment'),
+          child: IconButton(
+            icon: const Icon(Icons.check_circle, color: Colors.green, size: 22),
+            onPressed: () async {
+              CustomPopups.showCustomDialog(
+                context: context,
+                icon: const Icon(Icons.check_circle,
+                    size: 50, color: Color(0xFFC62828)),
+                title: localizationService.getLocalizedString('confirmPayment'),
+                message: localizationService
+                    .getLocalizedString('confirmPaymentBody'),
+                deleteButtonText:
+                    localizationService.getLocalizedString('confirm'),
+                onPressButton: () async {
+                  if (record.id != null) {
+                    Map<String, String?> credentials = await getCredentials();
+                    String? username = credentials['username'];
+                    String? password = credentials['password'];
+                    print("Username and password: $username : $password");
+
+                    final int idToConfirm = record.id!;
+                    await DatabaseProvider.updatePaymentStatus(
+                        idToConfirm, 'Confirmed');
+                    await PaymentService.syncPayments(context);
+
+                    // Listen to sync stream
+                    _syncSubscription = PaymentService.syncStream.listen((_) {
+                      if (!mounted) return;
+                      fetchPayments();
+                    });
+                  }
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

@@ -14,7 +14,6 @@ import '../Services/networking.dart';
 import 'LoginScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 class SettingsScreen extends StatefulWidget {
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
@@ -34,11 +33,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _getSubTitles() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      currentPrinter = prefs.getString('default_device_label') ?? ''; // Provide fallback if null
+      currentPrinter = prefs.getString('default_device_label') ??
+          ''; // Provide fallback if null
 
-      currentLanguage = Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode ?? 'ENGLISH'; // Provide fallback if null
+      currentLanguage = Provider.of<LocalizationService>(context, listen: false)
+              .selectedLanguageCode ??
+          'ENGLISH'; // Provide fallback if null
 
-      print("currentLanguage :${currentLanguage} : currentPrinter :${currentPrinter}");
+      print(
+          "currentLanguage :${currentLanguage} : currentPrinter :${currentPrinter}");
     });
   }
 
@@ -49,13 +52,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
     final localizationService = Provider.of<LocalizationService>(context);
 
-    return  Directionality(
-      textDirection: localizationService.selectedLanguageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+    return Directionality(
+      textDirection: localizationService.selectedLanguageCode == 'ar'
+          ? TextDirection.rtl
+          : TextDirection.ltr,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
             localizationService.getLocalizedString('settings'),
-            style: TextStyle(fontFamily: "NotoSansUI", fontSize: 22*scale, color: Colors.white),
+            style: TextStyle(
+                fontFamily: "NotoSansUI",
+                fontSize: 22 * scale,
+                color: Colors.white),
           ),
           backgroundColor: Color(0xFFC62828),
           elevation: 0,
@@ -64,8 +72,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              _buildSettingSection(scale,localizationService,'Preferences', [
-                _buildSettingOption(scale,localizationService,Icons.language, 'languageSettings', onTap: () {
+              _buildSettingSection(scale, localizationService, 'Preferences', [
+                _buildSettingOption(scale, localizationService, Icons.language,
+                    'languageSettings', onTap: () {
                   Navigator.push(
                     context,
                     PageRouteBuilder(
@@ -81,10 +90,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                   );
-                },subtitle:currentLanguage=='en' ? localizationService.getLocalizedString('english') :localizationService.getLocalizedString('arabic')),
+                },
+                    subtitle: currentLanguage == 'en'
+                        ? localizationService.getLocalizedString('english')
+                        : localizationService.getLocalizedString('arabic')),
               ]),
-              _buildSettingSection(scale,localizationService,'Printer', [
-                _buildSettingOption(scale,localizationService,Icons.print, 'printerSettings', onTap: () {
+              _buildSettingSection(scale, localizationService, 'Printer', [
+                _buildSettingOption(
+                    scale, localizationService, Icons.print, 'printerSettings',
+                    onTap: () {
                   Navigator.push(
                     context,
                     PageRouteBuilder(
@@ -100,29 +114,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                   );
-                },subtitle: currentPrinter),
-
+                }, subtitle: currentPrinter),
               ]),
-              _buildSettingSection(scale,localizationService,'Other', [
-                _buildSettingOption(scale,localizationService,Icons.info_outline, 'aboutHelp', onTap: () async {
+              _buildSettingSection(scale, localizationService, 'Other', [
+                _buildSettingOption(
+                    scale, localizationService, Icons.info_outline, 'aboutHelp',
+                    onTap: () async {
                   showDialog(
                     context: context,
                     barrierDismissible: true,
                     builder: (BuildContext context) {
                       return Dialog(
                         insetPadding: EdgeInsets.symmetric(horizontal: 16.0),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.0)),
                         elevation: 0,
                         backgroundColor: Colors.transparent,
-                        child: CustomAboutDialogScreen(scale: scale,),
+                        child: CustomAboutDialogScreen(
+                          scale: scale,
+                        ),
                       );
                     },
                   );
                 }),
               ]),
-              _buildSettingSection(scale,localizationService,'Account', [
-                _buildSettingOption(scale,localizationService,Icons.logout, 'logout', onTap: () {
-                  _showLogoutDialog(context,scale);
+              _buildSettingSection(scale, localizationService, 'Account', [
+                _buildSettingOption(
+                    scale, localizationService, Icons.logout, 'logout',
+                    onTap: () {
+                  _showLogoutDialog(context, scale);
                 }),
               ]),
             ],
@@ -132,7 +152,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSettingSection(double scale,LocalizationService localizationService, title, List<Widget> options) {
+  Widget _buildSettingSection(double scale,
+      LocalizationService localizationService, title, List<Widget> options) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 16.h),
       padding: EdgeInsets.all(12.h),
@@ -155,7 +176,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
             child: Text(
               localizationService.getLocalizedString(title.toLowerCase()),
-              style: TextStyle(fontFamily: "NotoSansUI", fontSize: 16*scale, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontFamily: "NotoSansUI",
+                  fontSize: 16 * scale,
+                  fontWeight: FontWeight.bold),
             ),
           ),
           ...options,
@@ -164,8 +188,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-
-  Widget _buildSettingOption(double scale,LocalizationService localizationService, icon, String title, {VoidCallback? onTap, String? subtitle}) {
+  Widget _buildSettingOption(
+      double scale, LocalizationService localizationService, icon, String title,
+      {VoidCallback? onTap, String? subtitle}) {
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -178,41 +203,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(icon, color: Color(0xFFC62828), size: 24*scale),
+                    Icon(icon, color: Color(0xFFC62828), size: 24 * scale),
                     SizedBox(width: 20.w),
                     Text(
-                      localizationService.getLocalizedString(title)
-                      ,
-                      style: TextStyle(fontFamily: "NotoSansUI", fontSize: 16*scale),
+                      localizationService.getLocalizedString(title),
+                      style: TextStyle(
+                          fontFamily: "NotoSansUI", fontSize: 16 * scale),
                     ),
                   ],
                 ),
-                Icon(Icons.arrow_forward_ios, size: 16*scale, color: Colors.grey),
+                Icon(Icons.arrow_forward_ios,
+                    size: 16 * scale, color: Colors.grey),
               ],
             ),
             // Add subtitle only if provided
-            if (subtitle != null) _buildSubTitleSettingOption(subtitle,scale),
+            if (subtitle != null) _buildSubTitleSettingOption(subtitle, scale),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSubTitleSettingOption(subtitle,double scale) {
+  Widget _buildSubTitleSettingOption(subtitle, double scale) {
     return Padding(
-      padding: EdgeInsets.only(left: 50.w,right: 50.w, top: 4.h), // Adjust padding for alignment
+      padding: EdgeInsets.only(
+          left: 50.w, right: 50.w, top: 4.h), // Adjust padding for alignment
       child: Text(
         subtitle,
         style: TextStyle(
           fontFamily: "NotoSansUI",
-          fontSize: 13*scale, // Smaller font size
+          fontSize: 13 * scale, // Smaller font size
           color: Colors.grey, // Grey color
         ),
       ),
     );
   }
 
-  void _showLogoutDialog(BuildContext context,double scale) {
+  void _showLogoutDialog(BuildContext context, double scale) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -225,15 +252,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             elevation: 0,
             backgroundColor: Colors.transparent,
-            child: _buildLogoutDialogContent(dialogContext,scale),
+            child: _buildLogoutDialogContent(dialogContext, scale),
           ),
         );
       },
     );
   }
 
-  Widget _buildLogoutDialogContent(BuildContext context,double scale) {
-    final localizationService = Provider.of<LocalizationService>(context, listen: false);
+  Widget _buildLogoutDialogContent(BuildContext context, double scale) {
+    final localizationService =
+        Provider.of<LocalizationService>(context, listen: false);
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.0),
       child: BackdropFilter(
@@ -254,7 +282,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 localizationService.getLocalizedString('logoutBody'),
                 style: TextStyle(
-                  fontSize: 18*scale,
+                  fontSize: 18 * scale,
                   fontFamily: "NotoSansUI",
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -266,45 +294,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildDialogButton(
-                    context: context,
-                    label: localizationService.getLocalizedString('cancel'),
-                    onPressed: () => Navigator.of(context).pop(),
-                    backgroundColor: Colors.grey.shade300,
-                    textColor: Colors.black,
-                    scale:scale
-                  ),
+                      context: context,
+                      label: localizationService.getLocalizedString('cancel'),
+                      onPressed: () => Navigator.of(context).pop(),
+                      backgroundColor: Colors.grey.shade300,
+                      textColor: Colors.black,
+                      scale: scale),
                   _buildDialogButton(
-                    context: context,
-                    label: localizationService.getLocalizedString('logout'),
-                    onPressed: () async {
-                      // Immediately show loading
-                      PaymentService.showLoadingOnly(context,scale);
+                      context: context,
+                      label: localizationService.getLocalizedString('logout'),
+                      onPressed: () async {
+                        // Immediately show loading
+                        PaymentService.showLoadingOnly(context, scale);
 
-                      var connectivityResult = await (Connectivity().checkConnectivity());
-                      if(connectivityResult.toString() != '[ConnectivityResult.none]'){
-                        try {
-                        print("logout have internet");
-                        SharedPreferences prefs = await SharedPreferences.getInstance();
-                        String? tokenID = prefs.getString('token');
+                        var connectivityResult =
+                            await (Connectivity().checkConnectivity());
+                        if (connectivityResult.toString() !=
+                            '[ConnectivityResult.none]') {
+                          try {
+                            print("logout have internet");
+                            SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+                            String? tokenID = prefs.getString('token');
 
-                        String finalLogout ="${apiUrlLogout}?token=${tokenID}";
-                        print("url :${finalLogout}");
+                            String finalLogout =
+                                "${apiUrlLogout}?token=${tokenID}";
+                            print("url :${finalLogout}");
 
-                        NetworkHelper helper = NetworkHelper(url: finalLogout);
+                            NetworkHelper helper =
+                                NetworkHelper(url: finalLogout);
 
-                          var logoutStatus = await helper.getData();
-                          print("logout.status :${logoutStatus}");
+                            var logoutStatus = await helper.getData();
+                            print("logout.status :${logoutStatus}");
+                          } catch (e) {
+                            print("logout failed :${e}");
+                          }
                         }
-                        catch (e) {
-                          print("logout failed :${e}");
-                        }
-                      }
-                      PaymentService.completeLogout(context);
-                    },
-                    backgroundColor: Color(0xFFC62828),
-                    textColor: Colors.white,
-                    scale:scale
-                  ),
+                        PaymentService.completeLogout(context);
+                      },
+                      backgroundColor: Color(0xFFC62828),
+                      textColor: Colors.white,
+                      scale: scale),
                 ],
               ),
             ],
@@ -321,7 +351,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required Color backgroundColor,
     required Color textColor,
     required double scale,
-
   }) {
     return ElevatedButton(
       onPressed: onPressed,
@@ -329,7 +358,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: backgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      child: Text(label, style: TextStyle(fontFamily: "NotoSansUI", color: textColor,fontSize: 14*scale)),
+      child: Text(label,
+          style: TextStyle(
+              fontFamily: "NotoSansUI",
+              color: textColor,
+              fontSize: 14 * scale)),
     );
   }
 }

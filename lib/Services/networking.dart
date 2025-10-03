@@ -7,7 +7,7 @@ import 'dart:io';
 
 class NetworkHelper {
   final String? url;
-  final Map<String, dynamic>? map;
+  final dynamic map;
   final Map<String, String>? headers;
   final String method;
   final Duration timeoutDuration;
@@ -24,6 +24,7 @@ class NetworkHelper {
     try {
       http.Response response;
       if (method == 'POST') {
+        print("request info \nbody:${map}\nurl:${url}");
         response = await http
             .post(
               Uri.parse(url!),
@@ -34,17 +35,34 @@ class NetworkHelper {
               body: map != null ? jsonEncode(map) : null,
             )
             .timeout(timeoutDuration);
-        print("after send request");
       } else if (method == 'GET') {
-        response = await http
-            .get(
-              Uri.parse(url!),
-              headers: headers ??
-                  {
-                    'Content-Type': 'application/json ',
-                  },
-            )
-            .timeout(timeoutDuration);
+        if (map != null && map!.isNotEmpty) {
+          var request = http.Request('GET', Uri.parse(url!));
+
+          final requestHeaders = headers ??
+              {
+                'Content-Type': 'application/json',
+              };
+          request.headers.addAll(requestHeaders);
+          request.body = jsonEncode(map);
+
+          print("GET Request URL: ${request.url}");
+          print("GET Request Headers: $requestHeaders");
+          print("GET Request Body: ${jsonEncode(map)}");
+
+          var streamedResponse = await request.send().timeout(timeoutDuration);
+          response = await http.Response.fromStream(streamedResponse);
+        } else {
+          response = await http
+              .get(
+                Uri.parse(url!),
+                headers: headers ??
+                    {
+                      'Content-Type': 'application/json ',
+                    },
+              )
+              .timeout(timeoutDuration);
+        }
       } else {
         throw Exception('Unsupported HTTP method: $method');
       }
@@ -89,22 +107,6 @@ class NetworkHelper {
       return {
         'error': 'Exception: $e',
       };
-    }
-  }
-
-  Future<bool> testConnection() async {
-    try {
-      http.Response response =
-          await http.get(Uri.parse(url!)).timeout(timeoutDuration);
-      if (response.statusCode == 200) {
-        print('response' + response.toString());
-        return true;
-      } else {
-        print('response' + response.toString());
-        return false;
-      }
-    } catch (e) {
-      return false;
     }
   }
 

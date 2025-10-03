@@ -1,8 +1,7 @@
 import '../Screens/DashboardScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../Services/LocalizationService.dart'; // Import your LocalizationService class
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../Services/LocalizationService.dart';
 
 class LanguageSettingsScreen extends StatelessWidget {
   @override
@@ -107,16 +106,12 @@ class LanguageSettingsScreen extends StatelessWidget {
       },
     );
 
-    // Delay language update until after loading indicator is dismissed
     Future.delayed(Duration(seconds: 2), () {
       Navigator.of(context).pop(); // Close the dialog
       Provider.of<LocalizationService>(context, listen: false)
           .selectedLanguageCode = languageCode;
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  DashboardScreen())); // Navigate to DashboardPage
+          context, MaterialPageRoute(builder: (context) => DashboardScreen()));
     });
   }
 }

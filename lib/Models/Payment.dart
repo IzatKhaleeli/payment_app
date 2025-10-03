@@ -1,6 +1,4 @@
-import 'package:http/http.dart';
-
-import '../core/utils/enum/portal_status.dart';
+import '../core/utils/enum/cancellation_status_enum.dart';
 
 class Payment {
   String voucherSerialNumber;
@@ -24,8 +22,7 @@ class Payment {
   int isDepositChecked;
   String? msisdnReceipt;
   int? isDisconnected;
-  PortalStatus? acceptanceStatus;
-  PortalStatus? cancellationStatus;
+  CancellationStatus? cancellationStatus;
 
   Payment({
     this.transactionDate,
@@ -49,7 +46,6 @@ class Payment {
     required this.isDepositChecked,
     this.isDisconnected = 0,
     this.msisdnReceipt,
-    this.acceptanceStatus,
     this.cancellationStatus,
   }) {}
 
@@ -115,10 +111,8 @@ class Payment {
           : null,
       isDepositChecked: map['isDepositChecked'],
       isDisconnected: map['isDisconnected'],
-      acceptanceStatus:
-          PortalStatusExtension.fromString(map['acceptanceStatus']),
       cancellationStatus:
-          PortalStatusExtension.fromString(map['cancellationStatus']),
+          CancellationStatusExtension.fromString(map['cancellationStatus']),
     );
   }
   // delete vougher serial number duplicate
@@ -145,7 +139,6 @@ class Payment {
       'cancellationDate': cancellationDate?.toIso8601String(),
       'isDepositChecked': isDepositChecked,
       'isDisconnected': isDisconnected,
-      'acceptanceStatus': acceptanceStatus?.value,
       'cancelStatus': cancellationStatus?.value,
     };
   }
@@ -162,7 +155,7 @@ class Payment {
         'status: $status, id: $id, transactionDate: $transactionDate, '
         'lastUpdatedDate: $lastUpdatedDate, cancelReason: $cancelReason, '
         'cancellationDate: $cancellationDate, isDepositChecked: $isDepositChecked, '
-        'isDisconnected: $isDisconnected, acceptanceStatus: ${acceptanceStatus?.value}, '
+        'isDisconnected: $isDisconnected, '
         'cancellationStatus: ${cancellationStatus?.value})';
   }
 }

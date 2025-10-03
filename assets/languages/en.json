@@ -154,8 +154,8 @@
   "saved": "Saved",
   "synced": "Synced",
   "confirmed": "Confirmed",
-  "cancelpending": "Cancel Pending",
-  "cancelled": "Submitted to cancel",
+  "CancelPending": "Cancel Pending",
+  "Cancelled": "Submitted to cancel",
 
   "noInternetConnection": "No Internet Connection",
   "noInternet": "No internet connection detected. Please check your network settings and try again.",
@@ -168,15 +168,11 @@
   "sendPaymentOptions": "Send Payment Options",
   "cancelPayment": "Cancel Payment",
   "editPayment": "edit Payment",
-
   "saveAndConfirm": "Submit",
-  "editPayment": "Edit Payment",
   "selectStatus": "Select Status",
-
   "reasonCancellation": "Reason of cancellation",
   "enterTheReasonHere": "Enter the reason here",
   "paymentCancelledSuccessfully": "Payment cancelled successfully",
-
   "checoutPdf": "Check out this PDF",
   "receiptVoucher": "Receipt Voucher (copy)",
   "customersDetail": "Customers Detail",
@@ -264,8 +260,15 @@
   "msisdn_receipt":"Mobile number for receipt",
   "isDisconnected":"Disconnected",
   "pending": "Pending",
+  "accepted": "Accepted",
   "rejected": "Rejected",
   "completed": "Completed",
   "acceptanceStatus":"Acceptance status", 
-  "cancellationStatus":"Cancellation status"
+  "cancellationStatus":"Cancellation status",
+  "submittedtocancel":"Submitted to cancel",
+  "clearAll":"Clear all",
+  "applyFilters": "Apply filters",
+  "selected": "selected",
+  "filterOptions": "Filter options",
+  "notSelectedYet": "Not specified"
 }
