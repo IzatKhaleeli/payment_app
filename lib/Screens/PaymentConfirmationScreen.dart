@@ -69,7 +69,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   String languageCode = "";
   String cancelReason = "";
   String isDisconnected = "";
-  String acceptanceStatus = "";
   String cancellationStatus = "";
 
   String saved = "";
@@ -260,8 +259,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     confirmed = localizationService.getLocalizedString('confirmed');
     cancelled = localizationService.getLocalizedString('Cancelled');
     cancelPending = localizationService.getLocalizedString('cancelpending');
-    acceptanceStatus =
-        localizationService.getLocalizedString('acceptanceStatus');
     cancellationStatus =
         localizationService.getLocalizedString('cancellationStatus');
   }
@@ -443,16 +440,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                     .getLocalizedString('no')
                 : Provider.of<LocalizationService>(context, listen: false)
                     .getLocalizedString('yes'),
-          ),
-          _divider(scale),
-          _detailItem(
-            scale,
-            acceptanceStatus,
-            paymentDetails['acceptanceStatus'] != null
-                ? Provider.of<LocalizationService>(context, listen: false)
-                    .getLocalizedString(
-                        paymentDetails['acceptanceStatus']!.toLowerCase())
-                : '',
           ),
           _divider(scale),
           _detailItem(

@@ -17,10 +17,10 @@ class PaymentDetailRow extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 3.0 * scale),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start, // allow multi-line value
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        textDirection: Directionality.of(context),
         children: [
-          // Title
-          Expanded(
+          Flexible(
             flex: 1,
             child: Text(
               title,
@@ -30,12 +30,11 @@ class PaymentDetailRow extends StatelessWidget {
                 color: Colors.grey.shade500,
               ),
               softWrap: true,
-              overflow: TextOverflow.ellipsis,
+              overflow: TextOverflow.visible,
             ),
           ),
           const SizedBox(width: 8.0),
-          // Value aligned to end
-          Expanded(
+          Flexible(
             flex: 1,
             child: Text(
               value,
@@ -45,7 +44,7 @@ class PaymentDetailRow extends StatelessWidget {
                 color: Colors.black87,
               ),
               softWrap: true,
-              textAlign: TextAlign.right, // keep at end
+              textAlign: TextAlign.end,
             ),
           ),
         ],

@@ -51,7 +51,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   Map<String, String> _currencies = {};
   Map<String, String> _banks = {};
 
-  void _fetchPayments() async {
+  Future<void> _fetchPayments() async {
     if (!mounted) return;
     if (_currencies == null || _currencies.length < 1) {
       // print("no currency");
@@ -98,6 +98,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     List<Map<String, dynamic>> payments =
         await DatabaseProvider.getPaymentsWithDateFilter(_selectedFromDate,
             _selectedToDate, _selectedStatuses, usernameLogin.toLowerCase());
+
+    // print("_fetchPayments|getPaymentsWithDateFilter ${payments}");
     String? dueDateCheckString;
     DateTime? dueDateCheck;
     String? lastUpdatedDateString;
@@ -116,13 +118,16 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           cancellationDateString = payment['cancellationDate'];
 
           if (cancellationDateString != null &&
-              cancellationDateString!.isNotEmpty)
+              cancellationDateString!.isNotEmpty) {
+            print("cancellationDateString not null");
             try {
               cancellationDate = DateTime.parse(cancellationDateString!);
             } catch (e) {
-              //print('Error parsing cancellationDate: $cancellationDate');
               cancellationDate = null;
             }
+          } else {
+            cancellationDate = null;
+          }
 
           if (payment['voucherSerialNumber'] != null)
             serialNumber = payment['voucherSerialNumber'];
@@ -159,7 +164,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           } else {
             transactionDate = null;
           }
-          // print("payment :${payment}");
+          print("the cancellation date after assign :${cancellationDate}");
           return Payment(
               id: payment['id'],
               transactionDate: transactionDate,
@@ -200,8 +205,21 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   }
 
   Future<void> _fetchPortalStatuses() async {
+    print('_fetchPortalStatuses');
+    print('_paymentRecords ${_paymentRecords}');
     try {
-      List<String> voucherSerials = ["W-382", "W-383"];
+      List<String> voucherSerials = _paymentRecords
+          .where((payment) =>
+              payment.status.toLowerCase() == 'synced' &&
+              payment.cancellationStatus == null)
+          .map((payment) => payment.voucherSerialNumber)
+          .toList();
+
+      if (voucherSerials.isEmpty) {
+        print("[]");
+        return;
+      }
+      print("Voucher serials to fetch statuses: $voucherSerials");
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? tokenID = prefs.getString('token');
@@ -274,11 +292,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     super.initState();
     _initializeLocalizationStrings();
 
-    _fetchPayments();
+    _fetchPayments().then((_) {
+      _fetchPortalStatuses(); // only after payments are loaded
+    });
 
-    _fetchPortalStatuses();
-
-    _syncSubscription = PaymentService.syncStream.listen((_) {
+    _syncSubscription = PaymentService.syncStream.listen((_) async {
       _fetchPayments();
     });
   }

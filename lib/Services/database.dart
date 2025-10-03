@@ -120,6 +120,9 @@ class DatabaseProvider {
   //Retrieve ConfirmedPayments
   static Future<List<Map<String, dynamic>>>
       getConfirmedOrCancelledPendingPayments() async {
+    print(
+        "getConfirmedOrCancelledPendingPayments method , database.dart started");
+
     Database db = await database;
 
     List<Map<String, dynamic>> payments = await db.query(
@@ -133,6 +136,8 @@ class DatabaseProvider {
 
   //Retrieve a specific payment
   static Future<Map<String, dynamic>?> getPaymentById(int id) async {
+    print("getPaymentById method , database.dart started");
+
     Database db = await database;
     List<Map<String, dynamic>> result = await db.query(
       'payments',
@@ -144,6 +149,8 @@ class DatabaseProvider {
 
   static Future<void> updateSyncedPaymentDetail(
       int id, String voucherSerialNumber, String status) async {
+    print("updateSyncedPaymentDetail method , database.dart started");
+
     try {
       Database db = await database;
 
@@ -180,6 +187,8 @@ class DatabaseProvider {
 
   // Update payment status
   static Future<void> updatePaymentStatus(int id, String status) async {
+    print("updatePaymentStatus method , database.dart started");
+
     try {
       Database db = await database;
       // Update payment status
@@ -202,6 +211,8 @@ class DatabaseProvider {
   }
 
   static Future<void> updateCancellationStatus(int id, String status) async {
+    print("updateCancellationStatus method , database.dart started");
+
     try {
       Database db = await database;
       // Update payment status
@@ -225,6 +236,8 @@ class DatabaseProvider {
 
   // Update Transaction Date
   static Future<void> updateTransactionDate(int id) async {
+    print("updateTransactionDate method , database.dart started");
+
     try {
       Database db = await database;
       Map<String, dynamic>? payment = await getPaymentById(id);
@@ -257,6 +270,8 @@ class DatabaseProvider {
   // Update last Update Date
   static Future<void> updateLastUpdatedDate(
       int id, String lastUpdatedDate) async {
+    print("updateLastUpdatedDate method , database.dart started");
+
     try {
       Database db = await database;
       await db.update(
@@ -317,11 +332,15 @@ class DatabaseProvider {
 
   // Delete a payment by ID
   static Future<void> deletePayment(int id) async {
+    print("deletePayment method , database.dart started");
+
     Database db = await database;
     await db.delete('payments', where: 'id = ?', whereArgs: [id]);
   }
 
   static Future<void> deleteRecordsOlderThan(int days) async {
+    print("deleteRecordsOlderThan method , database.dart started");
+
     Database db = await database;
 
     // Calculate the threshold date
@@ -360,6 +379,8 @@ class DatabaseProvider {
   }
 
   static String formatDateTimeWithMilliseconds(DateTime dateTime) {
+    print("formatDateTimeWithMilliseconds method , database.dart started");
+
     final DateFormat formatter = DateFormat('yyyy-MM-ddTHH:mm:ss.SSS');
     print(formatter.format(
         dateTime)); // This should print the date and time without milliseconds
