@@ -32,8 +32,10 @@ class _SmsBottomSheetState extends State<SmsBottomSheet> {
   void initState() {
     super.initState();
     _loadSavedLanguageCode();
-    if (widget.payment.msisdn != null)
-      _phoneController.text = widget.payment.msisdn!;
+    if (widget.payment.msisdn != null) {
+      _phoneController.text =
+          widget.payment.msisdnReceipt ?? widget.payment.msisdn!;
+    }
     _phoneFocusNode.addListener(() {
       setState(() {
         if (_phoneFocusNode.hasFocus) {

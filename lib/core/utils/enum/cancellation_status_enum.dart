@@ -2,7 +2,7 @@ enum CancellationStatus {
   cancelPending,
   submitedToCancel,
   rejected,
-  accepted,
+  completed,
 }
 
 extension CancellationStatusExtension on CancellationStatus {
@@ -14,8 +14,8 @@ extension CancellationStatusExtension on CancellationStatus {
         return 'Cancelled';
       case CancellationStatus.rejected:
         return 'rejected';
-      case CancellationStatus.accepted:
-        return 'accepted';
+      case CancellationStatus.completed:
+        return 'completed';
     }
   }
 
@@ -27,8 +27,8 @@ extension CancellationStatusExtension on CancellationStatus {
         return CancellationStatus.submitedToCancel;
       case 'rejected':
         return CancellationStatus.rejected;
-      case 'accepted':
-        return CancellationStatus.accepted;
+      case 'completed':
+        return CancellationStatus.completed;
       default:
         return null;
     }

@@ -5,7 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:ooredoo_app/Screens/printerService/PrinterSettingScreen.dart';
-import 'package:ooredoo_app/Screens/printerService/androidBluetoothFeaturesScreen.dart';
+import 'package:ooredoo_app/Screens/record_diconnected_payment/record_diconnected_payment.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/LocalizationService.dart';
@@ -194,18 +194,25 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           padding: const EdgeInsets.all(2.0),
           child: FloatingActionButton(
             onPressed: () {
-              // Navigate to the RecordPaymentScreen with the optional paymentParams
               print("payment detail to pass to record screen :");
               print(widget.paymentDetails);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => RecordPaymentScreen(
-                    paymentParams:
-                        widget.paymentDetails, // Pass the paymentParams here
-                  ),
-                ),
-              );
+              (widget.paymentDetails?['msisdnReceipt'] != null)
+                  ? Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RecordPaymentDisconnectedScreen(
+                          paymentParams: widget.paymentDetails!,
+                        ),
+                      ),
+                    )
+                  : Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RecordPaymentScreen(
+                          paymentParams: widget.paymentDetails!,
+                        ),
+                      ),
+                    );
             },
             backgroundColor: AppColors.primaryRed,
             child: Icon(Icons.add, color: Colors.white),
@@ -289,7 +296,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSummaryHeader(scale, paymentDetails['status'].toLowerCase()),
+          _buildSummaryHeader(scale, paymentDetails['status'].toLowerCase(),
+              paymentDetails['cancellationStatus']),
           Divider(
               color: AppColors.primaryRed, thickness: 2, height: 15 * scale),
           if ((paymentDetails['status']?.toLowerCase() == "synced") ||
@@ -464,13 +472,17 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     );
   }
 
-  Widget _buildSummaryHeader(double scale, String paymentStatus) {
+  Widget _buildSummaryHeader(
+      double scale, String paymentStatus, String? cancellationStatus) {
     // Determine if icons should be shown based on conditions
     bool canEdit = paymentStatus == 'saved';
     bool canDelete = paymentStatus == 'saved';
     bool canConfirm = paymentStatus == 'saved';
-    bool canSend = paymentStatus == 'synced';
-    bool canCancel = paymentStatus == 'synced';
+    bool canView = paymentStatus == 'saved' && paymentStatus != 'confirmed';
+    bool canSend = (paymentStatus != 'saved' &&
+        paymentStatus != 'confirmed' &&
+        paymentStatus != 'rejected');
+    bool canCancel = (paymentStatus == 'synced' && cancellationStatus == null);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -486,7 +498,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            if (canSend)
+            if (canView)
               Tooltip(
                 message:
                     Provider.of<LocalizationService>(context, listen: false)

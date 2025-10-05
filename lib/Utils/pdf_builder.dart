@@ -276,7 +276,6 @@ class PdfHelper {
     required Map<String, String> localizedStrings,
     required isEnglish,
   }) {
-    // Only one template for now (current colored/black&white style)
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [

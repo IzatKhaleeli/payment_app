@@ -208,9 +208,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     // print('_paymentRecords ${_paymentRecords}');
     try {
       List<String> voucherSerials = _paymentRecords
-          .where((payment) =>
-              payment.status.toLowerCase() == 'synced' &&
-              payment.cancellationStatus == null)
+          .where((payment) => payment.status.toLowerCase() == 'synced'
+              // &&
+              // payment.cancellationStatus == null
+              )
           .map((payment) => payment.voucherSerialNumber)
           .toList();
 
@@ -250,6 +251,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               "Cancel: ${item['cancelStatus']}",
             );
           }
+
+          await DatabaseProvider.updatePaymentsFromPortalStatus(
+            List<Map<String, dynamic>>.from(data),
+          );
         } else if (status == 401) {
           int tokenStatus = await PaymentService.attemptReLogin(context);
           if (tokenStatus == 200) {
@@ -337,75 +342,73 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             onRefresh: () async {
               await _fetchPortalStatuses();
             },
-            child: SingleChildScrollView(
+            child: ListView(
               padding: EdgeInsets.all(12.w),
-              child: Column(
-                children: [
-                  PaymentFilterSection(
-                    scale: scale,
-                    fromController: _fromDateController,
-                    toController: _toDateController,
-                    onFromDateSelected: (date) {
-                      setState(() => _selectedFromDate = date);
-                      _fetchPayments();
-                    },
-                    onToDateSelected: (date) {
-                      setState(() => _selectedToDate = date);
-                      _fetchPayments();
-                    },
-                    onFilterPressed: () {
-                      showFilterDialog(
-                        context: context,
-                        scale: scale,
-                        selectedStatuses: _selectedStatuses,
-                        selectedCancellationStatuses:
-                            _selectedCancellationStatuses,
-                        onApply: () {
-                          _fetchPayments();
-                          setState(() {});
-                        },
-                      );
-                    },
-                    fromLabel: from,
-                    toLabel: to,
-                  ),
-                  SelectedFiltersSummary(
-                    scale: scale,
-                    statusCount: _selectedStatuses.length,
-                    cancellationCount: _selectedCancellationStatuses.length,
-                    onClearStatus: () {
-                      setState(() {
-                        _selectedStatuses.clear();
-                        _fetchPayments();
-                      });
-                    },
-                    onClearCancellation: () {
-                      setState(() {
-                        _selectedCancellationStatuses.clear();
-                        _fetchPayments();
-                      });
-                    },
-                  ),
-                  SizedBox(height: 10.h),
-                  Divider(
-                    color: Colors.grey[400],
-                    height: 3,
-                    thickness: 2,
-                    indent: 8,
-                    endIndent: 8,
-                  ),
-                  SizedBox(height: 10.h),
-                  Container(
-                    margin: EdgeInsets.only(bottom: 50.h),
-                    child: PaymentRecordsList(
+              children: [
+                PaymentFilterSection(
+                  scale: scale,
+                  fromController: _fromDateController,
+                  toController: _toDateController,
+                  onFromDateSelected: (date) {
+                    setState(() => _selectedFromDate = date);
+                    _fetchPayments();
+                  },
+                  onToDateSelected: (date) {
+                    setState(() => _selectedToDate = date);
+                    _fetchPayments();
+                  },
+                  onFilterPressed: () {
+                    showFilterDialog(
+                      context: context,
                       scale: scale,
-                      paymentRecords: _paymentRecords,
-                      itemBuilder: (scale, record) =>
-                          _buildPaymentRecordItem(scale, record),
-                    ),
+                      selectedStatuses: _selectedStatuses,
+                      selectedCancellationStatuses:
+                          _selectedCancellationStatuses,
+                      onApply: () {
+                        _fetchPayments();
+                        setState(() {});
+                      },
+                    );
+                  },
+                  fromLabel: from,
+                  toLabel: to,
+                ),
+                SelectedFiltersSummary(
+                  scale: scale,
+                  statusCount: _selectedStatuses.length,
+                  cancellationCount: _selectedCancellationStatuses.length,
+                  onClearStatus: () {
+                    setState(() {
+                      _selectedStatuses.clear();
+                      _fetchPayments();
+                    });
+                  },
+                  onClearCancellation: () {
+                    setState(() {
+                      _selectedCancellationStatuses.clear();
+                      _fetchPayments();
+                    });
+                  },
+                ),
+                SizedBox(height: 10.h),
+                Divider(
+                  color: Colors.grey[400],
+                  height: 3,
+                  thickness: 2,
+                  indent: 8,
+                  endIndent: 8,
+                ),
+                SizedBox(height: 10.h),
+                Container(
+                  margin: EdgeInsets.only(bottom: 50.h),
+                  child: PaymentRecordsList(
+                    scale: scale,
+                    paymentRecords: _paymentRecords,
+                    itemBuilder: (scale, record) =>
+                        _buildPaymentRecordItem(scale, record),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           ValueListenableBuilder<String?>(
@@ -487,7 +490,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         break;
       case 'synced':
         statusIcon = Icons.check_circle;
-        statusColor = Colors.green;
+        statusColor = Colors.blue;
 
         break;
       case 'cancelled': //WELL BE DELETED
@@ -500,11 +503,15 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         break;
       case 'accepted':
         statusIcon = Icons.check_circle;
-        statusColor = Colors.green;
+        statusColor = Colors.blue;
         break;
       case 'rejected':
-        statusIcon = Icons.cancel;
+        statusIcon = Icons.close;
         statusColor = AppColors.primaryRed;
+        break;
+      case 'completed':
+        statusIcon = Icons.check_circle;
+        statusColor = Colors.green;
         break;
       default:
         statusIcon = Icons.payment;
@@ -781,7 +788,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                           ),
                         ),
                         if (record.status.toLowerCase() == 'synced' ||
-                            record.status.toLowerCase() == 'accepted' ||
+                            record.status.toLowerCase() == 'completed' ||
                             record.status.toLowerCase() == 'rejected')
                           Tooltip(
                             message: Provider.of<LocalizationService>(context,
@@ -840,8 +847,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                       ],
                     ]),
                     Row(children: [
-                      if (record.status.toLowerCase() == 'synced' ||
-                          record.status.toLowerCase() == 'accepted') ...[
+                      if (record.status.toLowerCase() != 'saved' &&
+                          record.status.toLowerCase() != 'confirmed') ...[
                         Row(
                           children: [
                             Tooltip(

@@ -101,6 +101,58 @@ class DatabaseProvider {
     ''');
   }
 
+  static Future<void> updatePaymentsFromPortalStatus(
+      List<Map<String, dynamic>> portalData) async {
+    print("updatePaymentsFromPortalStatus started");
+    if (portalData.isEmpty) return;
+
+    try {
+      Database db = await database;
+
+      await db.transaction((txn) async {
+        for (var item in portalData) {
+          final voucher = item['voucherSerialNumber'];
+          final acceptanceStatus = item['acceptanceStatus'];
+          final cancelStatus = item['cancelStatus'];
+
+          if (voucher == null) continue;
+
+          final Map<String, dynamic> updates = {};
+
+          if (acceptanceStatus != null &&
+              acceptanceStatus.toString().toLowerCase() != 'pending') {
+            updates['status'] = acceptanceStatus.toString().toLowerCase();
+          }
+
+          if (cancelStatus != null &&
+              cancelStatus.toString().toLowerCase() != 'pending') {
+            updates['cancellationStatus'] =
+                cancelStatus.toString().toLowerCase();
+          }
+
+          if (updates.isNotEmpty) {
+            print(
+                "Updating voucher $voucher → ${updates.map((k, v) => MapEntry(k, v))}");
+
+            await txn.update(
+              'payments',
+              updates,
+              where: 'voucherSerialNumber = ?',
+              whereArgs: [voucher],
+            );
+          } else {
+            print("Skipping voucher $voucher — statuses are 'Pending' or null");
+          }
+        }
+      });
+
+      print("updatePaymentsFromPortalStatus finished successfully");
+    } catch (e) {
+      print("Error updating portal statuses: $e");
+      throw Exception('Failed to update payments from portal status');
+    }
+  }
+
   static Future<List<Map<String, dynamic>>> getAllPayments(
       String userId) async {
     print("printAllPayments method , database.dart started");

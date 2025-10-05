@@ -129,7 +129,7 @@ class PaymentService {
 
             await SmsService.sendSmsRequest(
                 context,
-                p["msisdn"],
+                p["msisdnReceipt"] ?? p["msisdn"],
                 'ar',
                 amount,
                 p["currency"],
@@ -219,10 +219,9 @@ class PaymentService {
                 ? (payment["amount"]?.toString() ?? '0')
                 : (payment["amountCheck"]?.toString() ?? '0');
 
-        //  await SmsService.sendSmsRequest(context, payment["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, payment["currency"], voucherSerialNumber, Provider.of<LocalizationService>(context, listen: false).getLocalizedString(payment["paymentMethod"].toString().toLowerCase()));
         await SmsService.sendSmsRequest(
             context,
-            payment["msisdn"],
+            payment["msisdnReceipt"] ?? payment["msisdn"],
             'ar',
             amount,
             payment["currency"],
@@ -289,11 +288,9 @@ class PaymentService {
             paymentToCancel["paymentMethod"].toString().toLowerCase() == 'cash'
                 ? (paymentToCancel["amount"]?.toString() ?? '0')
                 : (paymentToCancel["amountCheck"]?.toString() ?? '0');
-
-        //await SmsService.sendSmsRequest(context, paymentToCancel["msisdn"], Provider.of<LocalizationService>(context, listen: false).selectedLanguageCode, amount, paymentToCancel["currency"], paymentToCancel["voucherSerialNumber"], Provider.of<LocalizationService>(context, listen: false).getLocalizedString(paymentToCancel["paymentMethod"].toString().toLowerCase()),isCancel: true);
         await SmsService.sendSmsRequest(
             context,
-            paymentToCancel["msisdn"],
+            paymentToCancel["msisdnReceipt"] ?? paymentToCancel["msisdn"],
             'ar',
             amount,
             paymentToCancel["currency"],
