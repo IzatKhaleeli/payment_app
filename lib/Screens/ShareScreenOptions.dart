@@ -198,6 +198,8 @@ class ShareScreenOptions {
       {bool showTemplateOption = true}) {
     //String systemLanguageCode = Localizations.localeOf(context).languageCode; // Get system's default language
     String _selectedLanguageCode = 'ar';
+    isBlackAndWhiteFlag = true;
+
     String appLanguage =
         Provider.of<LocalizationService>(context, listen: false)
             .selectedLanguageCode;
