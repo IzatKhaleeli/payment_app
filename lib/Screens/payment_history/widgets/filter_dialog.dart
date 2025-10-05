@@ -43,6 +43,7 @@ void showFilterDialog({
             required String Function(T) getLabel,
           }) {
             return ExpansionTile(
+              initiallyExpanded: true,
               tilePadding: EdgeInsets.symmetric(horizontal: 8 * scale),
               title: Text(
                 "$title (${selected.length} ${localizationService.getLocalizedString('selected')})",
@@ -51,7 +52,7 @@ void showFilterDialog({
               ),
               children: items.map((item) {
                 return CheckboxListTile(
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12 * scale),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 8 * scale),
                   title: Text(
                     getLabel(item),
                     style: TextStyle(color: Colors.black, fontSize: 12 * scale),
@@ -59,6 +60,8 @@ void showFilterDialog({
                   value: selected.contains(item),
                   activeColor: AppColors.primaryRed,
                   controlAffinity: ListTileControlAffinity.leading,
+                  visualDensity:
+                      const VisualDensity(horizontal: 0, vertical: -4),
                   onChanged: (bool? value) {
                     setState(() {
                       if (value == true) {
@@ -87,7 +90,7 @@ void showFilterDialog({
                     maxHeight: maxDialogHeight,
                   ),
                   child: AlertDialog(
-                    insetPadding: EdgeInsets.all(12 * scale),
+                    insetPadding: EdgeInsets.all(8 * scale),
                     contentPadding: EdgeInsets.all(8 * scale),
                     titlePadding: EdgeInsets.symmetric(
                         horizontal: 12 * scale, vertical: 8 * scale),
@@ -124,7 +127,7 @@ void showFilterDialog({
                       ],
                     ),
                     content: SizedBox(
-                      height: maxDialogHeight * 0.75,
+                      height: maxDialogHeight * 0.76,
                       child: SingleChildScrollView(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
