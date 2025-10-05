@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_Widgets/CustomPopups.dart';
 import '../../Services/LocalizationService.dart';
+import '../../core/constants.dart';
 import 'androidBluetoothFeaturesScreen.dart';
 import 'setAsDefaultBottomSheet.dart';
 import 'iosMethods.dart' as iosPlat;
@@ -98,7 +99,7 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
           ? Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(
-                    Color(0xFFC62828)), // Color of the spinner
+                    AppColors.primaryRed), // Color of the spinner
               ),
             )
           : ((Platform.isAndroid && pairedDevices.isEmpty) ||
@@ -504,7 +505,7 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
                                         color: (isConnected &&
                                                 defaultDeviceAddress ==
                                                     device['address'])
-                                            ? Color(0xFFC62828)
+                                            ? AppColors.primaryRed
                                             : Colors.black,
                                       ),
                                     ),
@@ -602,7 +603,7 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
                   : onPressed, // Use the passed in callback function
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
-                backgroundColor: Color(0xFFC62828), // Text color
+                backgroundColor: AppColors.primaryRed, // Text color
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12), // Rounded corners
                 ),
@@ -658,7 +659,7 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
     if (!bluetoothStatus) {
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
+        icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
         message: Provider.of<LocalizationService>(context, listen: false)
             .getLocalizedString("bluetooth_off_message"),
         buttonText: Provider.of<LocalizationService>(context, listen: false)

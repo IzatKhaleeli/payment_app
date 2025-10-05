@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/constants.dart';
+
 class CustomDateField extends StatelessWidget {
   final double scale;
   final String label;
@@ -23,7 +25,8 @@ class CustomDateField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(fontSize: 12 * scale),
-        suffixIcon: const Icon(Icons.calendar_today, color: Color(0xFFC62828)),
+        suffixIcon:
+            const Icon(Icons.calendar_today, color: AppColors.primaryRed),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         fillColor: Colors.white,
         filled: true,

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../Services/LocalizationService.dart';
 import '../Services/database.dart';
+import '../core/constants.dart';
 
 class PaymentCancellationScreen extends StatefulWidget {
   final int id;
@@ -96,7 +97,7 @@ class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide:
-                          BorderSide(color: Color(0xFFC62828), width: 1.5),
+                          BorderSide(color: AppColors.primaryRed, width: 1.5),
                     ),
                     errorText: _errorText,
                   ),
@@ -117,7 +118,7 @@ class _PaymentCancellationScreenState extends State<PaymentCancellationScreen> {
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFC62828),
+                        backgroundColor: AppColors.primaryRed,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
                       ),

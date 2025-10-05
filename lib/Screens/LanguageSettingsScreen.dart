@@ -2,6 +2,7 @@ import '../Screens/DashboardScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../Services/LocalizationService.dart';
+import '../core/constants.dart';
 
 class LanguageSettingsScreen extends StatelessWidget {
   @override
@@ -14,7 +15,7 @@ class LanguageSettingsScreen extends StatelessWidget {
     final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFC62828), // Set app bar color to red
+        backgroundColor: AppColors.primaryRed, // Set app bar color to red
         title: Text(
           localizationService.getLocalizedString('languageSettings'),
           style: TextStyle(
@@ -99,7 +100,7 @@ class LanguageSettingsScreen extends StatelessWidget {
             height: 100,
             child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(
-                  Color(0xFFC62828)), // Customize color if needed
+                  AppColors.primaryRed), // Customize color if needed
             ),
           ),
         );
@@ -151,7 +152,7 @@ class _LanguageCard extends StatelessWidget {
                 language,
                 style: TextStyle(
                   fontSize: 16 * scale,
-                  color: isSelected ? const Color(0xFFC62828) : Colors.black,
+                  color: isSelected ? AppColors.primaryRed : Colors.black,
                 ),
               ),
             ],

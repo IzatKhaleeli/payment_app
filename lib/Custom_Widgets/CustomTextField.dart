@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/constants.dart';
+
 class CustomTextField extends StatefulWidget {
   final String hint;
   final IconData icon;
@@ -58,12 +60,12 @@ class _CustomTextFieldState extends State<CustomTextField> {
         decoration: InputDecoration(
           hintText: widget.hint,
           hintStyle: hintStyle,
-          prefixIcon: Icon(widget.icon, color: Color(0xFFC62828)),
+          prefixIcon: Icon(widget.icon, color: AppColors.primaryRed),
           suffixIcon: widget.obscureText
               ? IconButton(
                   icon: Icon(
                       _isObscured ? Icons.visibility_off : Icons.visibility),
-                  color: Color(0xFFC62828),
+                  color: AppColors.primaryRed,
                   onPressed: _togglePasswordVisibility,
                 )
               : null, // Only add the toggle icon if obscureText is initially true
@@ -83,7 +85,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: borderRadius,
-            borderSide: BorderSide(color: Color(0xFFC62828), width: 1),
+            borderSide: BorderSide(color: AppColors.primaryRed, width: 1),
           ),
         ),
       ),

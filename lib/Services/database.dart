@@ -120,8 +120,8 @@ class DatabaseProvider {
   //Retrieve ConfirmedPayments
   static Future<List<Map<String, dynamic>>>
       getConfirmedOrCancelledPendingPayments() async {
-    print(
-        "getConfirmedOrCancelledPendingPayments method , database.dart started");
+    // print(
+    //     "getConfirmedOrCancelledPendingPayments method , database.dart started");
 
     Database db = await database;
 

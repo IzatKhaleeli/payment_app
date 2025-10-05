@@ -6,6 +6,7 @@ import '../../Models/Bank.dart';
 import '../../Models/Currency.dart';
 import '../../Services/database.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants.dart';
 import '../PaymentConfirmationScreen.dart';
 import '../../Models/Payment.dart';
 import '../../Services/LocalizationService.dart';
@@ -285,7 +286,7 @@ class _RecordPaymentDisconnectedScreenState
                 color: Colors.white,
                 fontSize: 22 * scale,
                 fontFamily: 'NotoSansUI')),
-        backgroundColor: const Color(0xFFC62828),
+        backgroundColor: AppColors.primaryRed,
       ),
       body: GestureDetector(
         onTap: () {
@@ -530,7 +531,7 @@ class _RecordPaymentDisconnectedScreenState
                       text: localizationService
                           .getLocalizedString('confirmPayment'),
                       onPressed: () => _confirmPayment(localizationService),
-                      backgroundColor: const Color(0xFFC62828),
+                      backgroundColor: AppColors.primaryRed,
                       scale: scale,
                       padding: EdgeInsets.symmetric(vertical: 12.h),
                     ),
@@ -578,7 +579,7 @@ class _RecordPaymentDisconnectedScreenState
         SnackBar(
           content: Text(
               '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('customerName')} ${isRequired}'),
-          backgroundColor: Color(0xFFC62828),
+          backgroundColor: AppColors.primaryRed,
         ),
       );
       return false;
@@ -589,7 +590,7 @@ class _RecordPaymentDisconnectedScreenState
         SnackBar(
           content: Text(
               '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('MSISDN')} ${isRequired}'),
-          backgroundColor: Color(0xFFC62828),
+          backgroundColor: AppColors.primaryRed,
         ),
       );
       return false;
@@ -598,7 +599,7 @@ class _RecordPaymentDisconnectedScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(maxLengthExceeded),
-          backgroundColor: Color(0xFFC62828),
+          backgroundColor: AppColors.primaryRed,
         ),
       );
       return false;
@@ -610,7 +611,7 @@ class _RecordPaymentDisconnectedScreenState
         SnackBar(
           content: Text(
               '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('paymentMethod')} ${isRequired}'),
-          backgroundColor: Color(0xFFC62828),
+          backgroundColor: AppColors.primaryRed,
         ),
       );
       return false;
@@ -623,7 +624,7 @@ class _RecordPaymentDisconnectedScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(invalidMSISDN),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -636,7 +637,7 @@ class _RecordPaymentDisconnectedScreenState
           SnackBar(
             content: Text(
                 '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('PR')} ${mustContainOnlyNumber}'),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -652,7 +653,7 @@ class _RecordPaymentDisconnectedScreenState
           SnackBar(
             content: Text(localizationService
                 .getLocalizedString('fieldsMissedMessageError')),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -664,7 +665,7 @@ class _RecordPaymentDisconnectedScreenState
             content: Text(
                 Provider.of<LocalizationService>(context, listen: false)
                     .getLocalizedString('invalidAmount')),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -680,7 +681,7 @@ class _RecordPaymentDisconnectedScreenState
           SnackBar(
             content: Text(localizationService
                 .getLocalizedString('fieldsMissedMessageError')),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -693,7 +694,7 @@ class _RecordPaymentDisconnectedScreenState
             content: Text(
                 Provider.of<LocalizationService>(context, listen: false)
                     .getLocalizedString('invalidAmount')),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -705,7 +706,7 @@ class _RecordPaymentDisconnectedScreenState
           SnackBar(
             content: Text(
                 '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('checkNumber')} ${mustContainOnlyNumber}'),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -722,7 +723,7 @@ class _RecordPaymentDisconnectedScreenState
     print("paymymentdetails :${paymentDetails}");
     CustomPopups.showCustomDialog(
       context: context,
-      icon: Icon(Icons.check_circle, size: 60.0, color: Color(0xFFC62828)),
+      icon: Icon(Icons.check_circle, size: 60.0, color: AppColors.primaryRed),
       title: Provider.of<LocalizationService>(context, listen: false)
           .getLocalizedString('confirmPayment'),
       message: Provider.of<LocalizationService>(context, listen: false)
@@ -744,7 +745,7 @@ class _RecordPaymentDisconnectedScreenState
     print("aa");
     CustomPopups.showCustomDialog(
       context: context,
-      icon: Icon(Icons.warning, size: 60.0, color: Color(0xFFC62828)),
+      icon: Icon(Icons.warning, size: 60.0, color: AppColors.primaryRed),
       message: Provider.of<LocalizationService>(context, listen: false)
           .getLocalizedString('savePaymentBody'),
       deleteButtonText: Provider.of<LocalizationService>(context, listen: false)
@@ -775,7 +776,7 @@ class _RecordPaymentDisconnectedScreenState
           SnackBar(
             content: Text(localizationService
                 .getLocalizedString('fieldsMissedMessageError')),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return Payment(
@@ -799,7 +800,7 @@ class _RecordPaymentDisconnectedScreenState
           SnackBar(
             content: Text(localizationService
                 .getLocalizedString('fieldsMissedMessageError')),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return Payment(
@@ -933,7 +934,7 @@ class _RecordPaymentDisconnectedScreenState
       Navigator.pop(context);
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
+        icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
         message:
             '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("unexpectedError")}:\n $e',
         buttonText: Provider.of<LocalizationService>(context, listen: false)

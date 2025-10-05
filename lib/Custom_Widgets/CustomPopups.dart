@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../Services/LocalizationService.dart';
+import '../core/constants.dart';
 
 class CustomPopups {
   static void showCustomDialog({
@@ -50,7 +51,7 @@ class CustomPopups {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFC62828),
+                backgroundColor: AppColors.primaryRed,
               ),
               child: Text(deleteButtonText),
               onPressed: () {
@@ -171,7 +172,7 @@ class CustomPopups {
                           fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'NotoSansUI',
-                          color: Color(0xFFC62828),
+                          color: AppColors.primaryRed,
                         ),
                       ),
                       SizedBox(height: 10.h),
@@ -193,7 +194,8 @@ class CustomPopups {
                                 .pop(); // Dismiss the dialog
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFFC62828), // Button color
+                            backgroundColor:
+                                AppColors.primaryRed, // Button color
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -279,7 +281,7 @@ class CustomPopups {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFC62828), // Red button
+                    backgroundColor: AppColors.primaryRed, // Red button
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

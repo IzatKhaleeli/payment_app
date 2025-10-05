@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../core/constants.dart';
 import 'custom_date_field.dart';
 
 typedef DateSelectedCallback = void Function(DateTime date);
@@ -53,7 +54,7 @@ class PaymentFilterSection extends StatelessWidget {
           Container(
             height: 40.h,
             decoration: BoxDecoration(
-              color: Color(0xFFC62828),
+              color: AppColors.primaryRed,
               borderRadius: BorderRadius.circular(8),
             ),
             child: IconButton(

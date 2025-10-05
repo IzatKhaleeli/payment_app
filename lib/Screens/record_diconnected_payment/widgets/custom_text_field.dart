@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../Utils/DecimalInputFormatter.dart';
+import '../../../core/constants.dart';
 
 class CustomTextField extends StatelessWidget {
   final double scale;
@@ -50,7 +51,7 @@ class CustomTextField extends StatelessWidget {
                   TextSpan(
                     text: ' *',
                     style: TextStyle(
-                      color: const Color(0xFFC62828),
+                      color: AppColors.primaryRed,
                       fontSize: 12 * scale,
                     ),
                   ),
@@ -76,13 +77,13 @@ class CustomTextField extends StatelessWidget {
               prefixIcon: icon != null
                   ? Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 7),
-                      child: Icon(icon, color: const Color(0xFFC62828)),
+                      child: Icon(icon, color: AppColors.primaryRed),
                     )
                   : null,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(
-                  color: Color(0xFFC62828),
+                  color: AppColors.primaryRed,
                   width: 1.5,
                 ),
               ),

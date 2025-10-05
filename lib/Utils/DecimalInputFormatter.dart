@@ -19,19 +19,4 @@ class DecimalInputFormatter extends TextInputFormatter {
       return oldValue; // Reject invalid input
     }
   }
-
-  // void _showSnackBar() {
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     final context = WidgetsBinding.instance.focusManager.primaryFocus?.context;
-  //     if (context != null) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: Text(Provider.of<LocalizationService>(context, listen: false).getLocalizedString('amountFormatter')),
-  //           backgroundColor: Color(0xFFC62828),
-  //           duration: Duration(seconds: 2),
-  //         ),
-  //       );
-  //     }
-  //   });
-  // }
 }

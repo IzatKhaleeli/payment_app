@@ -7,6 +7,7 @@ import '../../Models/Currency.dart';
 import '../../Services/database.dart';
 import 'package:provider/provider.dart';
 import '../../Utils/DecimalInputFormatter.dart';
+import '../../core/constants.dart';
 import '../PaymentConfirmationScreen.dart';
 import '../../Models/Payment.dart';
 import '../../Services/LocalizationService.dart';
@@ -282,7 +283,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                 color: Colors.white,
                 fontSize: 22 * scale,
                 fontFamily: 'NotoSansUI')),
-        backgroundColor: const Color(0xFFC62828),
+        backgroundColor: AppColors.primaryRed,
       ),
       body: GestureDetector(
         onTap: () {
@@ -487,7 +488,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       children: [
         Text(
           '* ',
-          style: TextStyle(color: const Color(0xFFC62828)),
+          style: TextStyle(color: AppColors.primaryRed),
         ),
         Text(
           requiredFields,
@@ -545,7 +546,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                   TextSpan(
                     text: ' *',
                     style: TextStyle(
-                      color: Color(0xFFC62828),
+                      color: AppColors.primaryRed,
                       fontSize: 12 * scale,
                     ),
                   ),
@@ -573,13 +574,13 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               prefixIcon: icon != null
                   ? Padding(
                       padding: EdgeInsets.symmetric(horizontal: 7),
-                      child: Icon(icon, color: Color(0xFFC62828)),
+                      child: Icon(icon, color: AppColors.primaryRed),
                     )
                   : null,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: Color(0xFFC62828),
+                  color: AppColors.primaryRed,
                   width: 1.5,
                 ),
               ),
@@ -621,7 +622,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                   TextSpan(
                     text: ' *',
                     style: TextStyle(
-                      color: Color(0xFFC62828),
+                      color: AppColors.primaryRed,
                       fontSize: 12 * scale,
                     ),
                   ),
@@ -643,7 +644,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(
-                  color: Color(0xFFC62828),
+                  color: AppColors.primaryRed,
                   width: 1.5,
                 ),
               ),
@@ -723,7 +724,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                   TextSpan(
                     text: ' *',
                     style: TextStyle(
-                      color: Color(0xFFC62828),
+                      color: AppColors.primaryRed,
                       fontSize: 12 * scale,
                     ),
                   ),
@@ -745,7 +746,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(
-                  color: Color(0xFFC62828),
+                  color: AppColors.primaryRed,
                   width: 1.5,
                 ),
               ),
@@ -821,7 +822,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                   TextSpan(
                     text: ' *',
                     style: TextStyle(
-                      color: Color(0xFFC62828),
+                      color: AppColors.primaryRed,
                       fontSize: 12 * scale,
                     ),
                   ),
@@ -844,7 +845,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(
-                  color: Color(0xFFC62828),
+                  color: AppColors.primaryRed,
                   width: 1.5,
                 ),
               ),
@@ -905,7 +906,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         SnackBar(
           content: Text(
               '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('customerName')} ${isRequired}'),
-          backgroundColor: Color(0xFFC62828),
+          backgroundColor: AppColors.primaryRed,
         ),
       );
       return false;
@@ -916,7 +917,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         SnackBar(
           content: Text(
               '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('MSISDN')} ${isRequired}'),
-          backgroundColor: Color(0xFFC62828),
+          backgroundColor: AppColors.primaryRed,
         ),
       );
       return false;
@@ -925,7 +926,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(maxLengthExceeded),
-          backgroundColor: Color(0xFFC62828),
+          backgroundColor: AppColors.primaryRed,
         ),
       );
       return false;
@@ -937,7 +938,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         SnackBar(
           content: Text(
               '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('paymentMethod')} ${isRequired}'),
-          backgroundColor: Color(0xFFC62828),
+          backgroundColor: AppColors.primaryRed,
         ),
       );
       return false;
@@ -950,7 +951,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(invalidMSISDN),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -963,7 +964,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
           SnackBar(
             content: Text(
                 '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('PR')} ${mustContainOnlyNumber}'),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -977,7 +978,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(fieldsMissedMessageError),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -989,7 +990,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             content: Text(
                 Provider.of<LocalizationService>(context, listen: false)
                     .getLocalizedString('invalidAmount')),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -1004,7 +1005,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(fieldsMissedMessageError),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -1017,7 +1018,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             content: Text(
                 Provider.of<LocalizationService>(context, listen: false)
                     .getLocalizedString('invalidAmount')),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -1029,7 +1030,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
           SnackBar(
             content: Text(
                 '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('checkNumber')} ${mustContainOnlyNumber}'),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return false;
@@ -1051,7 +1052,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFC62828),
+                backgroundColor: AppColors.primaryRed,
                 padding: EdgeInsets.symmetric(vertical: 12.h),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15)),
@@ -1083,7 +1084,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFC62828),
+                backgroundColor: AppColors.primaryRed,
                 padding: EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15)),
@@ -1108,7 +1109,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
     Payment paymentDetails = _preparePaymentObject('Confirmed');
     CustomPopups.showCustomDialog(
       context: context,
-      icon: Icon(Icons.check_circle, size: 60.0, color: Color(0xFFC62828)),
+      icon: Icon(Icons.check_circle, size: 60.0, color: AppColors.primaryRed),
       title: Provider.of<LocalizationService>(context, listen: false)
           .getLocalizedString('confirmPayment'),
       message: Provider.of<LocalizationService>(context, listen: false)
@@ -1135,7 +1136,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
     print("aa");
     CustomPopups.showCustomDialog(
       context: context,
-      icon: Icon(Icons.warning, size: 60.0, color: Color(0xFFC62828)),
+      icon: Icon(Icons.warning, size: 60.0, color: AppColors.primaryRed),
       message: Provider.of<LocalizationService>(context, listen: false)
           .getLocalizedString('savePaymentBody'),
       deleteButtonText: Provider.of<LocalizationService>(context, listen: false)
@@ -1164,7 +1165,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(fieldsMissedMessageError),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return Payment(
@@ -1187,7 +1188,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(fieldsMissedMessageError),
-            backgroundColor: Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
           ),
         );
         return Payment(
@@ -1314,7 +1315,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       Navigator.pop(context);
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
+        icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
         message:
             '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("unexpectedError")}:\n $e',
         buttonText: Provider.of<LocalizationService>(context, listen: false)

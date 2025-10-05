@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../Services/LocalizationService.dart';
+import '../../../core/constants.dart';
 
 class RecordPaymentWidgets {
   // Static method for Deposit Checkbox
@@ -26,7 +27,7 @@ class RecordPaymentWidgets {
         value: isChecked,
         onChanged: onChanged,
         controlAffinity: ListTileControlAffinity.platform,
-        activeColor: const Color(0xFFC62828),
+        activeColor: AppColors.primaryRed,
         checkColor: Colors.white,
         contentPadding: EdgeInsets.zero,
       ),

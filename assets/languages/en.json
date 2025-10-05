@@ -133,6 +133,8 @@
   "theSumOf": "The sum of",
 
   "receipt": "RECEIPT",
+    "voucher": "VOUCHER",
+
   "time": "Time",
   "thankYou": "Thank You",
 
@@ -181,6 +183,7 @@
   "additionalDetails": "Additional Detail",
   "checkoutPdf": "Checkout Pdf",
   "userid": "User Id",
+  "employeeid": "Employee Name",
   "footerPdf": "Please keep the receipt as proof of payment",
   "hello": "Hello",
 
@@ -269,5 +272,10 @@
   "applyFilters": "Apply filters",
   "selected": "selected",
   "filterOptions": "Filter options",
-  "notSelectedYet": "Not specified"
+  "notSelectedYet": "Not specified",
+  "receiptNumber":"Receipt number",
+  "selectTemplate": "Select receipt template",
+  "b_and_w": "Black & White",
+  "colored": "Colored"
+
 }

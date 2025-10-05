@@ -12,6 +12,7 @@ import '../Services/LocalizationService.dart'; // Adjust import if needed
 import '../Services/PaymentService.dart';
 import '../Services/apiConstants.dart';
 import '../Services/networking.dart';
+import '../core/constants.dart';
 
 class EmailBottomSheet extends StatefulWidget {
   final Payment payment;
@@ -31,6 +32,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
   String? _errorText;
   String _selectedLanguage = 'ar';
   Map<String, dynamic>? _emailJson;
+  bool isBlackAndWhite = true;
 
   @override
   void initState() {
@@ -48,7 +50,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
 
   Future<void> _loadSavedLanguageCode() async {
     setState(() {
-      _selectedLanguage ='ar';
+      _selectedLanguage = 'ar';
     });
 
     // Load the localized message for the saved/default language
@@ -57,7 +59,8 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
 
   Future<void> _loadLocalizedEmailContent(String languageCode) async {
     try {
-      String jsonString = await rootBundle.loadString('assets/languages/$languageCode.json');
+      String jsonString =
+          await rootBundle.loadString('assets/languages/$languageCode.json');
       setState(() {
         _emailJson = jsonDecode(jsonString);
       });
@@ -73,10 +76,16 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     return _emailJson![key] ?? '** $key not found';
   }
 
-  Future<void> sendPdfFileViaApi(BuildContext context,File pdfFile, String toEmail, String subject,String fileName,String languageCode,String transactionDate,) async {
+  Future<void> sendPdfFileViaApi(
+    BuildContext context,
+    File pdfFile,
+    String toEmail,
+    String subject,
+    String fileName,
+    String languageCode,
+    String transactionDate,
+  ) async {
     try {
-
-
       // Add headers
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? tokenID = prefs.getString('token');
@@ -97,45 +106,49 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
 
       NetworkHelper networkHelper = NetworkHelper(
           url: apiUrlEmail, // Replace with your API URL
-          headers: headers
-      );
+          headers: headers);
 
       print("emailDetails :${emailDetails}");
       String emailDetailsJson = jsonEncode(emailDetails);
       print("file name before send : ${fileName}");
-      dynamic response = await networkHelper.uploadFile(
-        fileName: fileName,
-        file: pdfFile,
-        emailDetailsJson: emailDetailsJson,
-      ).timeout(Duration(seconds: 7));
+      dynamic response = await networkHelper
+          .uploadFile(
+            fileName: fileName,
+            file: pdfFile,
+            emailDetailsJson: emailDetailsJson,
+          )
+          .timeout(Duration(seconds: 7));
 
       if (response == 200) {
         CustomPopups.showCustomResultPopup(
           context: context,
           icon: Icon(Icons.check_circle, color: Colors.green, size: 40),
-          message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailOk"),
-          buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+          message: Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString("paymentSentEmailOk"),
+          buttonText: Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString("ok"),
           onPressButton: () {
             // Define what happens when the button is pressed
             print('Success acknowledged');
           },
         );
-      }
-      else if (response.statusCode == 429) {
+      } else if (response.statusCode == 429) {
         CustomPopups.showCustomResultPopup(
           context: context,
-          icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-          message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("exceedNumberOfRequest"),
-          buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+          icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
+          message: Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString("exceedNumberOfRequest"),
+          buttonText: Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString("ok"),
           onPressButton: () {
             print('Exceed number of request');
           },
         );
-      }
-      else if(response == 401){
+      } else if (response == 401) {
         int responseNumber = await PaymentService.attemptReLogin(context);
-        print("the response number from get expend the session is :${responseNumber}");
-        if(responseNumber == 200 ){
+        print(
+            "the response number from get expend the session is :${responseNumber}");
+        if (responseNumber == 200) {
           print("relogin successfully");
           tokenID = prefs.getString('token');
           if (tokenID == null) {
@@ -148,8 +161,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
           };
           networkHelper = NetworkHelper(
               url: apiUrlEmail, // Replace with your API URL
-              headers: headers
-          );
+              headers: headers);
 
           dynamic reloginResponse = await networkHelper.uploadFile(
             fileName: fileName,
@@ -160,73 +172,81 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
             CustomPopups.showCustomResultPopup(
               context: context,
               icon: Icon(Icons.check_circle, color: Colors.green, size: 40),
-              message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailOk"),
-              buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+              message: Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString("paymentSentEmailOk"),
+              buttonText:
+                  Provider.of<LocalizationService>(context, listen: false)
+                      .getLocalizedString("ok"),
               onPressButton: () {
                 // Define what happens when the button is pressed
                 print('Success acknowledged');
               },
             );
-          }
-          else if (response.statusCode == 429) {
+          } else if (response.statusCode == 429) {
             CustomPopups.showCustomResultPopup(
               context: context,
-              icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-              message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("exceedNumberOfRequest"),
-              buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+              icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
+              message: Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString("exceedNumberOfRequest"),
+              buttonText:
+                  Provider.of<LocalizationService>(context, listen: false)
+                      .getLocalizedString("ok"),
               onPressButton: () {
                 print('Exceed number of request');
               },
             );
-          }
-          else {
+          } else {
             CustomPopups.showCustomResultPopup(
               context: context,
-              icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-              message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $reloginResponse.statusCode',
-              buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+              icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
+              message:
+                  '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $reloginResponse.statusCode',
+              buttonText:
+                  Provider.of<LocalizationService>(context, listen: false)
+                      .getLocalizedString("ok"),
               onPressButton: () {
-                print('Failed to upload file. Status code: ${reloginResponse.statusCode}');
+                print(
+                    'Failed to upload file. Status code: ${reloginResponse.statusCode}');
               },
             );
           }
-
-
-
         }
-      }
-      else if (response.statusCode == 408) {
+      } else if (response.statusCode == 408) {
         CustomPopups.showCustomResultPopup(
           context: context,
-          icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-          message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkTimeoutError"),
-          buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+          icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
+          message: Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString("networkTimeoutError"),
+          buttonText: Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString("ok"),
           onPressButton: () {
             print('Error timeout');
           },
         );
-      }
-      else {
+      } else {
         print(response.statusCode);
         print(response.reasonPhrase);
 
         CustomPopups.showCustomResultPopup(
           context: context,
-          icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-          message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $response.statusCode',
-          buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+          icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
+          message:
+              '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $response.statusCode',
+          buttonText: Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString("ok"),
           onPressButton: () {
             print('Failed to upload file. Status code: ${response.statusCode}');
           },
         );
       }
-    }
-    on SocketException catch (e) {
+    } on SocketException catch (e) {
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-        message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkError"),
-        buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+        icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
+        message: Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString("networkError"),
+        buttonText: Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString("ok"),
         onPressButton: () {
           print('Network error acknowledged');
         },
@@ -234,20 +254,23 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     } on TimeoutException catch (e) {
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-        message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("networkTimeoutError"),
-        buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+        icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
+        message: Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString("networkTimeoutError"),
+        buttonText: Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString("ok"),
         onPressButton: () {
           print('Timeout error acknowledged');
         },
       );
-    }
-    catch (e) {
+    } catch (e) {
       CustomPopups.showCustomResultPopup(
         context: context,
-        icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-        message: '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}',
-        buttonText: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+        icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
+        message:
+            '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}',
+        buttonText: Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString("ok"),
         onPressButton: () {
 // Define what happens when the button is pressed
           print('Error: $e');
@@ -258,7 +281,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    if (_emailJson == null ) {
+    if (_emailJson == null) {
       return Center(child: CircularProgressIndicator());
     }
     DateTime transactionDate = widget.payment.transactionDate!;
@@ -271,16 +294,20 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     int minute = transactionDate.minute;
 
 // Format the output as a string
-    String formattedDate = '${year.toString().padLeft(4, '0')}/${month.toString().padLeft(2, '0')}/${day.toString().padLeft(2, '0')} ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+    String formattedDate =
+        '${year.toString().padLeft(4, '0')}/${month.toString().padLeft(2, '0')}/${day.toString().padLeft(2, '0')} ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
 
-    var appLocalization = Provider.of<LocalizationService>(context, listen: false);
+    var appLocalization =
+        Provider.of<LocalizationService>(context, listen: false);
     String currentLanguageCode = Localizations.localeOf(context).languageCode;
 
     return Directionality(
-      textDirection: currentLanguageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+      textDirection:
+          currentLanguageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
       child: Padding(
         // Adjust bottom padding dynamically based on keyboard visibility
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -303,12 +330,15 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                   focusNode: _toFocusNode,
                   decoration: InputDecoration(
                     labelText: appLocalization.getLocalizedString('to'),
-                    labelStyle: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                    labelStyle:
+                        TextStyle(fontSize: 14, color: Colors.grey[700]),
                     errorText: _errorText,
-                    errorStyle: TextStyle(color: Color(0xFFC62828), fontSize: 14),
+                    errorStyle:
+                        TextStyle(color: AppColors.primaryRed, fontSize: 14),
                     filled: true,
                     fillColor: Colors.white,
-                    contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Colors.grey, width: 1),
@@ -321,14 +351,22 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Colors.grey, width: 1),
                     ),
-                    prefixIcon: Icon(Icons.email_outlined, color: Colors.grey[700]),
+                    prefixIcon:
+                        Icon(Icons.email_outlined, color: Colors.grey[700]),
                   ),
                   keyboardType: TextInputType.emailAddress,
                 ),
                 SizedBox(height: 24),
                 // Language Switcher for Message
-                Text(appLocalization.getLocalizedString('selectLanguageForMessage')),
-                SizedBox(height: 12),
+                Text(
+                  appLocalization
+                      .getLocalizedString('selectLanguageForMessage'),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 20),
 
                 Row(
                   children: [
@@ -351,73 +389,141 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                         _selectedLanguage == 'ar',
                       ),
                     ),
-
-
                   ],
                 ),
-                SizedBox(height: 24),
+                SizedBox(height: 30),
+
+                Align(
+                  alignment: _selectedLanguage == 'ar'
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
+                  child: Text(
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString("selectTemplate"),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildSelectionCard(
+                        context: context,
+                        title: Provider.of<LocalizationService>(context,
+                                listen: false)
+                            .getLocalizedString("colored"),
+                        icon: Icons.receipt_long_outlined,
+                        isSelected: !isBlackAndWhite,
+                        onTap: () {
+                          setState(() {
+                            isBlackAndWhite = false;
+                          });
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: _buildSelectionCard(
+                        context: context,
+                        title: Provider.of<LocalizationService>(context,
+                                listen: false)
+                            .getLocalizedString("b_and_w"),
+                        icon: Icons.receipt_long_outlined,
+                        isSelected: isBlackAndWhite,
+                        onTap: () {
+                          setState(() {
+                            isBlackAndWhite = true;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
 
                 // Send Button
                 Row(
-                  mainAxisAlignment: currentLanguageCode == 'ar' ? MainAxisAlignment.start : MainAxisAlignment.end,
+                  mainAxisAlignment: currentLanguageCode == 'ar'
+                      ? MainAxisAlignment.start
+                      : MainAxisAlignment.end,
                   children: [
                     Expanded(
                       child: Align(
-                        alignment: currentLanguageCode == 'ar' ? Alignment.centerLeft : Alignment.centerRight,
+                        alignment: currentLanguageCode == 'ar'
+                            ? Alignment.centerLeft
+                            : Alignment.centerRight,
                         child: ElevatedButton.icon(
                           onPressed: () async {
-
                             setState(() {
                               if (_toController.text.isEmpty) {
-                                _errorText = appLocalization.getLocalizedString('toFieldError');
+                                _errorText = appLocalization
+                                    .getLocalizedString('toFieldError');
                                 return;
                               }
-                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(_toController.text)) {
-                                _errorText = appLocalization.getLocalizedString('invalidEmailError'); // Localized string for invalid email
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$')
+                                  .hasMatch(_toController.text)) {
+                                _errorText = appLocalization.getLocalizedString(
+                                    'invalidEmailError'); // Localized string for invalid email
                                 return;
                               }
                               _errorText = null; // Clear error if valid
                             });
-                            if(_errorText ==null) {
+                            if (_errorText == null) {
                               // Handle send action
-                              String transactionDate = widget.payment.transactionDate.toString(); // Your original string
+                              String transactionDate = widget
+                                  .payment.transactionDate
+                                  .toString(); // Your original string
                               int spaceIndex = transactionDate.indexOf(' ');
 
                               String result; // Define the result variable
                               if (spaceIndex != -1) {
-                                result = transactionDate.substring(0, spaceIndex); // Get the part before the first space
+                                result = transactionDate.substring(0,
+                                    spaceIndex); // Get the part before the first space
                               } else {
-                                result = transactionDate; // If no space found, use the entire string
+                                result =
+                                    transactionDate; // If no space found, use the entire string
                               }
 
-                              String fileName="اشعاردفع-${result}";
+                              String fileName = "اشعاردفع-${result}";
                               String toEmail = _toController.text;
                               print("To: $toEmail");
                               print("Subject: $fileName");
 
-
                               final file = await ShareScreenOptions.sharePdf(
-                                  context, widget.payment.id!,
-                                  _selectedLanguage);
+                                  context,
+                                  widget.payment.id!,
+                                  _selectedLanguage,
+                                  isBlackAndWhite: isBlackAndWhite);
                               if (file == null) {
                                 print("file is null");
-                              }
-                              else {
+                              } else {
                                 print("ready to send to email api");
-                                await sendPdfFileViaApi(context, file, toEmail, fileName,fileName,currentLanguageCode ,formattedDate);
+                                await sendPdfFileViaApi(
+                                    context,
+                                    file,
+                                    toEmail,
+                                    fileName,
+                                    fileName,
+                                    currentLanguageCode,
+                                    formattedDate);
                               }
                               // Close bottom sheet if no error
                               Navigator.pop(context);
                             }
                           },
                           icon: Icon(Icons.send),
-                          label: Text(appLocalization.getLocalizedString('send')),
+                          label:
+                              Text(appLocalization.getLocalizedString('send')),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFFC62828),
+                            backgroundColor: AppColors.primaryRed,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 14),
                           ),
                         ),
                       ),
@@ -432,12 +538,72 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     );
   }
 
-  Widget _buildLanguageButton(
-      BuildContext context,
-      String languageCode,
-      String languageName,
-      IconData icon,
-      bool isSelected) {
+  static Widget _buildSelectionCard({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryRed : Colors.white,
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    color: isSelected ? AppColors.primaryRed : Colors.grey[700],
+                  ),
+                  SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      title,
+                      softWrap: true,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.primaryRed
+                            : Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: AppColors.primaryRed,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageButton(BuildContext context, String languageCode,
+      String languageName, IconData icon, bool isSelected) {
     return GestureDetector(
       onTap: () async {
         setState(() {
@@ -446,13 +612,13 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
         await _loadLocalizedEmailContent(languageCode);
       },
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12.0),
           border: Border.all(
-            color: isSelected ? Color(0xFFC62828) : Colors.transparent,
-            width: 2,
+            color: isSelected ? AppColors.primaryRed : Colors.transparent,
+            width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
@@ -469,15 +635,15 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
               children: [
                 Icon(
                   icon,
-                  color: isSelected ? Color(0xFFC62828) : Colors.grey[700],
+                  color: isSelected ? AppColors.primaryRed : Colors.grey[700],
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: 10),
                 Text(
                   languageName,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: isSelected ? Color(0xFFC62828) : Colors.grey[700],
+                    color: isSelected ? AppColors.primaryRed : Colors.grey[700],
                   ),
                 ),
               ],
@@ -485,20 +651,20 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
             if (isSelected)
               Icon(
                 Icons.check_circle,
-                color: Color(0xFFC62828),
+                color: AppColors.primaryRed,
               ),
           ],
         ),
       ),
     );
   }
-
 }
 
 void showEmailBottomSheet(BuildContext context, Payment payment) {
   showModalBottomSheet(
     context: context,
-    isScrollControlled: true, // Enable the bottom sheet to resize based on the content
+    isScrollControlled:
+        true, // Enable the bottom sheet to resize based on the content
     builder: (context) => EmailBottomSheet(payment: payment),
   );
 }

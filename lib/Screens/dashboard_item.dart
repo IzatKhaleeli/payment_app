@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../core/constants.dart';
+
 class DashboardItemModel {
   final IconData iconData;
   final String title;
@@ -43,7 +45,7 @@ class _DashboardItemState extends State<DashboardItem> {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
-          color: isTapped ? const Color(0xFFC62828) : Colors.white,
+          color: isTapped ? AppColors.primaryRed : Colors.white,
           borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
@@ -61,7 +63,7 @@ class _DashboardItemState extends State<DashboardItem> {
             children: <Widget>[
               Icon(widget.iconData,
                   size: 40 * widget.scale,
-                  color: isTapped ? Colors.white : const Color(0xFFC62828)),
+                  color: isTapped ? Colors.white : AppColors.primaryRed),
               SizedBox(height: 4.h),
               Text(
                 widget.title,

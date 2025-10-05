@@ -11,6 +11,7 @@ import '../Services/LocalizationService.dart';
 import '../Services/PaymentService.dart';
 import '../Services/apiConstants.dart';
 import '../Services/networking.dart';
+import '../core/constants.dart';
 import 'payment_history/PaymentHistoryScreen.dart';
 import 'recordPayment/RecordPaymentScreen.dart';
 import 'SettingsScreen.dart';
@@ -161,7 +162,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           iconSize: 34,
           icon: const Icon(
             Icons.logout_outlined,
-            color: Color(0xFFC62828),
+            color: AppColors.primaryRed,
           ),
           onPressed: () {
             showDialog(
@@ -211,7 +212,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Icon(
                     Icons.person,
-                    color: const Color(0xFFC62828),
+                    color: AppColors.primaryRed,
                     size: 24 * scale,
                   ),
                   SizedBox(width: 8.w),
@@ -221,7 +222,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       fontSize: 16 * scale,
                       fontFamily: "NotoSansUI",
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFFC62828),
+                      color: AppColors.primaryRed,
                     ),
                   ),
                 ],
@@ -365,7 +366,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         } else
                           PaymentService.completeLogout(context);
                       },
-                      backgroundColor: Color(0xFFC62828),
+                      backgroundColor: AppColors.primaryRed,
                       textColor: Colors.white,
                       scale: scale),
                 ],

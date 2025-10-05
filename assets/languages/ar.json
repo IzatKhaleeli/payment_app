@@ -126,7 +126,8 @@
   "paymentSuccessfulBody": "تم معالجة عملية الدفع بنجاح.",
   "ok": "موافق",
   "theSumOf": "مبلغاً وقدره",
-  "receipt": "إيصال",
+  "receipt": "سند",
+  "voucher":"قبض",
   "time": "الوقت",
   "thankYou": "شكراً لك",
 
@@ -173,12 +174,14 @@
   "checoutPdf": "تحقق من ملف PDF هذا",
   "receiptVoucher": "سند قبض )نسخة(",
   "customersDetail": "بيانات المشترك",
-  "mobileNumber": "رقم الهاتف",
+  "mobileNumber": "رقم الموبايل",
   "paymentDetail": "تفاصيل الدفعة",
   "additionalDetails": "تفاصيل إضافية",
   "checkoutPdf": "تحقق من ملف PDF",
   "userid": "رمز المستخدم",
-  "footerPdf": "الرجاء الإحتفاظ بالسند لإثبات الدفع",
+    "employeeid": "اسم الموظف",
+
+  "footerPdf": "الرجاء الإحتفاظ بالسند لإثبات الدفعة",
   "hello": "مرحبا",
 
   "emailSubject": "إشعار دفع -",
@@ -190,7 +193,7 @@
   "body": "المحتوى",
   "toFieldError": "يرجى إدخال عنوان البريد الإلكتروني",
   "send": "إرسال",
-  "phoneNumber": "رقم الهاتف",
+  "phoneNumber": "رقم الموبايل",
   "message": "الرسالة",
   "phoneNumberFieldError": "يرجى إدخال رقم هاتف صحيح",
 
@@ -267,6 +270,9 @@
   "applyFilters": "تطبيق الفلاتر",
   "selected": "محدد",
   "filterOptions": "خيارات الفلترة",
-  "notSelectedYet":"غير محدد"
-
+  "notSelectedYet":"غير محدد",
+  "receiptNumber":"رقم السند",
+  "selectTemplate": "اختر نموذج الإيصال",
+  "b_and_w": "أبيض وأسود",
+  "colored": "ملون"
 }

@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image/image.dart' as img;
 import '../Custom_Widgets/CustomPopups.dart';
 import '../Services/LocalizationService.dart';
+import '../core/constants.dart';
 import 'printerService/androidBluetoothFeaturesScreen.dart';
 import 'printerService/convertPdfToImage.dart'; // For SharedPreferences
 import '../Screens/printerService/iosMethods.dart' as iosPlat;
@@ -34,7 +35,8 @@ class _PrinterConfirmationBottomSheetState
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       printerLabel = prefs.getString('default_device_label') ?? 'No Printer';
-      printerAddress = prefs.getString('default_device_address') ?? 'No Address';
+      printerAddress =
+          prefs.getString('default_device_address') ?? 'No Address';
     });
   }
 
@@ -49,7 +51,7 @@ class _PrinterConfirmationBottomSheetState
 
   Future<void> _loadSavedLanguageCode() async {
     setState(() {
-      _selectedLanguage ='ar';
+      _selectedLanguage = 'ar';
     });
 
     // Load the localized message for the saved/default language
@@ -58,7 +60,8 @@ class _PrinterConfirmationBottomSheetState
 
   Future<void> _loadLocalizedContent(String languageCode) async {
     try {
-      String jsonString = await rootBundle.loadString('assets/languages/$languageCode.json');
+      String jsonString =
+          await rootBundle.loadString('assets/languages/$languageCode.json');
       setState(() {
         _emailJson = jsonDecode(jsonString);
       });
@@ -76,13 +79,13 @@ class _PrinterConfirmationBottomSheetState
 
   // Function to load and convert PDF to image using PdfConverter
   Future<void> _convertPdfToImage(String pdfPath) async {
-    img.Image image = await PdfConverter.convertPdfToImage(pdfPath); // Convert the PDF to an image
-    if (image.length>1) {
-      if(Platform.isAndroid){
+    img.Image image = await PdfConverter.convertPdfToImage(
+        pdfPath); // Convert the PDF to an image
+    if (image.length > 1) {
+      if (Platform.isAndroid) {
         print("Sent image data to anroid started.");
         AndroidBluetoothFeatures.loadAndPrintImages(image);
-      }
-      else if(Platform.isIOS){
+      } else if (Platform.isIOS) {
         print("Sent image data to iOS started.");
         await BluetoothService.loadImages(image);
         //        Navigator.push(
@@ -95,9 +98,7 @@ class _PrinterConfirmationBottomSheetState
       } else {
         print("Error: No image data to send.");
       }
-
     }
-
   }
 
   @override
@@ -105,9 +106,11 @@ class _PrinterConfirmationBottomSheetState
     String currentLanguageCode = Localizations.localeOf(context).languageCode;
 
     return Directionality(
-      textDirection: currentLanguageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+      textDirection:
+          currentLanguageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
       child: Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -117,10 +120,12 @@ class _PrinterConfirmationBottomSheetState
                 // Title above the PDF preview
                 Align(
                   alignment: currentLanguageCode == 'ar'
-                      ? Alignment.centerRight  // Align to the right for Arabic
-                      : Alignment.centerLeft,  // Align to the left for English
+                      ? Alignment.centerRight // Align to the right for Arabic
+                      : Alignment.centerLeft, // Align to the left for English
                   child: Text(
-                    Provider.of<LocalizationService>(context, listen: false).getLocalizedString("sendToPrinter"), // Title in Arabic or English
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString(
+                            "sendToPrinter"), // Title in Arabic or English
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -161,7 +166,8 @@ class _PrinterConfirmationBottomSheetState
                 Container(
                   height: 480, // Set a fixed height for the PDF preview
                   child: PDFView(
-                    filePath: widget.pdfFilePath, // Pass the file path to the PDF viewer
+                    filePath: widget
+                        .pdfFilePath, // Pass the file path to the PDF viewer
                   ),
                 ),
                 SizedBox(height: 10),
@@ -172,64 +178,93 @@ class _PrinterConfirmationBottomSheetState
                     // "Print" Button with padding to create space
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0), // Padding between buttons
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0), // Padding between buttons
                         child: ElevatedButton(
                           onPressed: () async {
-                            if(Platform.isIOS){
-                              bool isBluetoothOn = await iosPlat.BluetoothService.isBluetoothPoweredOn();
-                              bool connected = await BluetoothService.checkConnection();
+                            if (Platform.isIOS) {
+                              bool isBluetoothOn = await iosPlat
+                                  .BluetoothService.isBluetoothPoweredOn();
+                              bool connected =
+                                  await BluetoothService.checkConnection();
 
-                              if(!isBluetoothOn){
+                              if (!isBluetoothOn) {
                                 CustomPopups.showCustomResultPopup(
                                   context: context,
-                                  icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-                                  message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("bluetooth_off_message"),
-                                  buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+                                  icon: Icon(Icons.error,
+                                      color: AppColors.primaryRed, size: 40),
+                                  message: Provider.of<LocalizationService>(
+                                          context,
+                                          listen: false)
+                                      .getLocalizedString(
+                                          "bluetooth_off_message"),
+                                  buttonText: Provider.of<LocalizationService>(
+                                          context,
+                                          listen: false)
+                                      .getLocalizedString("ok"),
                                   onPressButton: () {
                                     // Define what happens when the button is pressed
                                     print('bluetooth is not powered ..');
-                                    return ;
+                                    return;
                                   },
                                 );
-                              }
-                              else if(!connected){
+                              } else if (!connected) {
                                 CustomPopups.showCustomResultPopup(
                                   context: context,
-                                  icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-                                  message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("theDefaultDeviceNotConnected"),
-                                  buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+                                  icon: Icon(Icons.error,
+                                      color: AppColors.primaryRed, size: 40),
+                                  message: Provider.of<LocalizationService>(
+                                          context,
+                                          listen: false)
+                                      .getLocalizedString(
+                                          "theDefaultDeviceNotConnected"),
+                                  buttonText: Provider.of<LocalizationService>(
+                                          context,
+                                          listen: false)
+                                      .getLocalizedString("ok"),
                                   onPressButton: () {
                                     // Define what happens when the button is pressed
                                     print('theDefaultDeviceNotConnected ..');
-                                    return ;
+                                    return;
                                   },
                                 );
-                              }
-
-                              else
-                                _convertPdfToImage(widget.pdfFilePath); // Convert the PDF to an image on init
-                            }
-                            else if(Platform.isAndroid){
-                              bool connected = await AndroidBluetoothFeatures.isConnected();
+                              } else
+                                _convertPdfToImage(widget
+                                    .pdfFilePath); // Convert the PDF to an image on init
+                            } else if (Platform.isAndroid) {
+                              bool connected =
+                                  await AndroidBluetoothFeatures.isConnected();
                               if (!connected)
                                 CustomPopups.showCustomResultPopup(
                                   context: context,
-                                  icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-                                  message: Provider.of<LocalizationService>(context, listen: false).getLocalizedString("theDefaultDeviceNotConnected"),
-                                  buttonText:  Provider.of<LocalizationService>(context, listen: false).getLocalizedString("ok"),
+                                  icon: Icon(Icons.error,
+                                      color: AppColors.primaryRed, size: 40),
+                                  message: Provider.of<LocalizationService>(
+                                          context,
+                                          listen: false)
+                                      .getLocalizedString(
+                                          "theDefaultDeviceNotConnected"),
+                                  buttonText: Provider.of<LocalizationService>(
+                                          context,
+                                          listen: false)
+                                      .getLocalizedString("ok"),
                                   onPressButton: () {
                                     // Define what happens when the button is pressed
                                     print('theDefaultDeviceNotConnected ..');
-                                    return ;
+                                    return;
                                   },
                                 );
                               else
-                                _convertPdfToImage(widget.pdfFilePath); // Convert the PDF to an image on init
+                                _convertPdfToImage(widget
+                                    .pdfFilePath); // Convert the PDF to an image on init
                             }
-                            Navigator.pop(context); // Close the bottom sheet after printing
+                            Navigator.pop(
+                                context); // Close the bottom sheet after printing
                           },
                           child: Text(
-                            Provider.of<LocalizationService>(context, listen: false).getLocalizedString("print"),
+                            Provider.of<LocalizationService>(context,
+                                    listen: false)
+                                .getLocalizedString("print"),
                           ),
                         ),
                       ),
@@ -238,13 +273,17 @@ class _PrinterConfirmationBottomSheetState
                     // "Cancel" Button with padding to create space
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0), // Padding between buttons
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0), // Padding between buttons
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.pop(context); // Simply close the bottom sheet
+                            Navigator.pop(
+                                context); // Simply close the bottom sheet
                           },
                           child: Text(
-                            Provider.of<LocalizationService>(context, listen: false).getLocalizedString("cancel"),
+                            Provider.of<LocalizationService>(context,
+                                    listen: false)
+                                .getLocalizedString("cancel"),
                           ),
                         ),
                       ),
@@ -259,9 +298,8 @@ class _PrinterConfirmationBottomSheetState
     );
   }
 
-
   Future<void> _checkAndConnectToPrinter() async {
-    if(Platform.isIOS){
+    if (Platform.isIOS) {
       try {
         print("_checkAndConnectToPrinter started");
         // Check if the device is already connected
@@ -280,14 +318,13 @@ class _PrinterConfirmationBottomSheetState
           } else {
             print("No saved device address found.");
           }
-        }
-        else {
+        } else {
           print("Already connected to the device.");
           // If connected, disconnect first
           await BluetoothService.disconnectDevice();
           bool secondConnected = await BluetoothService.checkConnection();
           print(secondConnected);
-          if(!secondConnected){
+          if (!secondConnected) {
             await BluetoothService.connectToDevice();
           }
           print("Disconnected from the device.");
@@ -295,11 +332,10 @@ class _PrinterConfirmationBottomSheetState
       } catch (e) {
         print("Failed to check connection or connect ios: $e");
       }
-    }
-    else if(Platform.isAndroid){
+    } else if (Platform.isAndroid) {
       try {
         bool connected = await AndroidBluetoothFeatures.isConnected();
-        if (!connected){
+        if (!connected) {
           print("device not connected");
           // If not connected, fetch the saved device address and attempt to connect
           final prefs = await SharedPreferences.getInstance();
@@ -313,19 +349,16 @@ class _PrinterConfirmationBottomSheetState
           } else {
             print("No saved device address found.");
           }
-        }
-        else {
+        } else {
           print("Already connected to the device.");
           await AndroidBluetoothFeatures.disconnect();
 
           await AndroidBluetoothFeatures.connect();
           print("Disconnected from the device.");
         }
-      }
-      catch (e) {
+      } catch (e) {
         print("Failed to check connection or connect android: $e");
       }
     }
-
   }
 }

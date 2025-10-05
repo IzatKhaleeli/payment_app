@@ -8,6 +8,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'Services/LocalizationService.dart';
 import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 
+import 'core/constants.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -57,7 +59,7 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.isJailbroken});
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFC62828);
+    const Color primaryRed = AppColors.primaryRed;
     const Color backgroundGrey = Color(0xFFF7F7F7);
     const Color inputFieldGrey = Color(0xFFE0E0E0);
     final ThemeData theme = ThemeData(
@@ -110,7 +112,7 @@ class MyApp extends StatelessWidget {
           body: Center(
             child: Text(
               'This application cannot be run on jailbroken devices.',
-              style: TextStyle(color: Color(0xFFC62828), fontSize: 18),
+              style: TextStyle(color: AppColors.primaryRed, fontSize: 18),
               textAlign: TextAlign.center,
             ),
           ),

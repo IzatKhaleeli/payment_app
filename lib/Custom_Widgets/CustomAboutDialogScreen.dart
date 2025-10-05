@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../Services/LocalizationService.dart';
 import '../Services/apiConstants.dart';
+import '../core/constants.dart';
 
 class CustomAboutDialogScreen extends StatelessWidget {
   final double scale;
@@ -89,7 +90,8 @@ class CustomAboutDialogScreen extends StatelessWidget {
               Text(
                 Provider.of<LocalizationService>(context, listen: false)
                     .getLocalizedString('aboutBody'),
-                style: TextStyle(fontSize: 14 * scale, fontFamily: 'NotoSansUI'),
+                style:
+                    TextStyle(fontSize: 14 * scale, fontFamily: 'NotoSansUI'),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 25 * scale),
@@ -105,7 +107,7 @@ class CustomAboutDialogScreen extends StatelessWidget {
                     style: TextStyle(
                         fontFamily: 'NotoSansUI',
                         fontSize: 18 * scale,
-                        color: const Color(0xFFC62828)),
+                        color: AppColors.primaryRed),
                   ),
                 ),
               ),

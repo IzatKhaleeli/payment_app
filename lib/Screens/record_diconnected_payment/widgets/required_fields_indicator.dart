@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../Services/LocalizationService.dart';
+import '../../../core/constants.dart';
 
 class RequiredFieldsIndicator extends StatelessWidget {
   final double scale;
@@ -18,7 +19,7 @@ class RequiredFieldsIndicator extends StatelessWidget {
       children: [
         const Text(
           '* ',
-          style: TextStyle(color: Color(0xFFC62828)),
+          style: TextStyle(color: AppColors.primaryRed),
         ),
         Text(
           localizationService.getLocalizedString('requiredFields')!,

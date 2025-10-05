@@ -11,6 +11,7 @@ import '../Custom_Widgets/CustomAboutDialogScreen.dart';
 import '../Services/LocalizationService.dart';
 import '../Services/PaymentService.dart';
 import '../Services/networking.dart';
+import '../core/constants.dart';
 import 'LoginScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -65,7 +66,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 fontSize: 22 * scale,
                 color: Colors.white),
           ),
-          backgroundColor: Color(0xFFC62828),
+          backgroundColor: AppColors.primaryRed,
           elevation: 0,
           centerTitle: true,
         ),
@@ -203,7 +204,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(icon, color: Color(0xFFC62828), size: 24 * scale),
+                    Icon(icon, color: AppColors.primaryRed, size: 24 * scale),
                     SizedBox(width: 20.w),
                     Text(
                       localizationService.getLocalizedString(title),
@@ -332,7 +333,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         }
                         PaymentService.completeLogout(context);
                       },
-                      backgroundColor: Color(0xFFC62828),
+                      backgroundColor: AppColors.primaryRed,
                       textColor: Colors.white,
                       scale: scale),
                 ],

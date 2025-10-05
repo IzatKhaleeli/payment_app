@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/constants.dart';
+
 class AnimatedButton extends StatefulWidget {
   final String text;
   final VoidCallback onPressed;
@@ -13,7 +15,7 @@ class AnimatedButton extends StatefulWidget {
     super.key,
     required this.text,
     required this.onPressed,
-    this.backgroundColor = const Color(0xFFC62828),
+    this.backgroundColor = AppColors.primaryRed,
     this.scale = 1.0,
     this.borderRadius = 15,
     this.padding = const EdgeInsets.symmetric(vertical: 15),

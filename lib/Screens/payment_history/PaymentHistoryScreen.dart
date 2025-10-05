@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:ooredoo_app/Screens/printerService/PrinterSettingScreen.dart';
 import '../../core/api_service/status_api_service.dart';
+import '../../core/constants.dart';
 import '../../core/utils/enum/cancellation_status_enum.dart';
 import '../PaymentCancellationScreen.dart';
 import '../../Services/globalError.dart';
@@ -119,7 +120,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
 
           if (cancellationDateString != null &&
               cancellationDateString!.isNotEmpty) {
-            print("cancellationDateString not null");
             try {
               cancellationDate = DateTime.parse(cancellationDateString!);
             } catch (e) {
@@ -164,7 +164,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           } else {
             transactionDate = null;
           }
-          print("the cancellation date after assign :${cancellationDate}");
           return Payment(
               id: payment['id'],
               transactionDate: transactionDate,
@@ -206,7 +205,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
 
   Future<void> _fetchPortalStatuses() async {
     print('_fetchPortalStatuses');
-    print('_paymentRecords ${_paymentRecords}');
+    // print('_paymentRecords ${_paymentRecords}');
     try {
       List<String> voucherSerials = _paymentRecords
           .where((payment) =>
@@ -330,7 +329,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               fontSize: 22 * scale,
               fontFamily: 'NotoSansUI',
             )),
-        backgroundColor: const Color(0xFFC62828),
+        backgroundColor: AppColors.primaryRed,
       ),
       body: Stack(
         children: [
@@ -421,7 +420,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                 child: Material(
                   elevation: 6,
                   borderRadius: BorderRadius.circular(16),
-                  color: const Color(0xFFC62828),
+                  color: AppColors.primaryRed,
                   child: ListTile(
                     title: Text(
                       errorText,
@@ -452,7 +451,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                   MaterialPageRoute(
                       builder: (context) => RecordPaymentScreen()));
             },
-            backgroundColor: const Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
             child: Icon(
               Icons.add,
               color: Colors.white,
@@ -493,11 +492,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         break;
       case 'cancelled': //WELL BE DELETED
         statusIcon = Icons.cancel;
-        statusColor = Color(0xFFC62828);
+        statusColor = AppColors.primaryRed;
         break;
       case 'canceldpending': //WILL BE DELETED
         statusIcon = Icons.payment;
-        statusColor = Color(0xFFC62828);
+        statusColor = AppColors.primaryRed;
         break;
       case 'accepted':
         statusIcon = Icons.check_circle;
@@ -505,11 +504,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         break;
       case 'rejected':
         statusIcon = Icons.cancel;
-        statusColor = Color(0xFFC62828);
+        statusColor = AppColors.primaryRed;
         break;
       default:
         statusIcon = Icons.payment;
-        statusColor = Color(0xFFC62828);
+        statusColor = AppColors.primaryRed;
         break;
     }
     return Card(
@@ -791,7 +790,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                             child: IconButton(
                               icon: FaIcon(
                                 FontAwesomeIcons.filePdf,
-                                color: Color(0xFFC62828),
+                                color: AppColors.primaryRed,
                                 size: 22,
                               ),
                               onPressed: () async {
@@ -814,7 +813,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                   .getLocalizedString('cancelPayment'),
                               child: IconButton(
                                 icon: Icon(Icons.cancel,
-                                    color: Color(0xFFC62828), size: 22),
+                                    color: AppColors.primaryRed, size: 22),
                                 onPressed: () async {
                                   if (record.id != null) {
                                     final int idToCancel = record.id!;
@@ -868,7 +867,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                     CustomPopups.showTwoButtonPopup(
                                       context: context,
                                       icon: Icon(Icons.warning,
-                                          size: 40, color: Color(0xFFC62828)),
+                                          size: 40,
+                                          color: AppColors.primaryRed),
                                       message: Provider.of<LocalizationService>(
                                               context,
                                               listen: false)
@@ -910,7 +910,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                         CustomPopups.showCustomResultPopup(
                                           context: context,
                                           icon: Icon(Icons.error,
-                                              color: Color(0xFFC62828),
+                                              color: AppColors.primaryRed,
                                               size: 40),
                                           message:
                                               Provider.of<LocalizationService>(
@@ -1119,12 +1119,12 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         Tooltip(
           message: localizationService.getLocalizedString('deletePayment'),
           child: IconButton(
-            icon: const Icon(Icons.delete, color: Color(0xFFC62828)),
+            icon: const Icon(Icons.delete, color: AppColors.primaryRed),
             onPressed: () async {
               CustomPopups.showCustomDialog(
                 context: context,
                 icon: const Icon(Icons.delete,
-                    size: 60, color: Color(0xFFC62828)),
+                    size: 60, color: AppColors.primaryRed),
                 title: localizationService.getLocalizedString('deletePayment'),
                 message:
                     localizationService.getLocalizedString('deletePaymentBody'),
@@ -1165,7 +1165,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               CustomPopups.showCustomDialog(
                 context: context,
                 icon: const Icon(Icons.check_circle,
-                    size: 50, color: Color(0xFFC62828)),
+                    size: 50, color: AppColors.primaryRed),
                 title: localizationService.getLocalizedString('confirmPayment'),
                 message: localizationService
                     .getLocalizedString('confirmPaymentBody'),

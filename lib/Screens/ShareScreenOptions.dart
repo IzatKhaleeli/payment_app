@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ooredoo_app/Screens/printerService/PrinterSettingScreen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,21 +8,22 @@ import '../Custom_Widgets/CustomPopups.dart';
 import '../Models/Payment.dart';
 import '../Services/LocalizationService.dart';
 import '../Services/database.dart';
-import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import '../Utils/Enum.dart';
+import '../Utils/pdf_builder.dart';
+import '../core/constants.dart';
 import 'EmailBottomSheet.dart';
 import 'PDFviewScreen.dart';
 import 'PrinterConfirmationBottomSheet.dart';
 import 'SMSBottomSheet.dart';
 import 'package:image/image.dart' as img;
-import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart' show rootBundle;
 
 class ShareScreenOptions {
   static String? _selectedLanguageCode = 'ar';
+  static bool isBlackAndWhiteFlag = true;
 
   static void showLanguageSelectionAndShare(
       BuildContext context, int id, ShareOption option) {
@@ -35,60 +35,74 @@ class ShareScreenOptions {
         _shareViaSms(context, id);
         break;
       case ShareOption.print:
-        _showLanguageSelectionDialog(context, (String languageCode) async {
-          final file = await sharePdf(context, id, languageCode,
-              header2Size: 24, header3Size: 20, header4Size: 18);
-          if (file != null && await file.exists()) {
-            // _openPrintPreview(file.path);
-            _shareViaPrint(context, file.path);
-          } else {
-            CustomPopups.showCustomResultPopup(
-              context: context,
-              icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-              message:
-                  '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("printFailed")}: Failed to load PDF',
-              buttonText:
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString("ok"),
-              onPressButton: () {
-                print('Failed to load PDF for printing');
-              },
-            );
-          }
-        });
-        break;
-      case ShareOption.OpenPDF:
-        _showLanguageSelectionDialog(context, (String languageCode) async {
-          final file = await sharePdf(context, id, languageCode);
-          if (file != null) {
+        _showBottomDialog(
+          context,
+          (String languageCode, bool isBlackAndWhite) async {
+            isBlackAndWhiteFlag = true;
+            final file = await sharePdf(context, id, languageCode,
+                header2Size: 24, header3Size: 20, header4Size: 18);
+
             if (file != null && await file.exists()) {
-              // Open PDF preview
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PdfPreviewScreen(filePath: file.path),
-                ),
+              // _openPrintPreview(file.path);
+              _shareViaPrint(context, file.path);
+            } else {
+              CustomPopups.showCustomResultPopup(
+                context: context,
+                icon: const Icon(Icons.error,
+                    color: AppColors.primaryRed, size: 40),
+                message:
+                    '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("printFailed")}: Failed to load PDF',
+                buttonText:
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString("ok"),
+                onPressButton: () {
+                  print('Failed to load PDF for printing');
+                },
               );
             }
-          } else {
-            CustomPopups.showCustomResultPopup(
-              context: context,
-              icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
-              message:
-                  '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentWhatsFailed")}: Failed to upload file',
-              buttonText:
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString("ok"),
-              onPressButton: () {
-                print('Failed to upload file. Status code');
-              },
-            );
-          }
-        });
+          },
+          showTemplateOption: false,
+        );
+        break;
+      case ShareOption.OpenPDF:
+        _showBottomDialog(
+          context,
+          (String languageCode, bool isBlackAndWhite) async {
+            final file = await sharePdf(context, id, languageCode,
+                isBlackAndWhite: isBlackAndWhite);
+            if (file != null) {
+              if (file != null && await file.exists()) {
+                // Open PDF preview
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PdfPreviewScreen(filePath: file.path),
+                  ),
+                );
+              }
+            } else {
+              CustomPopups.showCustomResultPopup(
+                context: context,
+                icon: const Icon(Icons.error,
+                    color: AppColors.primaryRed, size: 40),
+                message:
+                    '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentWhatsFailed")}: Failed to upload file',
+                buttonText:
+                    Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString("ok"),
+                onPressButton: () {
+                  print('Failed to upload file. Status code');
+                },
+              );
+            }
+          },
+        );
         break;
       case ShareOption.sendWhats:
-        _showLanguageSelectionDialog(context, (String languageCode) async {
-          final file = await sharePdf(context, id, languageCode);
+        _showBottomDialog(context,
+            (String languageCode, bool isBlackAndWhite) async {
+          final file = await sharePdf(context, id, languageCode,
+              isBlackAndWhite: isBlackAndWhite);
           if (file != null && await file.exists()) {
             final paymentMap = await DatabaseProvider.getPaymentById(id);
             if (paymentMap == null) {
@@ -120,7 +134,8 @@ class ShareScreenOptions {
           } else {
             CustomPopups.showCustomResultPopup(
               context: context,
-              icon: Icon(Icons.error, color: Color(0xFFC62828), size: 40),
+              icon: const Icon(Icons.error,
+                  color: AppColors.primaryRed, size: 40),
               message:
                   '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentWhatsFailed")}: Failed to upload file',
               buttonText:
@@ -178,8 +193,9 @@ class ShareScreenOptions {
     showSmsBottomSheet(context, payment);
   }
 
-  static void _showLanguageSelectionDialog(
-      BuildContext context, Function(String) onLanguageSelected) {
+  static void _showBottomDialog(BuildContext context,
+      Function(String languageCode, bool isBlackAndWhite) onLanguageSelected,
+      {bool showTemplateOption = true}) {
     //String systemLanguageCode = Localizations.localeOf(context).languageCode; // Get system's default language
     String _selectedLanguageCode = 'ar';
     String appLanguage =
@@ -187,7 +203,7 @@ class ShareScreenOptions {
             .selectedLanguageCode;
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12.0)),
       ),
       backgroundColor: Colors.transparent,
@@ -195,8 +211,8 @@ class ShareScreenOptions {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return Container(
-              padding: EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
+              padding: const EdgeInsets.all(12.0),
+              decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
                 boxShadow: [
@@ -209,13 +225,24 @@ class ShareScreenOptions {
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: appLanguage == 'ar'
+                    ? CrossAxisAlignment.start
+                    : CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    Provider.of<LocalizationService>(context, listen: false)
-                        .getLocalizedString("selectPreferredLanguage"),
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Align(
+                    alignment: appLanguage == 'ar'
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
+                    child: Text(
+                      Provider.of<LocalizationService>(context, listen: false)
+                          .getLocalizedString("selectPreferredLanguage"),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
@@ -236,7 +263,7 @@ class ShareScreenOptions {
                           },
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: _buildLanguageCard(
                           context,
@@ -257,33 +284,89 @@ class ShareScreenOptions {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
+                  // Template Selection Section
+                  if (showTemplateOption) ...[
+                    const SizedBox(height: 30),
+                    Align(
+                      alignment: appLanguage == 'ar'
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Text(
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .getLocalizedString("selectTemplate"),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildSelectionCard(
+                            context: context,
+                            title: Provider.of<LocalizationService>(context,
+                                    listen: false)
+                                .getLocalizedString("colored"),
+                            icon: Icons.receipt_long_outlined,
+                            isSelected: !isBlackAndWhiteFlag,
+                            onTap: () {
+                              setState(() {
+                                isBlackAndWhiteFlag = false;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildSelectionCard(
+                            context: context,
+                            title: Provider.of<LocalizationService>(context,
+                                    listen: false)
+                                .getLocalizedString("b_and_w"),
+                            icon: Icons.receipt_long_outlined,
+                            isSelected: isBlackAndWhiteFlag,
+                            onTap: () {
+                              setState(() {
+                                isBlackAndWhiteFlag = true;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 20),
                   Align(
                     alignment: appLanguage == 'en'
                         ? Alignment.centerRight
                         : Alignment.centerLeft,
                     child: ElevatedButton(
                       onPressed: () {
+                        print(
+                            "Selected template: ${isBlackAndWhiteFlag ? 'Black & White' : 'Colored'}"); // Print template choice
                         onLanguageSelected(
-                            _selectedLanguageCode); // Return the selected language
+                            _selectedLanguageCode, isBlackAndWhiteFlag);
                         Navigator.of(context).pop(); // Close the dialog
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFC62828),
+                        backgroundColor: AppColors.primaryRed,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 14),
                       ),
                       child: Text(
                         Provider.of<LocalizationService>(context, listen: false)
                             .getLocalizedString("next"),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
+                  const SizedBox(height: 10),
                 ],
               ),
             );
@@ -293,27 +376,26 @@ class ShareScreenOptions {
     );
   }
 
-  static Widget _buildLanguageCard(
-    BuildContext context,
-    String language,
-    String code,
-    IconData icon,
-    bool isSelected, // Whether this language is selected
-    VoidCallback onTap,
-  ) {
+  static Widget _buildSelectionCard({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12.0),
           border: Border.all(
-            color: isSelected ? Color(0xFFC62828) : Color(0xFFFFFFFF),
-            width: 2,
+            color: isSelected ? AppColors.primaryRed : Colors.white,
+            width: 1.5,
           ),
           boxShadow: [
-            BoxShadow(
+            const BoxShadow(
               color: Colors.black12,
               blurRadius: 6,
               offset: Offset(0, 2),
@@ -323,27 +405,99 @@ class ShareScreenOptions {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  color: isSelected ? Color(0xFFC62828) : Colors.grey[700],
-                ),
-                SizedBox(width: 12),
-                Text(
-                  language,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: isSelected ? Color(0xFFC62828) : Colors.grey[700],
+            Flexible(
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    color: isSelected ? AppColors.primaryRed : Colors.grey[700],
                   ),
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      title,
+                      softWrap: true,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.primaryRed
+                            : Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             if (isSelected)
-              Icon(
+              const Icon(
                 Icons.check_circle,
-                color: Color(0xFFC62828),
+                color: AppColors.primaryRed,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _buildLanguageCard(
+    BuildContext context,
+    String language,
+    String code,
+    IconData icon,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryRed : const Color(0xFFFFFFFF),
+            width: 1.5,
+          ),
+          boxShadow: [
+            const BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    color: isSelected ? AppColors.primaryRed : Colors.grey[700],
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      language,
+                      softWrap: true,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.primaryRed
+                            : Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: AppColors.primaryRed,
               ),
           ],
         ),
@@ -355,447 +509,138 @@ class ShareScreenOptions {
       BuildContext context, int id, String languageCode,
       {double header2Size = 22,
       double header3Size = 21,
-      double header4Size = 19}) async {
+      double header4Size = 19,
+      bool isBlackAndWhite = true}) async {
     try {
       // Get the current localization service without changing the app's locale
       final localizationService =
           Provider.of<LocalizationService>(context, listen: false);
+
       // Fetch localized strings for the specified language code
-      final localizedStrings = await localizationService
+      final localizedStringsDynamic = await localizationService
           .getLocalizedStringsForLanguage(languageCode);
 
-      // Load the image from assets
-      final pw.MemoryImage imageLogo = await getBlackAndWhiteImage();
+      // Convert to Map<String, String>
+      final localizedStrings = localizedStringsDynamic.map(
+        (key, value) => MapEntry(key, value.toString()),
+      );
 
-      // Fetch payment details from the database
+      // Load images from assets
+      final pw.MemoryImage imageLogo = isBlackAndWhite
+          ? await getBlackAndWhiteImage()
+          : await getColoredImage();
+      final pw.MemoryImage imageSignature = await getSignture();
+
+      // Fetch payment details
       final paymentMap = await DatabaseProvider.getPaymentById(id);
       if (paymentMap == null) {
         print('No payment details found for ID $id');
         return null;
       }
-
-      // Create a Payment instance from the fetched map
       final payment = Payment.fromMap(paymentMap);
-      final currency = await DatabaseProvider.getCurrencyById(
-          payment.currency!); // Implement this method
-      Map<String, String>? bankDetails;
 
-      if (payment.paymentMethod.toLowerCase() == 'cash') {
-        // Handle cash payment case
-        print('Payment is made in cash. No need to fetch bank details.');
-      } else {
+      // Fetch currency
+      final currencyDynamic =
+          await DatabaseProvider.getCurrencyById(payment.currency!) ?? {};
+      final currency = currencyDynamic.map(
+        (key, value) => MapEntry(key, value.toString()),
+      );
+
+      // Fetch bank details if not cash
+      Map<String, String>? bankDetails;
+      if (!(payment.paymentMethod.toLowerCase() == 'cash' ||
+          payment.paymentMethod.toLowerCase() == 'كاش')) {
         try {
           final dynamicFetchedBank =
               await DatabaseProvider.getBankById(payment.bankBranch!);
           if (dynamicFetchedBank != null) {
-            // Convert the fetched map from Map<String, dynamic>? to Map<String, String>
-            bankDetails = Map<String, String>.from(dynamicFetchedBank.map(
-              (key, value) => MapEntry(
-                  key, value.toString()), // Ensure all values are strings
-            ));
-            print('Bank details retrieved: $bankDetails');
-          } else {
-            print('No bank details found.');
+            bankDetails = Map<String, String>.from(
+                dynamicFetchedBank.map((k, v) => MapEntry(k, v.toString())));
           }
         } catch (e) {
           print('Failed to retrieve bank details: $e');
         }
-      } // Load fonts
+      }
+
+      // Load fonts
       final notoSansFont = pw.Font.ttf(
           await rootBundle.load('assets/fonts/NotoSans-Regular.ttf'));
       final amiriFont =
           pw.Font.ttf(await rootBundle.load('assets/fonts/Amiri-Regular.ttf'));
 
+      final notoSansBoldFont =
+          pw.Font.ttf(await rootBundle.load('assets/fonts/NotoSans-Bold.ttf'));
+      final amiriBoldFont =
+          pw.Font.ttf(await rootBundle.load('assets/fonts/Amiri-Bold.ttf'));
       final isEnglish = languageCode == 'en';
       final font = isEnglish ? notoSansFont : amiriFont;
+      final boldFont = isEnglish ? notoSansBoldFont : amiriBoldFont;
 
-      // Generate PDF content with payment details
-      final pdf = pw.Document();
+      // Get logged-in username
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? usernameLogin = prefs.getString('usernameLogin');
-      DateTime transactionDate = payment.transactionDate!;
 
-// Extract year, month, day, hour, and minute
-      int year = transactionDate.year;
-      int month = transactionDate.month;
-      int day = transactionDate.day;
-      int hour = transactionDate.hour;
-      int minute = transactionDate.minute;
+      pw.Document pdf;
 
-// Format the output as a string
-      String formattedDate =
-          '${year.toString().padLeft(4, '0')}/${month.toString().padLeft(2, '0')}/${day.toString().padLeft(2, '0')} ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      if (isBlackAndWhite) {
+        // Generate default (black & white) PDF
+        pdf = await PdfHelper.generatePdf(
+          payment: payment,
+          bankDetails: bankDetails,
+          currency: currency,
+          localizedStrings: localizedStrings,
+          font: font,
+          imageLogo: imageLogo, // black & white logo
+          imageSignature: imageSignature,
+          languageCode: languageCode,
+          header2Size: header2Size,
+          header3Size: header3Size,
+          header4Size: header4Size,
+          usernameLogin: usernameLogin,
+        );
+      } else {
+        // Generate colored PDF
+        final pw.MemoryImage headerLogo =
+            await getColoredHeaderLogo(languageCode);
+        final pw.MemoryImage headerTitle =
+            await getColoredHeaderTitle(languageCode);
 
-      final List<Map<String, String>> customerDetails = [
-        {
-          'title': localizedStrings['customerName'],
-          'value': payment.customerName
-        },
-        if (payment.msisdn != null && payment.msisdn.toString().length > 0)
-          {
-            'title': localizedStrings['mobileNumber'],
-            'value': payment.msisdn.toString()
-          },
-        {'title': localizedStrings['transactionDate'], 'value': formattedDate},
-        {
-          'title': localizedStrings['voucherNumber'],
-          'value': payment.voucherSerialNumber
-        },
-      ];
+        pdf = await PdfHelper.generateColoredPdf(
+          payment: payment,
+          bankDetails: bankDetails,
+          currency: currency,
+          localizedStrings: localizedStrings,
+          font: font,
+          boldFont: boldFont,
+          headerLogo: headerLogo,
+          headerTitle: headerTitle,
+          imageSignature: imageSignature,
+          languageCode: languageCode,
+          usernameLogin: usernameLogin,
+        );
+      }
 
-      String receiptVoucher = localizedStrings['receiptVoucher'];
-      String customersDetail = localizedStrings['customersDetail'];
-      String additionalDetails = localizedStrings['additionalDetails'];
-
-      List<Map<String, String>> paymentDetails = [];
-      if (payment.paymentMethod.toLowerCase() == 'cash' ||
-          payment.paymentMethod.toLowerCase() == 'كاش')
-        paymentDetails = [
-          {
-            'title': localizedStrings['paymentMethod'],
-            'value': localizedStrings[payment.paymentMethod.toLowerCase()]
-          },
-          {
-            'title': localizedStrings['currency'],
-            'value': languageCode == 'ar'
-                ? currency!["arabicName"] ?? ''
-                : currency!["englishName"]
-          },
-          {
-            'title': localizedStrings['amount'],
-            'value': payment.amount.toString()
-          },
-        ];
-      else if (payment.paymentMethod.toLowerCase() == 'check' ||
-          payment.paymentMethod.toLowerCase() == 'شيك')
-        paymentDetails = [
-          {
-            'title': localizedStrings['paymentMethod'],
-            'value': localizedStrings[payment.paymentMethod.toLowerCase()]
-          },
-          {
-            'title': localizedStrings['checkNumber'],
-            'value': payment.checkNumber.toString()
-          },
-          {
-            'title': localizedStrings['bankBranchCheck'],
-            'value': languageCode == 'ar'
-                ? bankDetails!["arabicName"] ?? ''
-                : bankDetails!["englishName"] ?? ''
-          },
-          {
-            'title': localizedStrings['dueDateCheck'],
-            'value': payment.dueDateCheck != null
-                ? DateFormat('yyyy-MM-dd').format(payment.dueDateCheck!)
-                : ''
-          },
-          {
-            'title': localizedStrings['amountCheck'],
-            'value': payment.amountCheck.toString()
-          },
-          {
-            'title': localizedStrings['currency'],
-            'value': languageCode == 'ar'
-                ? currency!["arabicName"] ?? ''
-                : currency!["englishName"]
-          },
-        ];
-      final List<Map<String, String>> additionalDetail = [
-        {'title': localizedStrings['userid'], 'value': usernameLogin!},
-      ];
-
-      String paymentDetail = localizedStrings['paymentDetail'];
-      String footerPdf = localizedStrings['footerPdf'];
-
-      pdf.addPage(
-        pw.Page(
-          margin: pw.EdgeInsets.zero,
-          build: (pw.Context context) {
-            return pw.Directionality(
-              textDirection:
-                  isEnglish ? pw.TextDirection.ltr : pw.TextDirection.rtl,
-              child: pw.Center(
-                child: pw.Container(
-                  color: PdfColors.white,
-                  padding: pw.EdgeInsets.all(8),
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.center,
-                    children: [
-                      pw.Container(
-                        alignment: pw.Alignment.center,
-                        decoration: pw.BoxDecoration(
-                          border: pw.Border.all(
-                            color: PdfColors
-                                .black, // Set the border color to black
-                            width: 2, // Set the border width to 2
-                          ),
-                          color: PdfColors.white,
-                        ),
-                        child: pw.Padding(
-                          padding: const pw.EdgeInsets.only(
-                              top: 5), // Example padding
-                          child: pw.Image(imageLogo, height: 50),
-                        ),
-                      ),
-                      // pw.Container(
-                      //   alignment: pw.Alignment.center,
-                      //   padding: pw.EdgeInsets.all(3), // Add padding here
-                      //   decoration: pw.BoxDecoration(
-                      //     color: PdfColors.black,
-                      //     border: pw.Border.all(
-                      //       color: PdfColors.black, // Set the border color to black
-                      //       width: 2,              // Set the border width to 2
-                      //     ),                        ),
-                      //   child: pw.Text(
-                      //     receiptVoucher,
-                      //     style: pw.TextStyle(
-                      //       color: PdfColors.white,
-                      //       fontSize: header2Size,
-                      //       fontWeight: pw.FontWeight.bold,
-                      //       font: font,
-                      //     ),
-                      //   ),
-                      // ),
-                      pw.Container(
-                        alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(3), // Add padding here
-                        decoration: pw.BoxDecoration(
-                          color: PdfColors.grey300,
-                          border: pw.Border.all(
-                            color: PdfColors
-                                .black, // Set the border color to black
-                            width: 2, // Set the border width to 2
-                          ),
-                        ),
-                        child: pw.Text(
-                          customersDetail,
-                          style: pw.TextStyle(
-                            fontSize: header2Size,
-                            fontWeight: pw.FontWeight.bold,
-                            font: font,
-                          ),
-                        ),
-                      ),
-                      _buildInfoTableDynamic(customerDetails, notoSansFont,
-                          amiriFont, isEnglish, header3Size),
-                      pw.Container(
-                        alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(3), // Add padding here
-                        decoration: pw.BoxDecoration(
-                          color: PdfColors.grey300,
-                          border: pw.Border.all(
-                            color: PdfColors
-                                .black, // Set the border color to black
-                            width: 2, // Set the border width to 2
-                          ),
-                        ),
-                        child: pw.Text(
-                          paymentDetail,
-                          style: pw.TextStyle(
-                            fontSize: header2Size,
-                            fontWeight: pw.FontWeight.bold,
-                            font: font,
-                          ),
-                        ),
-                      ),
-                      _buildInfoTableDynamic(paymentDetails, notoSansFont,
-                          amiriFont, isEnglish, header3Size),
-                      pw.Container(
-                        alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(3), // Add padding here
-                        decoration: pw.BoxDecoration(
-                          color: PdfColors.grey300,
-                          border: pw.Border.all(
-                            color: PdfColors
-                                .black, // Set the border color to black
-                            width: 2, // Set the border width to 2
-                          ),
-                        ),
-                        child: pw.Text(
-                          additionalDetails,
-                          style: pw.TextStyle(
-                            fontSize: header2Size,
-                            fontWeight: pw.FontWeight.bold,
-                            font: font,
-                          ),
-                        ),
-                      ),
-                      _buildInfoTableDynamic(additionalDetail, notoSansFont,
-                          amiriFont, isEnglish, header3Size),
-                      pw.Container(
-                        alignment: pw.Alignment.center,
-                        padding: pw.EdgeInsets.all(2), // Add padding here
-                        decoration: pw.BoxDecoration(
-                          color: PdfColors.white,
-                          border: pw.Border.all(
-                            color: PdfColors
-                                .black, // Set the border color to black
-                            width: 2, // Set the border width to 2
-                          ),
-                        ),
-                        child: pw.Text(
-                          footerPdf,
-                          style: pw.TextStyle(
-                            fontSize: header4Size,
-                            fontWeight: pw.FontWeight.bold,
-                            font: font,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      );
-
+      // Save PDF to temporary directory
       final directory = await getTemporaryDirectory();
-      final tempDirPath = directory.path;
-      // List and delete existing PDF files
-      final tempDirContents = Directory(tempDirPath).listSync();
-      for (var file in tempDirContents) {
-        print('gg:${file}');
+
+      // Clean old PDFs
+      for (var file in Directory(directory.path).listSync()) {
         if (file is File && file.path.endsWith('.pdf')) {
           await file.delete();
-          print('Deleted old file: ${file.path}');
         }
       }
 
-      //String fileName=languageCode=='en'? 'Payment Notice-${DateFormat('yyyy-MM-dd').format(payment.transactionDate!)}' : 'إشعار_دفع_${DateFormat('yyyy-MM-dd').format(payment.transactionDate!)}';
+      // Create file
       String fileName =
-          'إشعاردفع-${DateFormat('yyyy-MM-dd').format(payment.transactionDate!)}';
-      final path = '${directory.path}/$fileName.pdf';
-      final file = File(path);
-      print("file saved in:${file}");
-      // Write the PDF file
+          'إشعاردفع-${DateFormat('yyyy-MM-dd').format(payment.transactionDate!)}.pdf';
+      final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(await pdf.save());
+      print("File saved at: ${file.path}");
       return file;
     } catch (e) {
-      print('Error: $e');
+      print('Error generating PDF: $e');
       return null;
-      // Handle the error (e.g., show a snackbar or dialog in the UI)
     }
-  }
-
-  // Build info table with dynamic localization
-  static pw.Widget _buildInfoTableDynamic(
-      List<Map<String, String>> rowData,
-      pw.Font fontEnglish,
-      pw.Font fontArabic,
-      bool isEnglish,
-      double header3Size) {
-    return pw.Table(
-      border: pw.TableBorder.all(
-        color:
-            PdfColors.black, // Ensure the color is black or any visible color
-        width: 2.0, // Increase the width (e.g., 1.0 or higher)
-      ),
-      columnWidths: {
-        0: pw.FlexColumnWidth(2), // Adjust as needed
-        1: pw.FlexColumnWidth(2), // Adjust as needed
-      },
-      children: rowData
-          .map((row) => _buildTableRowDynamic(row['title']!, row['value']!,
-              fontEnglish, fontArabic, isEnglish, header3Size))
-          .toList()
-          .cast<pw.TableRow>(),
-    );
-  }
-
-  static pw.TableRow _buildTableRowDynamic(
-      String title,
-      String value,
-      pw.Font fontEnglish,
-      pw.Font fontArabic,
-      bool isEnglish,
-      double header3Size) {
-    // Function to determine if the text is Arabic
-    bool isArabic(String text) {
-      final arabicCharRegExp = RegExp(r'[\u0600-\u06FF]');
-      return arabicCharRegExp.hasMatch(text);
-    }
-
-    // Determine the font and text direction based on the content language
-    final fontForTitle = isArabic(title) ? fontArabic : fontEnglish;
-    final fontForValue = isArabic(value) ? fontArabic : fontEnglish;
-    final textDirectionForValue =
-        isArabic(value) ? pw.TextDirection.rtl : pw.TextDirection.ltr;
-
-    return pw.TableRow(
-      children: isEnglish
-          ? [
-              pw.Container(
-                decoration: pw.BoxDecoration(
-                  border: pw.Border(
-                    right: pw.BorderSide(
-                        color: PdfColors.black,
-                        width: 1.0), // Add a right border
-                  ),
-                ),
-                padding: pw.EdgeInsets.symmetric(
-                    vertical: 4, horizontal: 8), // Add horizontal padding here
-                alignment: pw.Alignment.centerLeft,
-                child: pw.Text(
-                  title,
-                  style:
-                      pw.TextStyle(font: fontForTitle, fontSize: header3Size),
-                  textDirection: isArabic(title)
-                      ? pw.TextDirection.rtl
-                      : pw.TextDirection.ltr,
-                ),
-              ),
-              pw.Container(
-                padding: pw.EdgeInsets.symmetric(
-                    vertical: 4, horizontal: 8), // Add horizontal padding here
-                alignment: pw.Alignment.centerRight,
-                child: pw.Directionality(
-                  textDirection: textDirectionForValue,
-                  child: pw.Text(
-                    value,
-                    style:
-                        pw.TextStyle(font: fontForValue, fontSize: header3Size),
-                  ),
-                ),
-              ),
-            ]
-          : [
-              pw.Container(
-                decoration: pw.BoxDecoration(
-                  border: pw.Border(
-                    right: pw.BorderSide(
-                        color: PdfColors.black,
-                        width: 1.0), // Add a right border
-                  ),
-                ),
-                padding: pw.EdgeInsets.symmetric(
-                    vertical: 4, horizontal: 8), // Add horizontal padding here
-                alignment: pw.Alignment.centerLeft,
-                child: pw.Directionality(
-                  textDirection: textDirectionForValue,
-                  child: pw.Text(
-                    value,
-                    style:
-                        pw.TextStyle(font: fontForValue, fontSize: header3Size),
-                  ),
-                ),
-              ),
-              pw.Container(
-                padding: pw.EdgeInsets.symmetric(
-                    vertical: 4, horizontal: 8), // Add horizontal padding here
-                alignment: pw.Alignment.centerRight,
-                child: pw.Text(
-                  title,
-                  style:
-                      pw.TextStyle(font: fontForTitle, fontSize: header3Size),
-                  textDirection: isArabic(title)
-                      ? pw.TextDirection.rtl
-                      : pw.TextDirection.ltr,
-                ),
-              ),
-            ],
-    );
   }
 
   static Future<pw.MemoryImage> getBlackAndWhiteImage() async {
@@ -834,5 +679,43 @@ class ShareScreenOptions {
 
     // Return a pdf-compatible MemoryImage
     return pw.MemoryImage(blackAndWhiteBytes);
+  }
+
+  static Future<pw.MemoryImage> getColoredImage() async {
+    // Load the colored image directly from assets
+    final ByteData imageData =
+        await rootBundle.load('assets/images/Ooredoo_Logo_noBG.png');
+
+    // Return a pdf-compatible MemoryImage without converting to black/white
+    return pw.MemoryImage(imageData.buffer.asUint8List());
+  }
+
+  static Future<pw.MemoryImage> getColoredHeaderTitle(String langCode) async {
+    ByteData imageData;
+    if (langCode == 'ar') {
+      imageData = await rootBundle.load('assets/images/receiptVoucher_ar.png');
+    } else {
+      imageData = await rootBundle.load('assets/images/receiptVoucher_en.png');
+    }
+    return pw.MemoryImage(imageData.buffer.asUint8List());
+  }
+
+  static Future<pw.MemoryImage> getColoredHeaderLogo(String langCode) async {
+    ByteData imageData;
+    if (langCode == 'ar') {
+      imageData = await rootBundle.load('assets/images/coloredHeader_ar.png');
+    } else {
+      imageData = await rootBundle.load('assets/images/coloredHeader_en.png');
+    }
+    return pw.MemoryImage(imageData.buffer.asUint8List());
+  }
+
+  static Future<pw.MemoryImage> getSignture() async {
+    // Load the colored image directly from assets
+    final ByteData imageData =
+        await rootBundle.load('assets/images/signture_nobg.png');
+
+    // Return a pdf-compatible MemoryImage without converting to black/white
+    return pw.MemoryImage(imageData.buffer.asUint8List());
   }
 }

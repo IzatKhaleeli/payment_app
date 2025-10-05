@@ -14,6 +14,7 @@ import '../Services/LOV_Sync.dart';
 import '../Services/LocalizationService.dart';
 import '../Services/PaymentService.dart';
 import '../Services/secure_storage.dart';
+import '../core/constants.dart';
 import 'DashboardScreen.dart';
 import 'dart:async';
 
@@ -332,10 +333,12 @@ class LoginScreen extends StatelessWidget {
                                           MainAxisAlignment.center,
                                       children: [
                                         Icon(Icons.fingerprint,
-                                            size: 40, color: Color(0xFFC62828)),
+                                            size: 40,
+                                            color: AppColors.primaryRed),
                                         SizedBox(width: 10),
                                         Icon(Icons.face,
-                                            size: 40, color: Color(0xFFC62828)),
+                                            size: 40,
+                                            color: AppColors.primaryRed),
                                       ],
                                     ),
                                   ),
@@ -576,7 +579,7 @@ class LoginScreen extends StatelessWidget {
                           fontSize: 18 * scale,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'NotoSansUI',
-                          color: Color(0xFFC62828),
+                          color: AppColors.primaryRed,
                         ),
                       ),
                       SizedBox(height: 10.h),
@@ -597,7 +600,7 @@ class LoginScreen extends StatelessWidget {
                             Navigator.of(dialogContext).pop();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFC62828),
+                            backgroundColor: AppColors.primaryRed,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),

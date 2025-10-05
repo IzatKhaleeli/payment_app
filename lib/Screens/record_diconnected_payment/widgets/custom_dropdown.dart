@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/constants.dart';
+
 class CustomDropdown<T> extends StatelessWidget {
   final double scale;
   final String label;
@@ -40,7 +42,7 @@ class CustomDropdown<T> extends StatelessWidget {
                   TextSpan(
                     text: ' *',
                     style: TextStyle(
-                      color: Color(0xFFC62828),
+                      color: AppColors.primaryRed,
                       fontSize: 12 * scale,
                     ),
                   ),
@@ -62,7 +64,7 @@ class CustomDropdown<T> extends StatelessWidget {
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(
-                  color: Color(0xFFC62828),
+                  color: AppColors.primaryRed,
                   width: 1.5,
                 ),
               ),

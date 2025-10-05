@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../Services/LocalizationService.dart';
+import '../../../core/constants.dart';
 import '../../../core/utils/enum/cancellation_status_enum.dart';
 
 void showFilterDialog({
@@ -49,7 +50,7 @@ void showFilterDialog({
                     style: TextStyle(color: Colors.black, fontSize: 12 * scale),
                   ),
                   value: selected.contains(item),
-                  activeColor: const Color(0xFFC62828),
+                  activeColor: AppColors.primaryRed,
                   controlAffinity: ListTileControlAffinity.leading,
                   onChanged: (bool? value) {
                     setState(() {
@@ -73,7 +74,7 @@ void showFilterDialog({
                           }
                         });
                       },
-                      activeColor: const Color(0xFFC62828),
+                      activeColor: AppColors.primaryRed,
                     ),
                   ),
                 );
@@ -162,7 +163,7 @@ void showFilterDialog({
                         width: double.infinity,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFC62828),
+                            backgroundColor: AppColors.primaryRed,
                             padding: EdgeInsets.symmetric(vertical: 12 * scale),
                           ),
                           onPressed: () {

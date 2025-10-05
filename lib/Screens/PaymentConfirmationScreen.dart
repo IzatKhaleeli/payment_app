@@ -15,6 +15,7 @@ import 'package:number_to_words_english/number_to_words_english.dart';
 import '../Services/PaymentService.dart';
 import '../Services/database.dart';
 import '../Utils/Enum.dart';
+import '../core/constants.dart';
 import 'PaymentCancellationScreen.dart';
 import 'payment_history/PaymentHistoryScreen.dart';
 import '../Custom_Widgets/CustomPopups.dart';
@@ -163,7 +164,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
             fontFamily: 'NotoSansUI',
           ),
         ),
-        backgroundColor: const Color(0xFFC62828),
+        backgroundColor: AppColors.primaryRed,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -206,7 +207,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 ),
               );
             },
-            backgroundColor: const Color(0xFFC62828),
+            backgroundColor: AppColors.primaryRed,
             child: Icon(Icons.add, color: Colors.white),
           ),
         ),
@@ -290,7 +291,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         children: [
           _buildSummaryHeader(scale, paymentDetails['status'].toLowerCase()),
           Divider(
-              color: const Color(0xFFC62828), thickness: 2, height: 15 * scale),
+              color: AppColors.primaryRed, thickness: 2, height: 15 * scale),
           if ((paymentDetails['status']?.toLowerCase() == "synced") ||
               (paymentDetails['status']?.toLowerCase() == "cancelled") ||
               (paymentDetails['status']?.toLowerCase() ==
@@ -492,7 +493,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         .getLocalizedString('openAsPdf'),
                 child: IconButton(
                   icon: FaIcon(FontAwesomeIcons.filePdf,
-                      color: Color(0xFFC62828)),
+                      color: AppColors.primaryRed),
                   onPressed: () async {
                     ShareScreenOptions.showLanguageSelectionAndShare(
                         context, widget.paymentId, ShareOption.OpenPDF);
@@ -508,7 +509,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         Provider.of<LocalizationService>(context, listen: false)
                             .getLocalizedString('cancelPayment'),
                     child: IconButton(
-                      icon: Icon(Icons.cancel, color: Color(0xFFC62828)),
+                      icon: Icon(Icons.cancel, color: AppColors.primaryRed),
                       onPressed: () async {
                         if (widget.paymentId != null) {
                           final int idToCancel = widget.paymentId!;
@@ -548,7 +549,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                           CustomPopups.showTwoButtonPopup(
                             context: context,
                             icon: Icon(Icons.warning,
-                                size: 40, color: Color(0xFFC62828)),
+                                size: 40, color: AppColors.primaryRed),
                             message: Provider.of<LocalizationService>(context,
                                     listen: false)
                                 .getLocalizedString('noDefaultDeviceSetBody'),
@@ -583,7 +584,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                               CustomPopups.showCustomResultPopup(
                                 context: context,
                                 icon: Icon(Icons.error,
-                                    color: Color(0xFFC62828), size: 40),
+                                    color: AppColors.primaryRed, size: 40),
                                 message: Provider.of<LocalizationService>(
                                         context,
                                         listen: false)
@@ -729,12 +730,12 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         Provider.of<LocalizationService>(context, listen: false)
                             .getLocalizedString('deletePayment'),
                     child: IconButton(
-                      icon: Icon(Icons.delete, color: Color(0xFFC62828)),
+                      icon: Icon(Icons.delete, color: AppColors.primaryRed),
                       onPressed: () {
                         CustomPopups.showCustomDialog(
                           context: context,
                           icon: Icon(Icons.delete,
-                              size: 60, color: Color(0xFFC62828)),
+                              size: 60, color: AppColors.primaryRed),
                           title: Provider.of<LocalizationService>(context,
                                   listen: false)
                               .getLocalizedString('deletePayment'),
@@ -812,7 +813,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         CustomPopups.showCustomDialog(
                           context: context,
                           icon: Icon(Icons.check_circle,
-                              size: 60.0, color: Color(0xFFC62828)),
+                              size: 60.0, color: AppColors.primaryRed),
                           title: Provider.of<LocalizationService>(context,
                                   listen: false)
                               .getLocalizedString('confirmPayment'),
