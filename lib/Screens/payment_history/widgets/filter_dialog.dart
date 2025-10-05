@@ -8,7 +8,7 @@ void showFilterDialog({
   required BuildContext context,
   required double scale,
   required List<String> selectedStatuses,
-  required List<CancellationStatus> selectedCancellationStatuses,
+  required List<String> selectedCancellationStatuses,
   required VoidCallback onApply,
 }) {
   showDialog(
@@ -22,8 +22,15 @@ void showFilterDialog({
           final List<String> statuses = [
             'Confirmed',
             'Synced',
+            'completed',
+            'rejected'
+          ];
+
+          final List<String> cancestatuses = [
+            'Cancelled',
             'CancelPending',
-            'Cancelled'
+            'completed',
+            'rejected'
           ];
 
           int totalSelected =
@@ -61,22 +68,6 @@ void showFilterDialog({
                       }
                     });
                   },
-                  secondary: Transform.scale(
-                    scale: 0.8 * scale,
-                    child: Checkbox(
-                      value: selected.contains(item),
-                      onChanged: (bool? value) {
-                        setState(() {
-                          if (value == true) {
-                            selected.add(item);
-                          } else {
-                            selected.remove(item);
-                          }
-                        });
-                      },
-                      activeColor: AppColors.primaryRed,
-                    ),
-                  ),
                 );
               }).toList(),
             );
@@ -146,13 +137,13 @@ void showFilterDialog({
                               getLabel: (s) => localizationService
                                   .getLocalizedString(s.toLowerCase()),
                             ),
-                            buildSection<CancellationStatus>(
+                            buildSection<String>(
                               title: localizationService
                                   .getLocalizedString('cancellationStatus'),
-                              items: CancellationStatus.values,
+                              items: cancestatuses,
                               selected: selectedCancellationStatuses,
                               getLabel: (s) => localizationService
-                                  .getLocalizedString(s.value.toLowerCase()),
+                                  .getLocalizedString(s.toLowerCase()),
                             ),
                           ],
                         ),

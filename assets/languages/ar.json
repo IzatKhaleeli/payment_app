@@ -151,6 +151,8 @@
   "confirmed": "تم التأكيد",
   "Cancelled": "تم الإرسال للإلغاء",
   "CancelPending": "جاري الإلغاء",
+  "cancelled": "تم الإرسال للإلغاء",
+  "cancelpending": "جاري الإلغاء",
   "sharePayment": "مشاركة الدفعة",
   "editPayment": "تعديل الدفعة",
 

@@ -158,6 +158,8 @@
   "confirmed": "Confirmed",
   "CancelPending": "Cancel Pending",
   "Cancelled": "Submitted to cancel",
+  "cancelpending": "Cancel Pending",
+  "cancelled": "Submitted to cancel",
 
   "noInternetConnection": "No Internet Connection",
   "noInternet": "No internet connection detected. Please check your network settings and try again.",

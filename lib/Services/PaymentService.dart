@@ -199,7 +199,9 @@ class PaymentService {
               body: json.encode(body),
             )
             .timeout(Duration(seconds: 4));
+        print("post request");
       } catch (e) {
+        print("catchhhh");
         GlobalErrorNotifier.showError("Error: $e");
       }
       if (response!.statusCode == 200) {
@@ -230,6 +232,8 @@ class PaymentService {
                 ? 'كاش'
                 : 'شيك');
       } else {
+        print("elseee");
+
         Map<String, dynamic> errorResponse = json.decode(response.body);
         print("failed to sync heres the body of response: ${response.body}");
         if (errorResponse['error'] == 'Unauthorized' &&

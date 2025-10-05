@@ -47,7 +47,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   String search = '';
   late StreamSubscription _syncSubscription;
   List<String> _selectedStatuses = [];
-  List<CancellationStatus> _selectedCancellationStatuses = [];
+  List<String> _selectedCancellationStatuses = [];
   List<Payment> _paymentRecords = [];
   Map<String, String> _currencies = {};
   Map<String, String> _banks = {};
@@ -97,8 +97,12 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String usernameLogin = prefs.getString('usernameLogin') ?? 'null';
     List<Map<String, dynamic>> payments =
-        await DatabaseProvider.getPaymentsWithDateFilter(_selectedFromDate,
-            _selectedToDate, _selectedStatuses, usernameLogin.toLowerCase());
+        await DatabaseProvider.getPaymentsWithDateFilter(
+            _selectedFromDate,
+            _selectedToDate,
+            _selectedStatuses,
+            _selectedCancellationStatuses,
+            usernameLogin.toLowerCase());
 
     // print("_fetchPayments|getPaymentsWithDateFilter ${payments}");
     String? dueDateCheckString;

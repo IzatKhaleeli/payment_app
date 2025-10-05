@@ -474,6 +474,7 @@ class DatabaseProvider {
       DateTime? fromDate,
       DateTime? toDate,
       List<String>? statuses,
+      List<String>? cancellationStatuses,
       String userId) async {
     Database db = await database;
 
@@ -497,6 +498,13 @@ class DatabaseProvider {
           statuses.map((status) => status.replaceAll("'", "''")).toList();
       String statusList = statuses.map((status) => "'$status'").join(', ');
       query += ' AND status IN ($statusList)';
+    }
+
+    if (cancellationStatuses != null && cancellationStatuses.isNotEmpty) {
+      cancellationStatuses =
+          cancellationStatuses.map((s) => s.replaceAll("'", "''")).toList();
+      String cancelList = cancellationStatuses.map((s) => "'$s'").join(', ');
+      query += ' AND cancellationStatus IN ($cancelList)';
     }
 
     // Execute the query
