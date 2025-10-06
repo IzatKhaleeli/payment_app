@@ -135,134 +135,6 @@ class PdfHelper {
     return pdf;
   }
 
-  static Future<pw.Document> generateColoredPdf({
-    required Payment payment,
-    required Map<String, String>? bankDetails,
-    required Map<String, String> currency,
-    required Map<String, String> localizedStrings,
-    required pw.Font font,
-    required pw.Font boldFont,
-    required pw.MemoryImage headerLogo,
-    required pw.MemoryImage headerTitle,
-    required pw.MemoryImage imageSignature,
-    required String languageCode,
-    String templateType = 'colored',
-    String? usernameLogin,
-  }) async {
-    final isEnglish = languageCode == 'en';
-
-    // Format transaction date
-    DateTime transactionDate = payment.transactionDate!;
-    String formattedDate =
-        '${transactionDate.year.toString().padLeft(4, '0')}/${transactionDate.month.toString().padLeft(2, '0')}/${transactionDate.day.toString().padLeft(2, '0')} ${transactionDate.hour.toString().padLeft(2, '0')}:${transactionDate.minute.toString().padLeft(2, '0')}';
-
-    // Customer details
-    final List<Map<String, String>> customerDetails = [
-      {
-        'title': localizedStrings['customerName']!,
-        'value': payment.customerName
-      },
-      if (payment.msisdn != null && payment.msisdn!.isNotEmpty)
-        {'title': localizedStrings['mobileNumber']!, 'value': payment.msisdn!},
-      {'title': localizedStrings['transactionDate']!, 'value': formattedDate},
-      {
-        'title': localizedStrings['receiptNumber']!,
-        'value': payment.voucherSerialNumber
-      },
-    ];
-
-    // Payment details
-    List<Map<String, String>> paymentDetails = [];
-    if (payment.paymentMethod.toLowerCase() == 'cash' ||
-        payment.paymentMethod.toLowerCase() == 'كاش') {
-      paymentDetails = [
-        {
-          'title': localizedStrings['paymentMethod']!,
-          'value': localizedStrings[payment.paymentMethod.toLowerCase()]!
-        },
-        {
-          'title': localizedStrings['currency']!,
-          'value': languageCode == 'ar'
-              ? currency["arabicName"] ?? ''
-              : currency["englishName"] ?? ''
-        },
-        {
-          'title': localizedStrings['amount']!,
-          'value': payment.amount.toString()
-        },
-      ];
-    } else if (payment.paymentMethod.toLowerCase() == 'check' ||
-        payment.paymentMethod.toLowerCase() == 'شيك') {
-      paymentDetails = [
-        {
-          'title': localizedStrings['paymentMethod']!,
-          'value': localizedStrings[payment.paymentMethod.toLowerCase()]!
-        },
-        {
-          'title': localizedStrings['checkNumber']!,
-          'value': payment.checkNumber.toString()
-        },
-        {
-          'title': localizedStrings['bankBranchCheck']!,
-          'value': languageCode == 'ar'
-              ? bankDetails!["arabicName"] ?? ''
-              : bankDetails!["englishName"] ?? ''
-        },
-        {
-          'title': localizedStrings['dueDateCheck']!,
-          'value': payment.dueDateCheck != null
-              ? DateFormat('yyyy-MM-dd').format(payment.dueDateCheck!)
-              : ''
-        },
-        {
-          'title': localizedStrings['amountCheck']!,
-          'value': payment.amountCheck.toString()
-        },
-        {
-          'title': localizedStrings['currency']!,
-          'value': languageCode == 'ar'
-              ? currency["arabicName"] ?? ''
-              : currency["englishName"] ?? ''
-        },
-      ];
-    }
-
-    // Additional details
-    final List<Map<String, String>> additionalDetail = [
-      {'title': localizedStrings['userid']!, 'value': usernameLogin ?? ''},
-    ];
-
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.Page(
-        margin: pw.EdgeInsets.zero,
-        build: (pw.Context context) {
-          return pw.Directionality(
-            textDirection:
-                isEnglish ? pw.TextDirection.ltr : pw.TextDirection.rtl,
-            child: pw.Center(
-              child: _buildColoredTemplate(
-                headerLogo: headerLogo,
-                headerTitle: headerTitle,
-                imageSignature: imageSignature,
-                font: font,
-                boldFont: boldFont,
-                customerDetails: customerDetails,
-                paymentDetails: paymentDetails,
-                additionalDetail: additionalDetail,
-                localizedStrings: localizedStrings,
-                languageCode: languageCode,
-              ),
-            ),
-          );
-        },
-      ),
-    );
-
-    return pdf;
-  }
-
   static pw.Column _buildTemplate({
     required String templateType,
     required pw.MemoryImage imageLogo,
@@ -373,13 +245,12 @@ class PdfHelper {
       double header3Size) {
     return pw.Table(
       border: pw.TableBorder.all(
-        color:
-            PdfColors.black, // Ensure the color is black or any visible color
-        width: 2.0, // Increase the width (e.g., 1.0 or higher)
+        color: PdfColors.black,
+        width: 2.0,
       ),
       columnWidths: {
-        0: pw.FlexColumnWidth(2), // Adjust as needed
-        1: pw.FlexColumnWidth(2), // Adjust as needed
+        0: pw.FlexColumnWidth(2),
+        1: pw.FlexColumnWidth(2),
       },
       children: rowData
           .map((row) => _buildTableRowDynamic(row['title']!, row['value']!,
@@ -517,80 +388,132 @@ class PdfHelper {
     );
   }
 
-  static pw.Widget buildArea({
+  static Future<pw.Document> generateColoredPdf({
+    required Payment payment,
+    required Map<String, String>? bankDetails,
+    required Map<String, String> currency,
+    required Map<String, String> localizedStrings,
     required pw.Font font,
     required pw.Font boldFont,
-    required bool isArabic,
-    required List<Map<String, String>> fields,
-    double fontSize = 18,
-    double spacing = 16,
-  }) {
-    // Calculate available width: A4 width (595) - 16 padding left - 16 padding right - 16 spacing = 547
-    const double availableWidth = 547;
-    const double columnWidth = availableWidth / 2; // 273.5 points per column
+    required pw.MemoryImage headerLogo,
+    required pw.MemoryImage headerTitle,
+    required pw.MemoryImage imageSignature,
+    required String languageCode,
+    String templateType = 'colored',
+    String? usernameLogin,
+  }) async {
+    final isEnglish = languageCode == 'en';
 
-    // Split fields into left and right columns
-    final leftFields = <Map<String, String>>[];
-    final rightFields = <Map<String, String>>[];
-    for (var i = 0; i < fields.length; i++) {
-      if (i % 2 == 0) {
-        leftFields.add(fields[i]);
-      } else {
-        rightFields.add(fields[i]);
-      }
+    // Format transaction date
+    DateTime transactionDate = payment.transactionDate!;
+    String formattedDate =
+        '${transactionDate.year.toString().padLeft(4, '0')}/${transactionDate.month.toString().padLeft(2, '0')}/${transactionDate.day.toString().padLeft(2, '0')} ${transactionDate.hour.toString().padLeft(2, '0')}:${transactionDate.minute.toString().padLeft(2, '0')}';
+
+    // Customer details
+    final List<Map<String, String>> customerDetails = [
+      {
+        'title': localizedStrings['customerName']!,
+        'value': payment.customerName
+      },
+      if (payment.msisdn != null && payment.msisdn!.isNotEmpty)
+        {'title': localizedStrings['mobileNumber']!, 'value': payment.msisdn!},
+      {'title': localizedStrings['transactionDate']!, 'value': formattedDate},
+      {
+        'title': localizedStrings['receiptNumber']!,
+        'value': payment.voucherSerialNumber
+      },
+    ];
+
+    // Payment details
+    List<Map<String, String>> paymentDetails = [];
+    if (payment.paymentMethod.toLowerCase() == 'cash' ||
+        payment.paymentMethod.toLowerCase() == 'كاش') {
+      paymentDetails = [
+        {
+          'title': localizedStrings['paymentMethod']!,
+          'value': localizedStrings[payment.paymentMethod.toLowerCase()]!
+        },
+        {
+          'title': localizedStrings['currency']!,
+          'value': languageCode == 'ar'
+              ? currency["arabicName"] ?? ''
+              : currency["englishName"] ?? ''
+        },
+        {
+          'title': localizedStrings['amount']!,
+          'value': payment.amount.toString()
+        },
+      ];
+    } else if (payment.paymentMethod.toLowerCase() == 'check' ||
+        payment.paymentMethod.toLowerCase() == 'شيك') {
+      paymentDetails = [
+        {
+          'title': localizedStrings['paymentMethod']!,
+          'value': localizedStrings[payment.paymentMethod.toLowerCase()]!
+        },
+        {
+          'title': localizedStrings['checkNumber']!,
+          'value': payment.checkNumber.toString()
+        },
+        {
+          'title': localizedStrings['bankBranchCheck']!,
+          'value': languageCode == 'ar'
+              ? bankDetails!["arabicName"] ?? ''
+              : bankDetails!["englishName"] ?? ''
+        },
+        {
+          'title': localizedStrings['dueDateCheck']!,
+          'value': payment.dueDateCheck != null
+              ? DateFormat('yyyy-MM-dd').format(payment.dueDateCheck!)
+              : ''
+        },
+        {
+          'title': localizedStrings['amountCheck']!,
+          'value': payment.amountCheck.toString()
+        },
+        {
+          'title': localizedStrings['currency']!,
+          'value': languageCode == 'ar'
+              ? currency["arabicName"] ?? ''
+              : currency["englishName"] ?? ''
+        },
+      ];
     }
 
-    return pw.Row(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        // Left column
-        pw.Container(
-          width: columnWidth,
-          child: pw.Column(
-            crossAxisAlignment: isArabic
-                ? pw.CrossAxisAlignment.end
-                : pw.CrossAxisAlignment.start,
-            children: leftFields.map((field) {
-              return pw.Padding(
-                padding: const pw.EdgeInsets.only(bottom: 10),
-                child: buildLabelValueRow(
-                  title: field['title'] ?? '',
-                  value: field['value'] ?? '',
-                  font: font,
-                  boldFont: boldFont,
-                  fontSize: fontSize,
-                  isArabic: isArabic,
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        // Spacer between columns
-        pw.SizedBox(width: spacing),
-        // Right column
-        pw.Container(
-          width: columnWidth,
-          child: pw.Column(
-            crossAxisAlignment: isArabic
-                ? pw.CrossAxisAlignment.end
-                : pw.CrossAxisAlignment.start,
-            children: rightFields.map((field) {
-              return pw.Padding(
-                padding: const pw.EdgeInsets.only(bottom: 10),
-                child: buildLabelValueRow(
-                  title: field['title'] ?? '',
-                  value: field['value'] ?? '',
-                  font: font,
-                  boldFont: boldFont,
-                  fontSize: fontSize,
-                  isArabic: isArabic,
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-      ],
+    // Additional details
+    final List<Map<String, String>> additionalDetail = [
+      {'title': localizedStrings['userid']!, 'value': usernameLogin ?? ''},
+    ];
+
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        margin: const pw.EdgeInsets.all(16),
+        build: (pw.Context context) {
+          return pw.Directionality(
+            textDirection:
+                isEnglish ? pw.TextDirection.ltr : pw.TextDirection.rtl,
+            child: pw.Center(
+              child: _buildColoredTemplate(
+                headerLogo: headerLogo,
+                headerTitle: headerTitle,
+                imageSignature: imageSignature,
+                font: font,
+                boldFont: boldFont,
+                customerDetails: customerDetails,
+                paymentDetails: paymentDetails,
+                additionalDetail: additionalDetail,
+                localizedStrings: localizedStrings,
+                languageCode: languageCode,
+              ),
+            ),
+          );
+        },
+      ),
     );
+
+    return pdf;
   }
 
   static pw.Widget buildLabelValueRow({
@@ -600,34 +523,122 @@ class PdfHelper {
     required pw.Font boldFont,
     double fontSize = 18,
     required bool isArabic,
-    double spacing = 7, // space between title and value
+    double spacing = 7,
+    double maxTextWidth = 220,
+    double horizontalPadding = 16,
   }) {
+    pw.Widget buildText(String text, pw.Font textFont, pw.TextAlign align,
+        {bool bold = false, double? maxWidth}) {
+      return pw.Container(
+        width: maxWidth,
+        child: pw.Text(
+          text,
+          style: pw.TextStyle(
+            font: textFont,
+            fontSize: fontSize,
+            fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+          ),
+          textAlign: align,
+          softWrap: true,
+          maxLines: null,
+        ),
+      );
+    }
+
+    final titleWidget = buildText(
+      '$title:',
+      boldFont,
+      isArabic ? pw.TextAlign.right : pw.TextAlign.left,
+      bold: true,
+      maxWidth: maxTextWidth * 0.45,
+    );
+
+    final valueWidget = buildText(
+      value,
+      font,
+      isArabic ? pw.TextAlign.right : pw.TextAlign.left,
+      maxWidth: maxTextWidth * 0.55,
+    );
+
+    final children = isArabic
+        ? [valueWidget, pw.SizedBox(width: spacing), titleWidget]
+        : [titleWidget, pw.SizedBox(width: spacing), valueWidget];
+
+    return pw.Padding(
+      padding: pw.EdgeInsets.symmetric(horizontal: horizontalPadding),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisAlignment:
+            isArabic ? pw.MainAxisAlignment.end : pw.MainAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
+  static pw.Widget buildAreaFlexible({
+    required pw.Font font,
+    required pw.Font boldFont,
+    required bool isArabic,
+    required List<Map<String, String>> fields,
+    double fontSize = 18,
+    double columnSpacing = 20,
+    double rowSpacing = 10,
+    double horizontalPadding = 16,
+    double maxTextWidth = 220,
+  }) {
+    final leftFields = <Map<String, String>>[];
+    final rightFields = <Map<String, String>>[];
+
+    for (int i = 0; i < fields.length; i++) {
+      if (i % 2 == 0) {
+        leftFields.add(fields[i]);
+      } else {
+        rightFields.add(fields[i]);
+      }
+    }
+
+    pw.Widget buildColumn(List<Map<String, String>> list) {
+      return pw.Expanded(
+        flex: 1,
+        child: pw.Column(
+          crossAxisAlignment: isArabic
+              ? pw.CrossAxisAlignment.end
+              : pw.CrossAxisAlignment.start,
+          children: list.map((field) {
+            return pw.Padding(
+              padding: pw.EdgeInsets.only(bottom: rowSpacing),
+              child: buildLabelValueRow(
+                title: field['title'] ?? '',
+                value: field['value'] ?? '',
+                font: font,
+                boldFont: boldFont,
+                fontSize: fontSize,
+                isArabic: isArabic,
+                maxTextWidth: maxTextWidth,
+              ),
+            );
+          }).toList(),
+        ),
+      );
+    }
+
+    final children = isArabic
+        ? [
+            buildColumn(rightFields),
+            pw.SizedBox(width: columnSpacing),
+            buildColumn(leftFields),
+          ]
+        : [
+            buildColumn(leftFields),
+            pw.SizedBox(width: columnSpacing),
+            buildColumn(rightFields),
+          ];
+
     return pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
       mainAxisAlignment:
           isArabic ? pw.MainAxisAlignment.end : pw.MainAxisAlignment.start,
-      children: isArabic
-          ? [
-              pw.Text(
-                value,
-                style: pw.TextStyle(font: font, fontSize: fontSize),
-              ),
-              pw.SizedBox(width: spacing),
-              pw.Text(
-                '$title: ',
-                style: pw.TextStyle(font: boldFont, fontSize: fontSize),
-              ),
-            ]
-          : [
-              pw.Text(
-                '$title: ',
-                style: pw.TextStyle(font: font, fontSize: fontSize),
-              ),
-              pw.SizedBox(width: spacing),
-              pw.Text(
-                value,
-                style: pw.TextStyle(font: font, fontSize: fontSize),
-              ),
-            ],
+      children: children,
     );
   }
 
@@ -647,7 +658,6 @@ class PdfHelper {
     final pw.Widget headerLogoPDF = pw.Image(headerLogo, height: 90);
     final pw.Widget headerTitlePDF = pw.Image(headerTitle, height: 75);
 
-    print("payment details:${paymentDetails}");
     // Get receipt number value
     final String receiptNumber = customerDetails.firstWhere(
       (e) => e['title'] == localizedStrings['receiptNumber'],
@@ -713,17 +723,54 @@ class PdfHelper {
       orElse: () => {'value': ''},
     )['value']!;
 
-    // final String msisdnPayment = paymentDetails.firstWhere(
-    //   (e) => e['title'] == localizedStrings['mobileNumber'],
-    //   orElse: () => {'value': ''},
-    // )['value']!;
-
     final String transactionDate = customerDetails.firstWhere(
       (e) => e['title'] == localizedStrings['transactionDate'],
       orElse: () => {'value': ''},
     )['value']!;
 
-    // Column for title + receipt number
+    final double footer_pageWidth = 595;
+
+// Signature container width
+    final double footer_signatureWidth = 160;
+
+    // Determine if it's check-based or cash-based
+    final bool isCheckPayment =
+        paymentMethod.toLowerCase() == 'check' || paymentMethod == 'شيك';
+
+// Base fields (always shown)
+    final List<Map<String, String>> paymentFields = [
+      {
+        'title': localizedStrings['paymentMethod'] ?? 'Payment Method',
+        'value': paymentMethod,
+      },
+      {
+        'title': localizedStrings['currency'] ?? 'Currency',
+        'value': currency,
+      },
+      {
+        'title': localizedStrings['amount'] ?? 'Payment Amount',
+        'value': paymentAmount,
+      },
+    ];
+
+// Add check-specific fields only if payment method is Check / شيك
+    if (isCheckPayment) {
+      paymentFields.addAll([
+        {
+          'title': localizedStrings['checkNumber'] ?? 'Check Number',
+          'value': checkNumber ?? "NA",
+        },
+        {
+          'title': localizedStrings['bankBranchCheck'] ?? 'Bank',
+          'value': bankName ?? "NA",
+        },
+        {
+          'title': localizedStrings['dueDateCheck'] ?? 'Due date',
+          'value': dueDate ?? "NA",
+        },
+      ]);
+    }
+
     final pw.Widget titleWithReceipt = pw.Column(
       crossAxisAlignment:
           isArabic ? pw.CrossAxisAlignment.end : pw.CrossAxisAlignment.start,
@@ -740,187 +787,138 @@ class PdfHelper {
         ),
       ],
     );
-    return pw.Padding(
-      padding: const pw.EdgeInsets.all(16),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-        children: [
-          pw.Container(
-            padding: const pw.EdgeInsets.all(16),
-            child: pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: isArabic
-                  ? [
-                      // Arabic: logo left, title + receipt right
-                      pw.Padding(
-                        padding: pw.EdgeInsets.only(top: 40),
-                        child: headerLogoPDF,
-                      ),
-                      titleWithReceipt,
-                    ]
-                  : [
-                      // English: title + receipt left, logo right
-                      titleWithReceipt,
-                      pw.Padding(
-                        padding: pw.EdgeInsets.only(top: 40),
-                        child: headerLogoPDF,
-                      ),
-                    ],
-            ),
-          ),
-          pw.SizedBox(height: 20),
-          buildSectionHeader(
-            title: localizedStrings['customersDetail'] ?? 'Customer Details',
-            isArabic: isArabic,
-            font: font,
-            boldFont: boldFont,
-          ),
-          pw.SizedBox(height: 20),
-          pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 16),
-            child: buildArea(
-              font: font,
-              boldFont: boldFont,
-              isArabic: isArabic,
-              fields: [
-                {
-                  'title': localizedStrings['customerName'] ?? 'Customer Name',
-                  'value': customerName
-                },
-                // {
-                //   'title': localizedStrings['mobileNumber'] ?? 'Mobile Number',
-                //   'value': msisdnPayment
-                // },
-                {
-                  'title': localizedStrings['mobileNumber'] ?? 'Mobile Number',
-                  'value': msisdnReceipt
-                },
-                {
-                  'title': localizedStrings['transactionDate'] ?? 'Date',
-                  'value': transactionDate
-                },
-              ],
-            ),
-          ),
-          pw.SizedBox(height: 20),
-          buildSectionHeader(
-            title: localizedStrings['paymentDetail'] ?? 'Payment Details',
-            isArabic: isArabic,
-            font: font,
-            boldFont: boldFont,
-          ),
-          pw.SizedBox(height: 20),
-          pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 16),
-            child: buildArea(
-              font: font,
-              boldFont: boldFont,
-              isArabic: isArabic,
-              fields: [
-                {
-                  'title':
-                      localizedStrings['paymentMethod'] ?? 'Payment Method',
-                  'value': paymentMethod
-                },
-                {
-                  'title': localizedStrings['currency'] ?? 'Currency',
-                  'value': currency
-                },
-                {
-                  'title': localizedStrings['amount'] ?? 'Payment Amount',
-                  'value': paymentAmount
-                },
-                {
-                  'title': localizedStrings['checkNumber'] ?? 'Check Number',
-                  'value': checkNumber ?? "NA"
-                },
-                {
-                  'title': localizedStrings['bankBranchCheck'] ?? 'Bank',
-                  'value': bankName ?? "NA"
-                },
-                {
-                  'title': localizedStrings['dueDateCheck'] ?? 'Due date',
-                  'value': dueDate ?? "NA"
-                },
-              ],
-            ),
-          ),
-          pw.SizedBox(height: 20),
-          buildSectionHeader(
-            title:
-                localizedStrings['additionalDetails'] ?? 'Additional Details',
-            isArabic: isArabic,
-            font: font,
-            boldFont: boldFont,
-          ),
-          pw.SizedBox(height: 20),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: isArabic
-                ? [
-                    // 🖋️ Signature on the left (for Arabic)
-                    pw.Container(
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+      children: [
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: isArabic
+              ? [
+                  pw.Padding(
+                    padding: pw.EdgeInsets.only(top: 40),
+                    child: headerLogoPDF,
+                  ),
+                  titleWithReceipt,
+                ]
+              : [
+                  titleWithReceipt,
+                  pw.Padding(
+                    padding: pw.EdgeInsets.only(top: 40),
+                    child: headerLogoPDF,
+                  ),
+                ],
+        ),
+        pw.SizedBox(height: 20),
+        buildSectionHeader(
+          title: localizedStrings['customersDetail'] ?? 'Customer Details',
+          isArabic: isArabic,
+          font: font,
+          boldFont: boldFont,
+        ),
+        pw.SizedBox(height: 20),
+        buildAreaFlexible(
+          font: font,
+          boldFont: boldFont,
+          isArabic: isArabic,
+          fields: [
+            {
+              'title': localizedStrings['customerName'] ?? 'Customer Name',
+              'value': customerName
+            },
+            {
+              'title': localizedStrings['mobileNumber'] ?? 'Mobile Number',
+              'value': msisdnReceipt
+            },
+            {
+              'title': localizedStrings['date'] ?? 'Date',
+              'value': transactionDate
+            },
+          ],
+          maxTextWidth: 220,
+        ),
+        pw.SizedBox(height: 20),
+        buildSectionHeader(
+          title: localizedStrings['paymentDetail'] ?? 'Payment Details',
+          isArabic: isArabic,
+          font: font,
+          boldFont: boldFont,
+        ),
+        pw.SizedBox(height: 20),
+        buildAreaFlexible(
+          font: font,
+          boldFont: boldFont,
+          isArabic: isArabic,
+          fields: paymentFields,
+          maxTextWidth: 220,
+        ),
+        pw.SizedBox(height: 20),
+        pw.Spacer(),
+        buildSectionHeader(
+          title: localizedStrings['additionalDetails'] ?? 'Additional Details',
+          isArabic: isArabic,
+          font: font,
+          boldFont: boldFont,
+        ),
+        pw.SizedBox(height: 20),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: isArabic
+              ? [
+                  // 🖋️ Signature on the right (first child in RTL)
+                  pw.Container(
+                    height: 80,
+                    width: footer_signatureWidth,
+                    child: pw.Image(imageSignature, fit: pw.BoxFit.contain),
+                  ),
+                  // 🧾 Text (takes remaining space)
+                  pw.Expanded(
+                    child: buildLabelValueRow(
+                      title: localizedStrings['employeeid'] ?? 'Employee Name',
+                      value: userid,
+                      font: font,
+                      boldFont: boldFont,
+                      fontSize: 18,
+                      isArabic: isArabic,
+                    ),
+                  ),
+                ]
+              : [
+                  // 🧾 Text (left for English)
+                  pw.Expanded(
+                    child: buildLabelValueRow(
+                      title: localizedStrings['employeeid'] ?? 'Employee Name',
+                      value: userid,
+                      font: font,
+                      boldFont: boldFont,
+                      fontSize: 18,
+                      isArabic: isArabic,
+                    ),
+                  ),
+                  // 🖋️ Signature (right for English)
+                  pw.Padding(
+                    padding: pw.EdgeInsets.symmetric(horizontal: 16),
+                    child: pw.Container(
                       height: 80,
-                      width: 160,
+                      width: footer_signatureWidth,
                       child: pw.Image(imageSignature, fit: pw.BoxFit.contain),
                     ),
-                    // 🧾 Text on the right
-                    pw.Expanded(
-                      child: pw.Padding(
-                        padding: const pw.EdgeInsets.symmetric(
-                            horizontal: 16), // ✅ added horizontal padding
-                        child: buildLabelValueRow(
-                          title:
-                              localizedStrings['employeeid'] ?? 'Employee Name',
-                          value: userid,
-                          font: font,
-                          boldFont: boldFont,
-                          fontSize: 18,
-                          isArabic: isArabic,
-                        ),
-                      ),
-                    ),
-                  ]
-                : [
-                    // 🧾 Text on the left
-                    pw.Expanded(
-                      child: pw.Padding(
-                        padding: const pw.EdgeInsets.symmetric(
-                            horizontal: 16), // ✅ added horizontal padding
-                        child: buildLabelValueRow(
-                          title:
-                              localizedStrings['employeeid'] ?? 'Employee Name',
-                          value: userid,
-                          font: font,
-                          boldFont: boldFont,
-                          fontSize: 18,
-                          isArabic: isArabic,
-                        ),
-                      ),
-                    ),
-                    pw.SizedBox(width: 20),
-                    // 🖋️ Signature on the right
-                    pw.Container(
-                      height: 80,
-                      width: 160,
-                      child: pw.Image(imageSignature, fit: pw.BoxFit.contain),
-                    ),
-                  ],
+                  ),
+                ],
+        ),
+        pw.Container(
+          alignment: pw.Alignment.center,
+          padding: pw.EdgeInsets.symmetric(vertical: 16),
+          child: pw.Text(
+            localizedStrings['footerPdf'] ??
+                'Please keep the receipt as proof of payment',
+            style: pw.TextStyle(
+                fontSize: 16, fontWeight: pw.FontWeight.bold, font: font),
           ),
-          pw.Container(
-            alignment: pw.Alignment.center,
-            padding: pw.EdgeInsets.symmetric(vertical: 16),
-            child: pw.Text(
-              localizedStrings['footerPdf'] ??
-                  'Please keep the receipt as proof of payment',
-              style: pw.TextStyle(
-                  fontSize: 16, fontWeight: pw.FontWeight.bold, font: font),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -478,7 +478,9 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     bool canEdit = paymentStatus == 'saved';
     bool canDelete = paymentStatus == 'saved';
     bool canConfirm = paymentStatus == 'saved';
-    bool canView = paymentStatus == 'saved' && paymentStatus != 'confirmed';
+    bool canView = paymentStatus == 'saved' &&
+        paymentStatus != 'confirmed' &&
+        paymentStatus != 'rejected';
     bool canSend = (paymentStatus != 'saved' &&
         paymentStatus != 'confirmed' &&
         paymentStatus != 'rejected');

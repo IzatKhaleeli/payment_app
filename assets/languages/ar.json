@@ -57,7 +57,7 @@
   "amount": "المبلغ",
   "sendSelected": "إرسال المحدد",
   "printSelected": "طباعة المحدد",
-  "date": "التاريخ",
+  "date": "تاريخ الدفعة",
 
   "printSettings": "إعدادات الطباعة",
   "hideReceipt": "إخفاء الفاتورة",
@@ -138,6 +138,8 @@
   "requiredFields": "الحقول المطلوبة",
 
   "transactionDate": "تاريخ الدفعة",
+    "transactionDate": "تاريخ الدفعة",
+
   "transactionTime": "وقت الدفعة",
 
   "cancellationDate": "تاريخ الغاء الدفعة",
