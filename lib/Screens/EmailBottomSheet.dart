@@ -32,7 +32,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
   String? _errorText;
   String _selectedLanguage = 'ar';
   Map<String, dynamic>? _emailJson;
-  bool isBlackAndWhite = true;
+  bool isBlackAndWhite = false;
 
   @override
   void initState() {

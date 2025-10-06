@@ -521,56 +521,35 @@ class PdfHelper {
     required String value,
     required pw.Font font,
     required pw.Font boldFont,
-    double fontSize = 18,
+    double fontSize = 17,
     required bool isArabic,
-    double spacing = 7,
-    double maxTextWidth = 220,
     double horizontalPadding = 16,
   }) {
-    pw.Widget buildText(String text, pw.Font textFont, pw.TextAlign align,
-        {bool bold = false, double? maxWidth}) {
-      return pw.Container(
-        width: maxWidth,
-        child: pw.Text(
-          text,
-          style: pw.TextStyle(
-            font: textFont,
-            fontSize: fontSize,
-            fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-          ),
-          textAlign: align,
-          softWrap: true,
-          maxLines: null,
-        ),
-      );
-    }
-
-    final titleWidget = buildText(
-      '$title:',
-      boldFont,
-      isArabic ? pw.TextAlign.right : pw.TextAlign.left,
-      bold: true,
-      maxWidth: maxTextWidth * 0.45,
-    );
-
-    final valueWidget = buildText(
-      value,
-      font,
-      isArabic ? pw.TextAlign.right : pw.TextAlign.left,
-      maxWidth: maxTextWidth * 0.55,
-    );
-
-    final children = isArabic
-        ? [valueWidget, pw.SizedBox(width: spacing), titleWidget]
-        : [titleWidget, pw.SizedBox(width: spacing), valueWidget];
-
     return pw.Padding(
       padding: pw.EdgeInsets.symmetric(horizontal: horizontalPadding),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        mainAxisAlignment:
-            isArabic ? pw.MainAxisAlignment.end : pw.MainAxisAlignment.start,
-        children: children,
+      child: pw.RichText(
+        textAlign: isArabic ? pw.TextAlign.right : pw.TextAlign.left,
+        text: pw.TextSpan(
+          children: [
+            // Bold title
+            pw.TextSpan(
+              text: '$title: ',
+              style: pw.TextStyle(
+                font: boldFont,
+                fontSize: fontSize,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+            // Normal value
+            pw.TextSpan(
+              text: value,
+              style: pw.TextStyle(
+                font: font,
+                fontSize: fontSize,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -580,11 +559,11 @@ class PdfHelper {
     required pw.Font boldFont,
     required bool isArabic,
     required List<Map<String, String>> fields,
-    double fontSize = 18,
+    double fontSize = 17,
     double columnSpacing = 20,
     double rowSpacing = 10,
     double horizontalPadding = 16,
-    double maxTextWidth = 220,
+    double maxTextWidth = 230,
   }) {
     final leftFields = <Map<String, String>>[];
     final rightFields = <Map<String, String>>[];
@@ -597,9 +576,9 @@ class PdfHelper {
       }
     }
 
-    pw.Widget buildColumn(List<Map<String, String>> list) {
+    pw.Widget buildColumn(List<Map<String, String>> list, {int flex = 1}) {
       return pw.Expanded(
-        flex: 1,
+        flex: flex,
         child: pw.Column(
           crossAxisAlignment: isArabic
               ? pw.CrossAxisAlignment.end
@@ -614,7 +593,6 @@ class PdfHelper {
                 boldFont: boldFont,
                 fontSize: fontSize,
                 isArabic: isArabic,
-                maxTextWidth: maxTextWidth,
               ),
             );
           }).toList(),
@@ -622,16 +600,17 @@ class PdfHelper {
       );
     }
 
+    print("lang ${isArabic}");
     final children = isArabic
         ? [
-            buildColumn(rightFields),
+            buildColumn(rightFields, flex: 45), // 40%
             pw.SizedBox(width: columnSpacing),
-            buildColumn(leftFields),
+            buildColumn(leftFields, flex: 55), // 60%
           ]
         : [
-            buildColumn(leftFields),
+            buildColumn(leftFields, flex: 50), // 60%
             pw.SizedBox(width: columnSpacing),
-            buildColumn(rightFields),
+            buildColumn(rightFields, flex: 50), // 40%
           ];
 
     return pw.Row(
@@ -782,7 +761,7 @@ class PdfHelper {
           value: receiptNumber,
           font: font,
           boldFont: boldFont,
-          fontSize: 18,
+          fontSize: 17,
           isArabic: isArabic,
         ),
       ],
@@ -836,7 +815,7 @@ class PdfHelper {
               'value': transactionDate
             },
           ],
-          maxTextWidth: 220,
+          maxTextWidth: 250,
         ),
         pw.SizedBox(height: 20),
         buildSectionHeader(
@@ -851,7 +830,7 @@ class PdfHelper {
           boldFont: boldFont,
           isArabic: isArabic,
           fields: paymentFields,
-          maxTextWidth: 220,
+          maxTextWidth: 250,
         ),
         pw.SizedBox(height: 20),
         pw.Spacer(),
@@ -880,7 +859,7 @@ class PdfHelper {
                       value: userid,
                       font: font,
                       boldFont: boldFont,
-                      fontSize: 18,
+                      fontSize: 17,
                       isArabic: isArabic,
                     ),
                   ),
@@ -893,7 +872,7 @@ class PdfHelper {
                       value: userid,
                       font: font,
                       boldFont: boldFont,
-                      fontSize: 18,
+                      fontSize: 17,
                       isArabic: isArabic,
                     ),
                   ),

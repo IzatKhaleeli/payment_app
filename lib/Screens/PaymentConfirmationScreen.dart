@@ -35,6 +35,8 @@ class PaymentConfirmationScreen extends StatefulWidget {
 }
 
 class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
+  int hasDisconnectedPermission = 0;
+
   late LocalizationService _localizationService;
   String voucherNumber = "";
   String paymentInvoiceFor = "";
@@ -85,6 +87,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   @override
   void initState() {
     super.initState();
+    _loadPermission();
     _fetchPaymentDetails();
     _syncSubscription = PaymentService.syncStream.listen((_) {
       _fetchPaymentDetails();
@@ -146,6 +149,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     } catch (e) {
       print('Error fetching payment details: $e');
     }
+
+    print("payment detailsss ${widget.paymentDetails}");
   }
 
   @override
@@ -188,38 +193,50 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           ],
         ),
       ),
-      floatingActionButton: Align(
-        alignment: Alignment.bottomCenter,
-        child: Padding(
-          padding: const EdgeInsets.all(2.0),
-          child: FloatingActionButton(
-            onPressed: () {
-              print("payment detail to pass to record screen :");
-              print(widget.paymentDetails);
-              (widget.paymentDetails?['msisdnReceipt'] != null)
-                  ? Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RecordPaymentDisconnectedScreen(
-                          paymentParams: widget.paymentDetails!,
-                        ),
-                      ),
-                    )
-                  : Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RecordPaymentScreen(
-                          paymentParams: widget.paymentDetails!,
-                        ),
-                      ),
-                    );
-            },
-            backgroundColor: AppColors.primaryRed,
-            child: Icon(Icons.add, color: Colors.white),
-          ),
-        ),
-      ),
+      floatingActionButton:
+          hasDisconnectedPermission == widget.paymentDetails?["isDisconnected"]
+              ? Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.all(2.0),
+                    child: FloatingActionButton(
+                      onPressed: () {
+                        print("payment detail to pass to record screen :");
+                        print(widget.paymentDetails);
+                        (widget.paymentDetails?['msisdnReceipt'] != null)
+                            ? Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      RecordPaymentDisconnectedScreen(
+                                    paymentParams: widget.paymentDetails!,
+                                  ),
+                                ),
+                              )
+                            : Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RecordPaymentScreen(
+                                    paymentParams: widget.paymentDetails!,
+                                  ),
+                                ),
+                              );
+                      },
+                      backgroundColor: AppColors.primaryRed,
+                      child: Icon(Icons.add, color: Colors.white),
+                    ),
+                  ),
+                )
+              : SizedBox.shrink(),
     );
+  }
+
+  Future<void> _loadPermission() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      hasDisconnectedPermission = prefs.getInt('disconnectedPermission') ?? 0;
+    });
+    print("Loaded hasDisconnectedPermission: $hasDisconnectedPermission");
   }
 
   void _initializeLocalizationStrings() {
@@ -478,14 +495,14 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     bool canEdit = paymentStatus == 'saved';
     bool canDelete = paymentStatus == 'saved';
     bool canConfirm = paymentStatus == 'saved';
-    bool canView = paymentStatus == 'saved' &&
-        paymentStatus != 'confirmed' &&
-        paymentStatus != 'rejected';
+    bool canView = paymentStatus != 'saved' && paymentStatus != 'confirmed';
     bool canSend = (paymentStatus != 'saved' &&
         paymentStatus != 'confirmed' &&
         paymentStatus != 'rejected');
     bool canCancel = (paymentStatus == 'synced' && cancellationStatus == null);
 
+    print("status actions ${paymentStatus}");
+    print("canSend ${canSend}");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

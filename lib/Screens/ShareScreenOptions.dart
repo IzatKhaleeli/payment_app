@@ -23,7 +23,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 class ShareScreenOptions {
   static String? _selectedLanguageCode = 'ar';
-  static bool isBlackAndWhiteFlag = true;
+  static bool isBlackAndWhiteFlag = false;
 
   static void showLanguageSelectionAndShare(
       BuildContext context, int id, ShareOption option) {
@@ -198,7 +198,7 @@ class ShareScreenOptions {
       {bool showTemplateOption = true}) {
     //String systemLanguageCode = Localizations.localeOf(context).languageCode; // Get system's default language
     String _selectedLanguageCode = 'ar';
-    isBlackAndWhiteFlag = true;
+    isBlackAndWhiteFlag = false;
 
     String appLanguage =
         Provider.of<LocalizationService>(context, listen: false)
@@ -310,12 +310,12 @@ class ShareScreenOptions {
                             context: context,
                             title: Provider.of<LocalizationService>(context,
                                     listen: false)
-                                .getLocalizedString("colored"),
+                                .getLocalizedString("b_and_w"),
                             icon: Icons.receipt_long_outlined,
-                            isSelected: !isBlackAndWhiteFlag,
+                            isSelected: isBlackAndWhiteFlag,
                             onTap: () {
                               setState(() {
-                                isBlackAndWhiteFlag = false;
+                                isBlackAndWhiteFlag = true;
                               });
                             },
                           ),
@@ -326,12 +326,12 @@ class ShareScreenOptions {
                             context: context,
                             title: Provider.of<LocalizationService>(context,
                                     listen: false)
-                                .getLocalizedString("b_and_w"),
+                                .getLocalizedString("colored"),
                             icon: Icons.receipt_long_outlined,
-                            isSelected: isBlackAndWhiteFlag,
+                            isSelected: !isBlackAndWhiteFlag,
                             onTap: () {
                               setState(() {
-                                isBlackAndWhiteFlag = true;
+                                isBlackAndWhiteFlag = false;
                               });
                             },
                           ),

@@ -208,7 +208,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   }
 
   Future<void> _fetchPortalStatuses() async {
-    print('_fetchPortalStatuses');
+    // print('_fetchPortalStatuses');
     // print('_paymentRecords ${_paymentRecords}');
     try {
       List<String> voucherSerials = _paymentRecords
@@ -495,13 +495,12 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
       case 'synced':
         statusIcon = Icons.check_circle;
         statusColor = Colors.blue;
-
         break;
-      case 'cancelled': //WELL BE DELETED
+      case 'cancelled':
         statusIcon = Icons.cancel;
         statusColor = AppColors.primaryRed;
         break;
-      case 'canceldpending': //WILL BE DELETED
+      case 'canceldpending':
         statusIcon = Icons.payment;
         statusColor = AppColors.primaryRed;
         break;
@@ -510,7 +509,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         statusColor = Colors.blue;
         break;
       case 'rejected':
-        statusIcon = Icons.close;
+        statusIcon = Icons.cancel;
         statusColor = AppColors.primaryRed;
         break;
       case 'completed':
@@ -852,7 +851,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                     ]),
                     Row(children: [
                       if (record.status.toLowerCase() != 'saved' &&
-                          record.status.toLowerCase() != 'confirmed') ...[
+                          record.status.toLowerCase() != 'confirmed' &&
+                          record.status.toLowerCase() != 'rejected') ...[
                         Row(
                           children: [
                             Tooltip(
@@ -863,7 +863,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                 icon: Icon(Icons.print,
                                     color: Colors.black, size: 22),
                                 onPressed: () async {
-                                  // Function to get the default printer info from SharedPreferences
                                   final prefs =
                                       await SharedPreferences.getInstance();
                                   String? printerLabel =
@@ -1184,11 +1183,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                     localizationService.getLocalizedString('confirm'),
                 onPressButton: () async {
                   if (record.id != null) {
-                    Map<String, String?> credentials = await getCredentials();
-                    String? username = credentials['username'];
-                    String? password = credentials['password'];
-                    print("Username and password: $username : $password");
-
                     final int idToConfirm = record.id!;
                     await DatabaseProvider.updatePaymentStatus(
                         idToConfirm, 'Confirmed');
