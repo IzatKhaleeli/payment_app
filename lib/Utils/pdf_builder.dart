@@ -612,6 +612,7 @@ class PdfHelper {
             pw.SizedBox(width: columnSpacing),
             buildColumn(rightFields, flex: 50), // 40%
           ];
+    print("test");
 
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
