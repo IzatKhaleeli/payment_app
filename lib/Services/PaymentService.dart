@@ -480,7 +480,9 @@ class PaymentService {
       print("MIN_VERSION from backend: $backendVersion");
 
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
-      String currentVersion = packageInfo.version;
+      // String currentVersion = packageInfo.version;
+      String currentVersion = '1.1.0';
+
       print("APP_VERSION: $currentVersion");
 
       List<String> backendParts = backendVersion.split('.');

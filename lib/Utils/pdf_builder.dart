@@ -516,44 +516,6 @@ class PdfHelper {
     return pdf;
   }
 
-  static pw.Widget buildLabelValueRow({
-    required String title,
-    required String value,
-    required pw.Font font,
-    required pw.Font boldFont,
-    double fontSize = 17,
-    required bool isArabic,
-    double horizontalPadding = 16,
-  }) {
-    return pw.Padding(
-      padding: pw.EdgeInsets.symmetric(horizontal: horizontalPadding),
-      child: pw.RichText(
-        textAlign: isArabic ? pw.TextAlign.right : pw.TextAlign.left,
-        text: pw.TextSpan(
-          children: [
-            // Bold title
-            pw.TextSpan(
-              text: '$title: ',
-              style: pw.TextStyle(
-                font: boldFont,
-                fontSize: fontSize,
-                fontWeight: pw.FontWeight.bold,
-              ),
-            ),
-            // Normal value
-            pw.TextSpan(
-              text: value,
-              style: pw.TextStyle(
-                font: font,
-                fontSize: fontSize,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   static pw.Widget buildAreaFlexible({
     required pw.Font font,
     required pw.Font boldFont,
@@ -563,7 +525,6 @@ class PdfHelper {
     double columnSpacing = 20,
     double rowSpacing = 10,
     double horizontalPadding = 16,
-    double maxTextWidth = 230,
   }) {
     final leftFields = <Map<String, String>>[];
     final rightFields = <Map<String, String>>[];
@@ -600,7 +561,6 @@ class PdfHelper {
       );
     }
 
-    print("lang ${isArabic}");
     final children = isArabic
         ? [
             buildColumn(rightFields, flex: 45), // 40%
@@ -612,7 +572,6 @@ class PdfHelper {
             pw.SizedBox(width: columnSpacing),
             buildColumn(rightFields, flex: 50), // 40%
           ];
-    print("test");
 
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -707,8 +666,6 @@ class PdfHelper {
       (e) => e['title'] == localizedStrings['transactionDate'],
       orElse: () => {'value': ''},
     )['value']!;
-
-    final double footer_pageWidth = 595;
 
 // Signature container width
     final double footer_signatureWidth = 160;
@@ -816,7 +773,6 @@ class PdfHelper {
               'value': transactionDate
             },
           ],
-          maxTextWidth: 250,
         ),
         pw.SizedBox(height: 20),
         buildSectionHeader(
@@ -831,7 +787,6 @@ class PdfHelper {
           boldFont: boldFont,
           isArabic: isArabic,
           fields: paymentFields,
-          maxTextWidth: 250,
         ),
         pw.SizedBox(height: 20),
         pw.Spacer(),
@@ -899,6 +854,90 @@ class PdfHelper {
           ),
         ),
       ],
+    );
+  }
+
+  static bool _isArabic(String text) {
+    final arabicRegex = RegExp(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]');
+    return arabicRegex.hasMatch(text);
+  }
+
+  static pw.Widget buildLabelValueRow({
+    required String title,
+    required String value,
+    required pw.Font font,
+    required pw.Font boldFont,
+    double fontSize = 17,
+    required bool isArabic,
+    double horizontalPadding = 16,
+    double maxValueWidth = 135, // max width for wrapping
+  }) {
+    final valueIsArabic = _isArabic(value);
+
+    final rowChildren = isArabic
+        ? <pw.Widget>[
+            // Value first for Arabic
+            pw.Container(
+              width: maxValueWidth,
+              child: pw.Directionality(
+                textDirection:
+                    isArabic ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+                child: pw.Text(
+                  value,
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: fontSize,
+                  ),
+                ),
+              ),
+            ),
+            pw.SizedBox(width: 4),
+            // Title
+            pw.Text(
+              '$title: ',
+              style: pw.TextStyle(
+                font: boldFont,
+                fontSize: fontSize,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+          ]
+        : <pw.Widget>[
+            // Title first for LTR
+            pw.Text(
+              '$title: ',
+              style: pw.TextStyle(
+                font: boldFont,
+                fontSize: fontSize,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+            pw.SizedBox(width: 4),
+            // Value
+            pw.Container(
+              width: maxValueWidth,
+              child: pw.Directionality(
+                textDirection:
+                    valueIsArabic ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+                child: pw.Text(
+                  value,
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: fontSize,
+                  ),
+                ),
+              ),
+            ),
+          ];
+
+    return pw.Padding(
+      padding: pw.EdgeInsets.symmetric(horizontal: horizontalPadding),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisAlignment:
+            isArabic ? pw.MainAxisAlignment.end : pw.MainAxisAlignment.start,
+        children: rowChildren,
+      ),
     );
   }
 }

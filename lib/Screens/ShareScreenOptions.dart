@@ -575,8 +575,8 @@ class ShareScreenOptions {
       final amiriBoldFont =
           pw.Font.ttf(await rootBundle.load('assets/fonts/Amiri-Bold.ttf'));
       final isEnglish = languageCode == 'en';
-      final font = isEnglish ? notoSansFont : amiriFont;
-      final boldFont = isEnglish ? notoSansBoldFont : amiriBoldFont;
+      final font = amiriFont;
+      final boldFont = amiriBoldFont;
 
       // Get logged-in username
       SharedPreferences prefs = await SharedPreferences.getInstance();
