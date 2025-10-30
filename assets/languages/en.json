@@ -282,7 +282,7 @@
   "b_and_w": "Black & White",
   "colored": "Colored",
   "file": "File",
-"supportedTypes": "Supported image types: JPG, JPEG, PNG, GIF, BMP, WEBP",
 "uploadFromGallery":"Upload from gallery",
-"takePhoto":"Take a Photo"
+"takePhoto":"Take a Photo",
+  "uploadFile":"Upload File"
 }

@@ -282,7 +282,7 @@
   "b_and_w": "أبيض وأسود",
   "colored": "ملون",
   "file": "ملف",
-  "supportedTypes": "أنواع الصور المدعومة: JPG, JPEG, PNG, GIF, BMP, WEBP",
   "uploadFromGallery":"رفع من المعرض",
-  "takePhoto":"التقاط صورة"
+  "takePhoto":"التقاط صورة",
+  "uploadFile":"رفع ملف"
 }

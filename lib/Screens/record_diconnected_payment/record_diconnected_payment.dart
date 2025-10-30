@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,6 +13,7 @@ import '../PaymentConfirmationScreen.dart';
 import '../../Models/Payment.dart';
 import '../../Services/LocalizationService.dart';
 import 'package:intl/intl.dart';
+import '../recordPayment/widgets/upload_file_widget.dart';
 import './widgets/record_payment_widgets.dart' as record_widgets;
 import 'widgets/animated_button.dart';
 import 'widgets/custom_dropdown.dart';
@@ -65,6 +68,8 @@ class _RecordPaymentDisconnectedScreenState
   String? _selectedBankDB;
   List<Bank> _banksDB = [];
 
+  List<File> selectedFiles = [];
+
   late Map<String, String> localizedStrings;
 
   Future<void> _loadCurrencies() async {
@@ -113,6 +118,7 @@ class _RecordPaymentDisconnectedScreenState
         Provider.of<LocalizationService>(context, listen: false);
     void _initializeLocalizationStrings() {
       final keys = [
+        'file',
         'requiredFields',
         'recordPayment',
         'customerDetails',
@@ -507,6 +513,20 @@ class _RecordPaymentDisconnectedScreenState
                       onDateTap: () =>
                           _selectDate(context, _dueDateCheckController),
                     ),
+                    UploadFileWidget(
+                      fileToShow: selectedFiles,
+                      scale: scale,
+                      label: localizationService.getLocalizedString('file'),
+                      onFilesSelected: (files) async {
+                        setState(() {
+                          selectedFiles = files;
+                        });
+                        if (files.isNotEmpty) {
+                          print(
+                              "Selected files: ${files.map((f) => f.path.split('/').last).join(', ')}");
+                        }
+                      },
+                    ),
                     record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
                       scale: scale,
                       isChecked: checkApprovalFlag,
@@ -675,10 +695,8 @@ class _RecordPaymentDisconnectedScreenState
       }
     }
 
-    // Validate based on selected payment method
     if (_selectedPaymentMethod ==
         localizationService.getLocalizedString('cash')) {
-      // Validate amount for cash payment
       if (_amountController.text.isEmpty || _selectedCurrencyDB == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -689,7 +707,6 @@ class _RecordPaymentDisconnectedScreenState
         );
         return false;
       }
-      // Validate amount format (accepts decimal numbers)
       if (double.tryParse(_amountController.text) == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -718,7 +735,6 @@ class _RecordPaymentDisconnectedScreenState
         return false;
       }
 
-      // Validate amount check format (accepts decimal numbers)
       if (double.tryParse(_amountCheckController.text) == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

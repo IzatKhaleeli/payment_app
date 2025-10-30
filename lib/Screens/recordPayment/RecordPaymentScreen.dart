@@ -164,7 +164,6 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
     check = localizationService.getLocalizedString('check');
     paymentInvoiceFor =
         localizationService.getLocalizedString('paymentInvoiceFor');
-    // Localize and ensure unique values
     _paymentMethods = _paymentMethods
         .map((method) => localizationService.getLocalizedString(method))
         .toSet()
@@ -432,18 +431,6 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                       requiredField: true,
                       isNumeric: true,
                     ),
-                    record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
-                      scale: scale,
-                      isChecked: checkApprovalFlag,
-                      onChanged: (newValue) {
-                        setState(() {
-                          checkApprovalFlag = newValue ?? false;
-                        });
-                      },
-                      required: true,
-                      context: context,
-                      titleKey: 'checkApproval',
-                    ),
                     UploadFileWidget(
                       fileToShow: selectedFiles,
                       scale: scale,
@@ -457,6 +444,18 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                               "Selected files: ${files.map((f) => f.path.split('/').last).join(', ')}");
                         }
                       },
+                    ),
+                    record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
+                      scale: scale,
+                      isChecked: checkApprovalFlag,
+                      onChanged: (newValue) {
+                        setState(() {
+                          checkApprovalFlag = newValue ?? false;
+                        });
+                      },
+                      required: true,
+                      context: context,
+                      titleKey: 'checkApproval',
                     ),
                   ],
                   record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
@@ -659,14 +658,12 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             value: _selectedPaymentMethod,
             onChanged: (String? newValue) {
               setState(() {
-                // If switching to cash (localized), clear check-approval flag and uploaded files
                 if (newValue == cash) {
                   checkApprovalFlag = false;
-                  // clear images uploaded for check
                   selectedFiles = [];
                 }
                 _selectedPaymentMethod = newValue;
-                _clearPaymentMethodFields(); // Clear fields when payment method changes
+                _clearPaymentMethodFields();
               });
             },
             items: items.map<DropdownMenuItem<String>>((String value) {

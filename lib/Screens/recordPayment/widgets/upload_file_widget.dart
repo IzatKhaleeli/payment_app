@@ -33,13 +33,9 @@ class _UploadFileWidgetState extends State<UploadFileWidget> {
     try {
       final List<XFile>? images = await _picker.pickMultiImage();
       if (images != null && images.isNotEmpty) {
-        // append while respecting max of 10
         final newFiles = images.map((e) => File(e.path)).toList();
         setState(() {
           selectedFiles.addAll(newFiles);
-          if (selectedFiles.length > 10) {
-            selectedFiles = selectedFiles.sublist(0, 10);
-          }
         });
         widget.onFilesSelected(selectedFiles);
       }
@@ -55,8 +51,6 @@ class _UploadFileWidgetState extends State<UploadFileWidget> {
         setState(() {
           // insert at start
           selectedFiles.insert(0, File(photo.path));
-          if (selectedFiles.length > 10)
-            selectedFiles = selectedFiles.sublist(0, 10);
         });
         widget.onFilesSelected(selectedFiles);
       }
@@ -229,21 +223,13 @@ class _UploadFileWidgetState extends State<UploadFileWidget> {
                     )
                   else
                     Text(
-                      appLocalization.getLocalizedString("supportedTypes"),
+                      appLocalization.getLocalizedString("uploadFile"),
                       style: TextStyle(
                         fontSize: 13 * widget.scale,
                         color: Colors.grey,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${selectedFiles.length}/${10}',
-                    style: TextStyle(
-                      fontSize: 12 * widget.scale,
-                      color: Colors.grey,
-                    ),
-                  ),
                 ],
               ),
             ),
