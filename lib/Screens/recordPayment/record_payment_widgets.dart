@@ -1,9 +1,5 @@
-// record_payment_widgets.dart
-
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
 import '../../Services/LocalizationService.dart';
 import '../../core/constants.dart';
 
@@ -14,13 +10,14 @@ class RecordPaymentWidgets {
       required bool isChecked,
       required ValueChanged<bool?> onChanged,
       bool required = false,
-      required BuildContext context}) {
+      required BuildContext context,
+      required String titleKey}) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       child: CheckboxListTile(
         title: Text(
           Provider.of<LocalizationService>(context, listen: false)
-              .getLocalizedString('deposit'),
+              .getLocalizedString(titleKey),
           style: TextStyle(
             fontSize: 12 * scale,
             color: Colors.grey[500],
@@ -28,11 +25,10 @@ class RecordPaymentWidgets {
         ),
         value: isChecked,
         onChanged: onChanged,
-        controlAffinity:
-            ListTileControlAffinity.platform, // Adjust checkbox position
-        activeColor: AppColors.primaryRed, // Checkbox color when checked
-        checkColor: Colors.white, // Color of the check mark
-        contentPadding: EdgeInsets.zero, // Remove padding for a compact look
+        controlAffinity: ListTileControlAffinity.platform,
+        activeColor: AppColors.primaryRed,
+        checkColor: Colors.white,
+        contentPadding: EdgeInsets.zero,
       ),
     );
   }

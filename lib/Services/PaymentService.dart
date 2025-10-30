@@ -180,7 +180,9 @@ class PaymentService {
                 : null,
         'theSumOf': theSumOf,
         'isDeposit': payment['isDepositChecked'] == 0 ? false : true,
-        "isDisconnected": payment['isDisconnected']
+        "isDisconnected": payment['isDisconnected'],
+        "checkApproval": payment['checkApproval'],
+        "notifyFinance": payment['notifyFinance'],
       };
       print("body payment to sync :${body}");
 
@@ -188,7 +190,6 @@ class PaymentService {
       print(
           "the payment :${payment['transactionDate']} stats to sync is :${payment["status"]}");
       print("before send sync api");
-      // Make POST request
       http.Response? response;
 
       try {

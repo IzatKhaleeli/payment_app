@@ -20,6 +20,8 @@ class Payment {
   String? cancelReason;
   DateTime? cancellationDate;
   int isDepositChecked;
+  int checkApproval;
+  int notifyFinance;
   String? msisdnReceipt;
   int? isDisconnected;
   CancellationStatus? cancellationStatus;
@@ -47,6 +49,8 @@ class Payment {
     this.isDisconnected = 0,
     this.msisdnReceipt,
     this.cancellationStatus,
+    this.checkApproval = 0,
+    this.notifyFinance = 0,
   }) {}
 
   factory Payment.fromMap(Map<String, dynamic> map) {
@@ -111,6 +115,14 @@ class Payment {
           : null,
       isDepositChecked: map['isDepositChecked'],
       isDisconnected: map['isDisconnected'],
+      checkApproval:
+          (map.containsKey('checkApproval') && map['checkApproval'] != null)
+              ? map['checkApproval']
+              : 0,
+      notifyFinance:
+          (map.containsKey('notifyFinance') && map['notifyFinance'] != null)
+              ? map['notifyFinance']
+              : 0,
       cancellationStatus:
           CancellationStatusExtension.fromString(map['cancellationStatus']),
     );
@@ -139,7 +151,9 @@ class Payment {
       'cancellationDate': cancellationDate?.toIso8601String(),
       'isDepositChecked': isDepositChecked,
       'isDisconnected': isDisconnected,
-      'cancelStatus': cancellationStatus?.value,
+      'checkApproval': checkApproval,
+      'notifyFinance': notifyFinance,
+      'cancellationStatus': cancellationStatus?.value,
     };
   }
 

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,11 +17,14 @@ import 'package:intl/intl.dart';
 import 'record_payment_widgets.dart' as record_widgets;
 import 'package:flutter/services.dart';
 
+import 'widgets/custom_textfield.dart';
+import 'widgets/upload_file_widget.dart';
+
 class RecordPaymentScreen extends StatefulWidget {
   final int? id;
-  final Map<String, dynamic>? paymentParams; // Add the optional parameter
+  final Map<String, dynamic>? paymentParams;
 
-  RecordPaymentScreen({this.id, this.paymentParams}); // Update the constructor
+  RecordPaymentScreen({this.id, this.paymentParams});
 
   @override
   _RecordPaymentScreenState createState() => _RecordPaymentScreenState();
@@ -36,6 +41,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   final TextEditingController _dueDateCheckController = TextEditingController();
   final TextEditingController _paymentInvoiceForController =
       TextEditingController();
+
   final FocusNode _customerNameFocusNode = FocusNode();
   final FocusNode _msisdnFocusNode = FocusNode();
   final FocusNode _prNumberFocusNode = FocusNode();
@@ -49,6 +55,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   late AnimationController _animationController;
   late Animation<double> _buttonScaleAnimation;
   bool isDepositChecked = false;
+  bool checkApprovalFlag = false;
+  bool notifyFinanceFlag = false;
 
   String? _selectedCurrencyDB;
   List<Currency> _currenciesDB = [];
@@ -56,6 +64,9 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   String? _selectedBankDB;
   List<Bank> _banksDB = [];
 
+  List<File> selectedFiles = [];
+
+  String file = "";
   String recordPayment = "";
   String customerDetails = "";
   String paymentInformation = "";
@@ -76,6 +87,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   String MSISDN = "";
   String cash = "";
   String check = "";
+  String checkApproval = "";
+  String notifyFinance = "";
   String requiredFields = "";
 
   Future<void> _loadCurrencies() async {
@@ -125,6 +138,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
   void _initializeLocalizationStrings() {
     final localizationService =
         Provider.of<LocalizationService>(context, listen: false);
+    file = localizationService.getLocalizedString("file");
     requiredFields = localizationService.getLocalizedString('requiredFields');
     recordPayment = localizationService.getLocalizedString('recordPayment');
     customerDetails = localizationService.getLocalizedString('customerDetails');
@@ -191,16 +205,12 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
     }
 
     if (widget.paymentParams != null) {
-      print("the paymentParams from parameter not null ");
-      Map<String, dynamic> paymentParams =
-          widget.paymentParams!; // Ensure id is not null
+      Map<String, dynamic> paymentParams = widget.paymentParams!;
       if (paymentParams != null) {
-        print("check1");
         setState(() {
           _selectedPaymentMethod = cash;
           _selectedCurrencyDB = paymentParams["currency"];
         });
-        print("check2");
 
         if (paymentParams["paymentMethod"] == "Check") {
           setState(() {
@@ -232,7 +242,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
         isDepositChecked =
             paymentParams["isDepositChecked"] == 0 ? false : true;
-        print("isDepositChecked initialzation :${isDepositChecked}");
+        checkApprovalFlag = paymentParams["checkApproval"] == 0 ? false : true;
+        notifyFinanceFlag = paymentParams["notifyFinance"] == 0 ? false : true;
       }
     } else {
       _selectedPaymentMethod = cash;
@@ -298,22 +309,31 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                 title: customerDetails,
                 iconData: Icons.account_circle,
                 children: [
-                  _buildTextField(
-                    scale,
-                    _customerNameController,
-                    customerName,
-                    Icons.person_outline,
+                  CustomTextField(
+                    scale: scale,
+                    controller: _customerNameController,
+                    labelText: customerName,
+                    icon: Icons.person_outline,
                     focusNode: _customerNameFocusNode,
-                    required: true,
+                    requiredField: true,
                   ),
-                  _buildTextField(
-                      scale, _msisdnController, MSISDN, Icons.phone_android,
-                      focusNode: _msisdnFocusNode,
-                      isNumeric: true,
-                      required: true),
-                  _buildTextField(
-                      scale, _prNumberController, PR, Icons.numbers_sharp,
-                      focusNode: _prNumberFocusNode, isNumeric: true),
+                  CustomTextField(
+                    scale: scale,
+                    controller: _msisdnController,
+                    labelText: MSISDN,
+                    icon: Icons.phone_android,
+                    focusNode: _msisdnFocusNode,
+                    isNumeric: true,
+                    requiredField: true,
+                  ),
+                  CustomTextField(
+                    scale: scale,
+                    controller: _prNumberController,
+                    labelText: PR,
+                    icon: Icons.numbers_sharp,
+                    focusNode: _prNumberFocusNode,
+                    isNumeric: true,
+                  ),
                 ],
                 checkIfFilled: () {
                   return _customerNameController.text.isNotEmpty;
@@ -328,11 +348,16 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                   _buildDropdown(scale, paymentMethod, _paymentMethods,
                       required: true),
                   if (_selectedPaymentMethod == cash) ...[
-                    _buildTextField(scale, _amountController, amount, null,
-                        focusNode: _amountFocusNode,
-                        required: true,
-                        isNumeric: true,
-                        isDecimal: true),
+                    CustomTextField(
+                      scale: scale,
+                      controller: _amountController,
+                      labelText: amount,
+                      icon: null,
+                      focusNode: _amountFocusNode,
+                      requiredField: true,
+                      isNumeric: true,
+                      isDecimal: true,
+                    ),
                     _buildDropdownCurrencyDynamic(
                         scale,
                         currency,
@@ -343,12 +368,16 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                   ],
 
                   if (_selectedPaymentMethod == check) ...[
-                    _buildTextField(
-                        scale, _amountCheckController, amountCheck, null,
-                        focusNode: _amountCheckFocusNode,
-                        required: true,
-                        isNumeric: true,
-                        isDecimal: true),
+                    CustomTextField(
+                      scale: scale,
+                      controller: _amountCheckController,
+                      labelText: amountCheck,
+                      icon: null,
+                      focusNode: _amountCheckFocusNode,
+                      requiredField: true,
+                      isNumeric: true,
+                      isDecimal: true,
+                    ),
                     _currenciesDB.isEmpty
                         ? _buildDropdownCurrencyDynamic(
                             scale,
@@ -366,11 +395,27 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                                     listen: false)
                                 .selectedLanguageCode,
                             required: true),
-                    _buildTextField(scale, _checkNumberController, checkNumber,
-                        Icons.receipt_long_outlined,
-                        focusNode: _checkNumberFocusNode,
-                        required: true,
-                        isNumeric: true),
+                    CustomTextField(
+                      scale: scale,
+                      controller: _dueDateCheckController,
+                      labelText: dueDateCheck,
+                      icon: Icons.date_range_outlined,
+                      focusNode: _dueDateCheckFocusNode,
+                      requiredField: true,
+                      isDate: true,
+                      onDateTap: (context, controller) async {
+                        final selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (selectedDate != null) {
+                          controller.text =
+                              selectedDate.toLocal().toString().split(' ')[0];
+                        }
+                      },
+                    ),
                     _buildDropdownBankDynamic(
                         scale,
                         bankBranchCheck,
@@ -378,29 +423,71 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
                         Provider.of<LocalizationService>(context, listen: false)
                             .selectedLanguageCode,
                         required: true),
-                    _buildTextField(scale, _dueDateCheckController,
-                        dueDateCheck, Icons.date_range_outlined,
-                        focusNode: _dueDateCheckFocusNode,
-                        isDate: true,
-                        required: true),
+                    CustomTextField(
+                      scale: scale,
+                      controller: _checkNumberController,
+                      labelText: checkNumber,
+                      icon: Icons.receipt_long_outlined,
+                      focusNode: _checkNumberFocusNode,
+                      requiredField: true,
+                      isNumeric: true,
+                    ),
+                    record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
+                      scale: scale,
+                      isChecked: checkApprovalFlag,
+                      onChanged: (newValue) {
+                        setState(() {
+                          checkApprovalFlag = newValue ?? false;
+                        });
+                      },
+                      required: true,
+                      context: context,
+                      titleKey: 'checkApproval',
+                    ),
+                    UploadFileWidget(
+                      fileToShow: selectedFiles,
+                      scale: scale,
+                      label: file,
+                      onFilesSelected: (files) async {
+                        setState(() {
+                          selectedFiles = files;
+                        });
+                        if (files.isNotEmpty) {
+                          print(
+                              "Selected files: ${files.map((f) => f.path.split('/').last).join(', ')}");
+                        }
+                      },
+                    ),
                   ],
                   record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
                     scale: scale,
-                    isChecked: isDepositChecked, // Bind to the state variable
+                    isChecked: isDepositChecked,
                     onChanged: (newValue) {
                       setState(() {
-                        isDepositChecked =
-                            newValue ?? false; // Update the state variable
+                        isDepositChecked = newValue ?? false;
                       });
                     },
                     required: true,
-                    context: context, // Optional, mark as required if needed
+                    context: context,
+                    titleKey: 'deposit',
                   ),
-                  _buildTextField(
-                    scale,
-                    _paymentInvoiceForController,
-                    paymentInvoiceFor,
-                    Icons.receipt,
+                  record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
+                    scale: scale,
+                    isChecked: notifyFinanceFlag,
+                    onChanged: (newValue) {
+                      setState(() {
+                        notifyFinanceFlag = newValue ?? false;
+                      });
+                    },
+                    required: true,
+                    context: context,
+                    titleKey: 'notifyFinance',
+                  ),
+                  CustomTextField(
+                    scale: scale,
+                    controller: _paymentInvoiceForController,
+                    labelText: paymentInvoiceFor,
+                    icon: Icons.receipt,
                     maxLines: 3,
                     focusNode: _paymentInvoiceForNode,
                   ),
@@ -421,10 +508,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               ),
               Row(
                 children: [
-                  // Expanded(child: _buildSaveButton()), // Takes full width
-                  // SizedBox(width: 16.w), // Adjust spacing between buttons
-                  Expanded(
-                      child: _buildConfirmedButton(scale)), // Takes full width
+                  Expanded(child: _buildConfirmedButton(scale)),
                 ],
               ),
             ],
@@ -516,92 +600,6 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
     }
   }
 
-  Widget _buildTextField(
-    double scale,
-    TextEditingController controller,
-    String labelText,
-    IconData? icon, {
-    int maxLines = 1,
-    required FocusNode focusNode,
-    bool required = false,
-    bool isDate = false,
-    bool isNumeric = false,
-    bool isDecimal = false, // New flag to handle decimal input
-  }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 2, horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          RichText(
-            text: TextSpan(
-              text: labelText,
-              style: TextStyle(
-                fontFamily: 'NotoSansUI',
-                fontSize: 12 * scale,
-                color: Colors.grey[500],
-              ),
-              children: <TextSpan>[
-                if (required)
-                  TextSpan(
-                    text: ' *',
-                    style: TextStyle(
-                      color: AppColors.primaryRed,
-                      fontSize: 12 * scale,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(
-              height: 5), // Adjust spacing between label and text field
-          TextField(
-            controller: controller,
-            focusNode: focusNode,
-            maxLines: maxLines,
-            readOnly: isDate,
-            keyboardType: isNumeric
-                ? const TextInputType.numberWithOptions(decimal: true)
-                : TextInputType.text,
-            inputFormatters: isDecimal
-                ? [
-                    FilteringTextInputFormatter.allow(
-                        RegExp(r'[0-9.]')), // Allow digits and dot
-                    DecimalInputFormatter(), // Ensure proper handling of decimal inputs
-                  ]
-                : null,
-            decoration: InputDecoration(
-              prefixIcon: icon != null
-                  ? Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 7),
-                      child: Icon(icon, color: AppColors.primaryRed),
-                    )
-                  : null,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: AppColors.primaryRed,
-                  width: 1.5,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.grey[300]!,
-                  width: 1.5,
-                ),
-              ),
-              fillColor: Colors.white,
-              filled: true,
-            ),
-            style: TextStyle(fontSize: 14 * scale, color: Colors.black),
-            onTap: isDate ? () => _selectDate(context, controller) : null,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildDropdown(double scale, String label, List<String> items,
       {bool required = false}) {
     return Padding(
@@ -661,6 +659,12 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             value: _selectedPaymentMethod,
             onChanged: (String? newValue) {
               setState(() {
+                // If switching to cash (localized), clear check-approval flag and uploaded files
+                if (newValue == cash) {
+                  checkApprovalFlag = false;
+                  // clear images uploaded for check
+                  selectedFiles = [];
+                }
                 _selectedPaymentMethod = newValue;
                 _clearPaymentMethodFields(); // Clear fields when payment method changes
               });
@@ -1172,7 +1176,9 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             customerName: '',
             paymentMethod: '',
             status: '',
-            isDepositChecked: 0);
+            isDepositChecked: 0,
+            notifyFinance: 0,
+            checkApproval: 0);
       }
     } else if (_selectedPaymentMethod!.toLowerCase() == 'check' ||
         _selectedPaymentMethod!.toLowerCase() == 'شيك') {
@@ -1196,6 +1202,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
           paymentMethod: '',
           status: '',
           isDepositChecked: 0,
+          notifyFinance: 0,
+          checkApproval: 0,
         );
       }
 
@@ -1236,7 +1244,9 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         dueDateCheck: parseDueDate, // Formatting the date
         id: widget.id != null ? widget.id : null,
         status: status,
-        isDepositChecked: isDepositChecked == false ? 0 : 1);
+        isDepositChecked: isDepositChecked == false ? 0 : 1,
+        checkApproval: checkApprovalFlag == false ? 0 : 1,
+        notifyFinance: notifyFinanceFlag == false ? 0 : 1);
     return paymentDetail;
   }
 
@@ -1280,6 +1290,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
           'dueDateCheck': paymentDetails.dueDateCheck.toString(),
           'paymentInvoiceFor': paymentDetails.paymentInvoiceFor,
           'isDepositChecked': paymentDetails.isDepositChecked,
+          'checkApproval': paymentDetails.checkApproval,
+          'notifyFinance': paymentDetails.notifyFinance,
         });
       } else {
         print("id , update exist payment :");
@@ -1301,6 +1313,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
           'dueDateCheck': paymentDetails.dueDateCheck.toString(),
           'paymentInvoiceFor': paymentDetails.paymentInvoiceFor,
           'isDepositChecked': paymentDetails.isDepositChecked,
+          'checkApproval': paymentDetails.checkApproval,
+          'notifyFinance': paymentDetails.notifyFinance,
         });
       }
       print("_agreedPaymentMethodFinished");

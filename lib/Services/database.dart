@@ -7,7 +7,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseProvider {
   static const _databaseName = 'payments.db';
-  static const _databaseVersion = 4;
+  static const _databaseVersion = 5;
   static Database? _database;
   DatabaseProvider._();
 
@@ -51,6 +51,14 @@ class DatabaseProvider {
     ALTER TABLE payments ADD COLUMN cancellationStatus TEXT;
   ''');
     }
+    if (oldVersion < 5) {
+      await db.execute('''
+      ALTER TABLE payments ADD COLUMN checkApproval BOOLEAN DEFAULT 0;
+    ''');
+      await db.execute('''
+      ALTER TABLE payments ADD COLUMN notifyFinance BOOLEAN DEFAULT 0;
+    ''');
+    }
   }
 
   static Future<void> _onCreate(Database db, int version) async {
@@ -76,6 +84,8 @@ class DatabaseProvider {
         cancellationDate TEXT,
         userId ,
         isDepositChecked BOOLEAN DEFAULT 0,
+        checkApproval BOOLEAN DEFAULT 0,
+        notifyFinance BOOLEAN DEFAULT 0,
         transactionId TEXT,
         msisdnReceipt TEXT,
         isDisconnected BOOLEAN DEFAULT 0,

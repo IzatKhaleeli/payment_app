@@ -253,6 +253,8 @@
   "noDefaultDeviceSetBody": "لم يتم تعيين طابعة افتراضية. يرجى الانتقال إلى إعدادات الطابعة لاختيار أو إعداد طابعة افتراضية قبل المتابعة ",
   "theDefaultDeviceNotConnected": "يبدو أن جهاز البلوتوث مغلق أو غير جاهز للاتصال. يرجى التأكد من تشغيل الجهاز والمحاولة مرة أخرى.",
   "deposit": "إيداع",
+  "checkApproval": "الموافقة على الشيك",
+  "notifyFinance": "إخطار المالية",
   "no": "لا",
   "yes": "نعم",
   "amountFormatter": "يجب أن يكون المبلغ بصيغة XXX.XX (مثل 123.45)",
@@ -278,5 +280,9 @@
   "receiptNumber":"رقم السند",
   "selectTemplate": "اختر نموذج الإيصال",
   "b_and_w": "أبيض وأسود",
-  "colored": "ملون"
+  "colored": "ملون",
+  "file": "ملف",
+  "supportedTypes": "أنواع الصور المدعومة: JPG, JPEG, PNG, GIF, BMP, WEBP",
+  "uploadFromGallery":"رفع من المعرض",
+  "takePhoto":"التقاط صورة"
 }

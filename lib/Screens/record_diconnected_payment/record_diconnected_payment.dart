@@ -56,6 +56,8 @@ class _RecordPaymentDisconnectedScreenState
   List<String> _paymentMethods = ['cash', 'check'];
   late AnimationController _animationController;
   bool isDepositChecked = false;
+  bool checkApprovalFlag = false;
+  bool notifyFinanceFlag = false;
 
   String? _selectedCurrencyDB;
   List<Currency> _currenciesDB = [];
@@ -140,7 +142,6 @@ class _RecordPaymentDisconnectedScreenState
       };
     }
 
-    // Localize and ensure unique values
     _paymentMethods = _paymentMethods
         .map((method) => localizationService.getLocalizedString(method))
         .toSet()
@@ -232,7 +233,8 @@ class _RecordPaymentDisconnectedScreenState
 
         isDepositChecked =
             paymentParams["isDepositChecked"] == 0 ? false : true;
-        print("isDepositChecked initialzation :${isDepositChecked}");
+        checkApprovalFlag = paymentParams["checkApproval"] == 0 ? false : true;
+        notifyFinanceFlag = paymentParams["notifyFinance"] == 0 ? false : true;
       }
     } else {
       _selectedPaymentMethod = localizationService.getLocalizedString('cash');
@@ -374,6 +376,10 @@ class _RecordPaymentDisconnectedScreenState
                     itemBuilder: (value) => value,
                     onChanged: (String? newValue) {
                       setState(() {
+                        if (newValue ==
+                            localizationService.getLocalizedString('cash')) {
+                          checkApprovalFlag = false;
+                        }
                         _selectedPaymentMethod = newValue;
                         _clearPaymentMethodFields();
                       });
@@ -501,6 +507,18 @@ class _RecordPaymentDisconnectedScreenState
                       onDateTap: () =>
                           _selectDate(context, _dueDateCheckController),
                     ),
+                    record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
+                      scale: scale,
+                      isChecked: checkApprovalFlag,
+                      onChanged: (newValue) {
+                        setState(() {
+                          checkApprovalFlag = newValue ?? false;
+                        });
+                      },
+                      required: true,
+                      context: context,
+                      titleKey: 'checkApproval',
+                    ),
                   ],
                   record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
                     scale: scale,
@@ -512,6 +530,19 @@ class _RecordPaymentDisconnectedScreenState
                     },
                     required: true,
                     context: context,
+                    titleKey: 'deposit',
+                  ),
+                  record_widgets.RecordPaymentWidgets.buildDepositCheckbox(
+                    scale: scale,
+                    isChecked: notifyFinanceFlag,
+                    onChanged: (newValue) {
+                      setState(() {
+                        notifyFinanceFlag = newValue ?? false;
+                      });
+                    },
+                    required: true,
+                    context: context,
+                    titleKey: 'notifyFinance',
                   ),
                   CustomTextField(
                     scale: scale,
@@ -783,7 +814,9 @@ class _RecordPaymentDisconnectedScreenState
             customerName: '',
             paymentMethod: '',
             status: '',
-            isDepositChecked: 0);
+            isDepositChecked: 0,
+            checkApproval: 0,
+            notifyFinance: 0);
       }
     } else if (_selectedPaymentMethod!.toLowerCase() == 'check' ||
         _selectedPaymentMethod!.toLowerCase() == 'شيك') {
@@ -804,11 +837,12 @@ class _RecordPaymentDisconnectedScreenState
           ),
         );
         return Payment(
-          customerName: '',
-          paymentMethod: '',
-          status: '',
-          isDepositChecked: 0,
-        );
+            customerName: '',
+            paymentMethod: '',
+            status: '',
+            isDepositChecked: 0,
+            checkApproval: 0,
+            notifyFinance: 0);
       }
 
       if (_selectedPaymentMethod!.toLowerCase() == 'check' ||
@@ -852,6 +886,8 @@ class _RecordPaymentDisconnectedScreenState
         id: widget.id != null ? widget.id : null,
         status: status,
         isDepositChecked: isDepositChecked == false ? 0 : 1,
+        checkApproval: checkApprovalFlag == false ? 0 : 1,
+        notifyFinance: notifyFinanceFlag == false ? 0 : 1,
         isDisconnected: 1);
     return paymentDetail;
   }
@@ -897,6 +933,8 @@ class _RecordPaymentDisconnectedScreenState
           'dueDateCheck': paymentDetails.dueDateCheck.toString(),
           'paymentInvoiceFor': paymentDetails.paymentInvoiceFor,
           'isDepositChecked': paymentDetails.isDepositChecked,
+          'checkApproval': paymentDetails.checkApproval,
+          'notifyFinance': paymentDetails.notifyFinance,
           'isDisconnected': paymentDetails.isDisconnected,
         });
       } else {
@@ -920,6 +958,8 @@ class _RecordPaymentDisconnectedScreenState
           'dueDateCheck': paymentDetails.dueDateCheck.toString(),
           'paymentInvoiceFor': paymentDetails.paymentInvoiceFor,
           'isDepositChecked': paymentDetails.isDepositChecked,
+          'checkApproval': paymentDetails.checkApproval,
+          'notifyFinance': paymentDetails.notifyFinance,
           'isDisconnected': paymentDetails.isDisconnected,
         });
       }

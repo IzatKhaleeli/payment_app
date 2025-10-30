@@ -12,13 +12,14 @@ class RecordPaymentWidgets {
       required bool isChecked,
       required ValueChanged<bool?> onChanged,
       bool required = false,
-      required BuildContext context}) {
+      required BuildContext context,
+      required String titleKey}) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       child: CheckboxListTile(
         title: Text(
           Provider.of<LocalizationService>(context, listen: false)
-              .getLocalizedString('deposit'),
+              .getLocalizedString(titleKey),
           style: TextStyle(
             fontSize: 12 * scale,
             color: Colors.grey[500],
