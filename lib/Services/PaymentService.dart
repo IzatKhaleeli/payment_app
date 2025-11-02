@@ -502,12 +502,12 @@ class PaymentService {
       int appMinor = int.tryParse(appParts[1]) ?? 0;
       int appPatch = int.tryParse(appParts[2]) ?? 0;
 
-      if (backendMajor != appMajor || backendMinor != appMinor) {
+      if (backendMajor > appMajor) {
         print("Major/Minor mismatch → force update required.");
         return false;
       }
 
-      if (backendPatch != appPatch) {
+      if (backendMinor > appMinor || backendPatch > appPatch) {
         print("Patch mismatch → new version available, but not mandatory.");
         return true;
       }
