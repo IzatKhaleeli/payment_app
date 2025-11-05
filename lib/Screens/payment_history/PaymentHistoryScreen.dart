@@ -30,6 +30,7 @@ import 'widgets/payment_detail_row.dart';
 import 'widgets/payment_filter_section.dart';
 import 'widgets/payment_records_list.dart';
 import 'widgets/selected_statuses_chip.dart';
+import 'widgets/simple_payment_card.dart';
 
 class PaymentHistoryScreen extends StatefulWidget {
   @override
@@ -51,10 +52,19 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   List<Payment> _paymentRecords = [];
   Map<String, String> _currencies = {};
   Map<String, String> _banks = {};
+  bool _editMode = false;
+  Set<int> _selectedIds = {};
+
+  List<Payment> _selectablePaymentRecords() {
+    return _paymentRecords.where((p) {
+      final s = p.status.toLowerCase();
+      return s != 'saved' && s != 'confirmed' && s != 'rejected';
+    }).toList();
+  }
 
   Future<void> _fetchPayments() async {
     if (!mounted) return;
-    if (_currencies == null || _currencies.length < 1) {
+    if (_currencies.length < 1) {
       // print("no currency");
       List<Map<String, dynamic>> currencies =
           await DatabaseProvider.getAllCurrencies();
@@ -74,7 +84,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         _currencies = currencyMap;
       });
     }
-    if (_banks == null || _banks.length < 1) {
+    if (_banks.length < 1) {
       //  print("no banks");
       List<Map<String, dynamic>> banks = await DatabaseProvider.getAllBanks();
       String selectedCode =
@@ -301,7 +311,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     _initializeLocalizationStrings();
 
     _fetchPayments().then((_) {
-      _fetchPortalStatuses(); // only after payments are loaded
+      _fetchPortalStatuses();
     });
 
     _syncSubscription = PaymentService.syncStream.listen((_) async {
@@ -312,7 +322,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   @override
   void dispose() {
     _syncSubscription.cancel();
-    GlobalErrorNotifier.clearError(); // Clear immediately
+    GlobalErrorNotifier.clearError();
     super.dispose();
   }
 
@@ -332,13 +342,48 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             height: 1.0,
           ),
         ),
-        title: Text(paymentHistory,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22 * scale,
-              fontFamily: 'NotoSansUI',
-            )),
+        title: !_editMode
+            ? Text(paymentHistory,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22 * scale,
+                  fontFamily: 'NotoSansUI',
+                ))
+            : Builder(builder: (context) {
+                final loc =
+                    Provider.of<LocalizationService>(context, listen: false);
+                final String selectedLabel = loc.getLocalizedString('selected');
+                final String currentLang = loc.selectedLanguageCode;
+                final String selectedText = currentLang == 'ar'
+                    ? '$selectedLabel ${_selectedIds.length}'
+                    : '${_selectedIds.length} $selectedLabel';
+
+                return Text(
+                  selectedText,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18 * scale,
+                    fontFamily: 'NotoSansUI',
+                  ),
+                );
+              }),
         backgroundColor: AppColors.primaryRed,
+        actions: [
+          IconButton(
+            icon: Icon(_editMode ? Icons.close : Icons.check_box_outlined,
+                color: Colors.white),
+            onPressed: () {
+              setState(() {
+                if (_editMode) {
+                  _editMode = false;
+                  _selectedIds.clear();
+                } else {
+                  _editMode = true;
+                }
+              });
+            },
+          )
+        ],
       ),
       body: Stack(
         children: [
@@ -403,13 +448,127 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                   endIndent: 8,
                 ),
                 SizedBox(height: 10.h),
+                if (_editMode) ...[
+                  Card(
+                    elevation: 1,
+                    margin: EdgeInsets.symmetric(vertical: 6.h),
+                    child: Padding(
+                      padding:
+                          EdgeInsets.symmetric(vertical: 6.h, horizontal: 8.w),
+                      child: Builder(builder: (context) {
+                        final loc = Provider.of<LocalizationService>(context,
+                            listen: false);
+                        final String lang = loc.selectedLanguageCode;
+                        final bool hasSelection = _selectedIds.isNotEmpty;
+
+                        final Widget whatsappBtn = IconButton(
+                          icon: FaIcon(FontAwesomeIcons.whatsapp,
+                              color: Colors.green),
+                          onPressed: hasSelection
+                              ? () {
+                                  // TODO: bulk WhatsApp share for selected ids
+                                }
+                              : null,
+                        );
+
+                        final Widget pdfBtn = IconButton(
+                          icon: FaIcon(FontAwesomeIcons.filePdf,
+                              color: AppColors.primaryRed),
+                          onPressed: hasSelection
+                              ? () {
+                                  // TODO: open as PDF for selected ids
+                                }
+                              : null,
+                        );
+
+                        final Widget emailBtn = IconButton(
+                          icon: Icon(Icons.email, color: Colors.blue),
+                          onPressed: hasSelection
+                              ? () {
+                                  // TODO: bulk email for selected ids
+                                }
+                              : null,
+                        );
+
+                        List<Widget> leftChildren;
+                        List<Widget> rightChildren;
+
+                        if (lang == 'ar') {
+                          leftChildren = [
+                            whatsappBtn,
+                            SizedBox(width: 8.w),
+                            emailBtn
+                          ];
+                          rightChildren = [pdfBtn];
+                        } else {
+                          leftChildren = [pdfBtn];
+                          rightChildren = [
+                            whatsappBtn,
+                            SizedBox(width: 8.w),
+                            emailBtn
+                          ];
+                        }
+
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: leftChildren,
+                              ),
+                            ),
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: rightChildren,
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
+                    ),
+                  ),
+                ],
+                SizedBox(height: 10.h),
                 Container(
                   margin: EdgeInsets.only(bottom: 50.h),
                   child: PaymentRecordsList(
                     scale: scale,
-                    paymentRecords: _paymentRecords,
-                    itemBuilder: (scale, record) =>
-                        _buildPaymentRecordItem(scale, record),
+                    paymentRecords: _editMode
+                        ? _selectablePaymentRecords()
+                        : _paymentRecords,
+                    itemBuilder: (scale, record) {
+                      final bool isSelected =
+                          record.id != null && _selectedIds.contains(record.id);
+                      if (_editMode) {
+                        return SimplePaymentCard(
+                          record: record,
+                          scale: scale,
+                          selected: isSelected,
+                          onTap: () {
+                            setState(() {
+                              if (record.id != null) {
+                                if (_selectedIds.contains(record.id))
+                                  _selectedIds.remove(record.id);
+                                else
+                                  _selectedIds.add(record.id!);
+                              }
+                            });
+                          },
+                          onLongPress: () {},
+                        );
+                      }
+                      return GestureDetector(
+                        onLongPress: () {
+                          setState(() {
+                            _editMode = true;
+                            if (record.id != null) _selectedIds.add(record.id!);
+                          });
+                        },
+                        child: _buildPaymentRecordItem(scale, record),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -548,8 +707,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               ),
               SizedBox(width: 8),
               Text(
-                formatDate(record.transactionDate!)
-                    .toString(), // Format and display the transaction date
+                formatDate(record.transactionDate!).toString(),
                 style: TextStyle(
                     fontSize: 14 * scale, color: Colors.grey.shade600),
               ),
@@ -609,19 +767,15 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               scale: scale,
               title: Provider.of<LocalizationService>(context, listen: false)
                   .getLocalizedString('paymentMethod'),
-              value: record.paymentMethod != null
-                  ? Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString(record.paymentMethod!.toLowerCase())
-                  : '',
+              value: Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString(record.paymentMethod.toLowerCase()),
             ),
             PaymentDetailRow(
               scale: scale,
               title: Provider.of<LocalizationService>(context, listen: false)
                   .getLocalizedString('status'),
-              value: record.status != null
-                  ? Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString(record.status!.toLowerCase())
-                  : '',
+              value: Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString(record.status.toLowerCase()),
             ),
             if (record.msisdn != null && record.msisdn!.isNotEmpty)
               PaymentDetailRow(
