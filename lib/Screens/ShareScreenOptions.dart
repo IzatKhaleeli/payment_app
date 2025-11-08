@@ -26,24 +26,43 @@ class ShareScreenOptions {
   static bool isBlackAndWhiteFlag = false;
 
   static void showLanguageSelectionAndShare(
-      BuildContext context, int id, ShareOption option) {
+      BuildContext context, dynamic idOrIds, ShareOption option,
+      {bool multiPaymentFlag = false}) {
+    // normalize to list and single id
+    List<int> ids;
+    if (idOrIds is int) {
+      ids = [idOrIds];
+    } else if (idOrIds is List<int>) {
+      ids = idOrIds;
+    } else {
+      return; // unsupported param
+    }
+
+    if (ids.isEmpty) return;
+
     switch (option) {
       case ShareOption.sendEmail:
-        _shareViaEmail(context, id);
+        // accept list: send email bottom sheet per id
+        if (ids.length == 1) {
+          _shareViaEmail(context, ids.first);
+        } else {
+          _shareViaEmailBulk(context, ids);
+        }
         break;
       case ShareOption.sendSms:
-        _shareViaSms(context, id);
+        // preserve original behavior: use first id only
+        _shareViaSms(context, ids.first);
         break;
       case ShareOption.print:
+        // preserve original behavior: use first id only
         _showBottomDialog(
           context,
           (String languageCode, bool isBlackAndWhite) async {
             isBlackAndWhiteFlag = true;
-            final file = await sharePdf(context, id, languageCode,
+            final file = await sharePdf(context, ids.first, languageCode,
                 header2Size: 24, header3Size: 20, header4Size: 18);
 
             if (file != null && await file.exists()) {
-              // _openPrintPreview(file.path);
               _shareViaPrint(context, file.path);
             } else {
               CustomPopups.showCustomResultPopup(
@@ -65,91 +84,25 @@ class ShareScreenOptions {
         );
         break;
       case ShareOption.OpenPDF:
+        // accept list: open first available PDF among ids
         _showBottomDialog(
           context,
           (String languageCode, bool isBlackAndWhite) async {
-            final file = await sharePdf(context, id, languageCode,
+            await _openPdfForIds(context, ids, languageCode,
                 isBlackAndWhite: isBlackAndWhite);
-            if (file != null) {
-              if (file != null && await file.exists()) {
-                // Open PDF preview
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PdfPreviewScreen(filePath: file.path),
-                  ),
-                );
-              }
-            } else {
-              CustomPopups.showCustomResultPopup(
-                context: context,
-                icon: const Icon(Icons.error,
-                    color: AppColors.primaryRed, size: 40),
-                message:
-                    '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentWhatsFailed")}: Failed to upload file',
-                buttonText:
-                    Provider.of<LocalizationService>(context, listen: false)
-                        .getLocalizedString("ok"),
-                onPressButton: () {
-                  print('Failed to upload file. Status code');
-                },
-              );
-            }
           },
+          multiPaymentFlag: multiPaymentFlag,
         );
         break;
       case ShareOption.sendWhats:
+        // accept list: share via WhatsApp for each id
         _showBottomDialog(context,
             (String languageCode, bool isBlackAndWhite) async {
-          final file = await sharePdf(context, id, languageCode,
+          await _shareWhatsForIds(context, ids, languageCode,
               isBlackAndWhite: isBlackAndWhite);
-          if (file != null && await file.exists()) {
-            final paymentMap = await DatabaseProvider.getPaymentById(id);
-            if (paymentMap == null) {
-              print('No payment details found for ID $id');
-              return null;
-            }
-            // Create a Payment instance from the fetched map
-            final payment = Payment.fromMap(paymentMap);
-            SharedPreferences prefs = await SharedPreferences.getInstance();
-            String? storedUsername = prefs.getString('usernameLogin');
-
-            Map<String, dynamic>? translatedCurrency =
-                await DatabaseProvider.getCurrencyById(payment.currency!);
-            String appearedCurrency = languageCode == 'ar'
-                ? translatedCurrency!["arabicName"]
-                : translatedCurrency!["englishName"];
-
-            double amount = payment.paymentMethod.toLowerCase() == 'cash'
-                ? payment.amount!
-                : payment.amountCheck!;
-            String WhatsappText = languageCode == "en"
-                ? '${amount} ${appearedCurrency} ${payment.paymentMethod.toLowerCase()} payment has been recieved by account manager ${storedUsername}\nTransaction reference: ${payment.voucherSerialNumber}'
-                : 'تم استلام دفعه ${Provider.of<LocalizationService>(context, listen: false).getLocalizedString(payment.paymentMethod.toLowerCase())} بقيمة ${amount} ${appearedCurrency} من مدير حسابكم ${storedUsername}\nرقم الحركة: ${payment.voucherSerialNumber}';
-            print("print stmt before send whats");
-            await Share.shareXFiles(
-              [XFile(file.path, mimeType: 'application/pdf')],
-              text: WhatsappText,
-            );
-          } else {
-            CustomPopups.showCustomResultPopup(
-              context: context,
-              icon: const Icon(Icons.error,
-                  color: AppColors.primaryRed, size: 40),
-              message:
-                  '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentWhatsFailed")}: Failed to upload file',
-              buttonText:
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString("ok"),
-              onPressButton: () {
-                print('Failed to upload file.');
-              },
-            );
-          }
         });
         break;
       default:
-        // Optionally handle unexpected values
         break;
     }
   }
@@ -159,10 +112,90 @@ class ShareScreenOptions {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return PrinterConfirmationBottomSheet(
-            pdfFilePath: path); // Pass the file path
+        return PrinterConfirmationBottomSheet(pdfFilePath: path);
       },
     );
+  }
+
+  static Future<void> _shareViaEmailBulk(
+      BuildContext context, List<int> ids) async {
+    for (final id in ids) {
+      await _shareViaEmail(context, id);
+    }
+  }
+
+  static Future<void> _openPdfForIds(
+      BuildContext context, List<int> ids, String languageCode,
+      {bool isBlackAndWhite = true}) async {
+    File? file;
+    if (isBlackAndWhite) {
+      file = await sharePdf(context, ids.first, languageCode,
+          header2Size: 24, header3Size: 20, header4Size: 18);
+    } else {
+      file = await sharePdfForIds(
+        context,
+        ids,
+        languageCode,
+      );
+    }
+
+    if (file != null && await file.exists()) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PdfPreviewScreen(filePath: file!.path),
+        ),
+      );
+    }
+  }
+
+  static Future<void> _shareWhatsForIds(
+      BuildContext context, List<int> ids, String languageCode,
+      {bool isBlackAndWhite = true}) async {
+    for (final id in ids) {
+      final file = await sharePdf(context, id, languageCode,
+          isBlackAndWhite: isBlackAndWhite);
+      if (file != null && await file.exists()) {
+        final paymentMap = await DatabaseProvider.getPaymentById(id);
+        if (paymentMap == null) {
+          print('No payment details found for ID $id');
+          continue;
+        }
+        final payment = Payment.fromMap(paymentMap);
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        String? storedUsername = prefs.getString('usernameLogin');
+
+        Map<String, dynamic>? translatedCurrency =
+            await DatabaseProvider.getCurrencyById(payment.currency!);
+        String appearedCurrency = languageCode == 'ar'
+            ? translatedCurrency!["arabicName"]
+            : translatedCurrency!["englishName"];
+
+        double amount = payment.paymentMethod.toLowerCase() == 'cash'
+            ? payment.amount!
+            : payment.amountCheck!;
+        String WhatsappText = languageCode == "en"
+            ? '${amount} ${appearedCurrency} ${payment.paymentMethod.toLowerCase()} payment has been recieved by account manager ${storedUsername}\nTransaction reference: ${payment.voucherSerialNumber}'
+            : 'تم استلام دفعه ${Provider.of<LocalizationService>(context, listen: false).getLocalizedString(payment.paymentMethod.toLowerCase())} بقيمة ${amount} ${appearedCurrency} من مدير حسابكم ${storedUsername}\nرقم الحركة: ${payment.voucherSerialNumber}';
+        print("print stmt before send whats");
+        await Share.shareXFiles(
+          [XFile(file.path, mimeType: 'application/pdf')],
+          text: WhatsappText,
+        );
+      } else {
+        CustomPopups.showCustomResultPopup(
+          context: context,
+          icon: const Icon(Icons.error, color: AppColors.primaryRed, size: 40),
+          message:
+              '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentWhatsFailed")}: Failed to upload file',
+          buttonText: Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString("ok"),
+          onPressButton: () {
+            print('Failed to upload file.');
+          },
+        );
+      }
+    }
   }
 
   static Future<void> _shareViaEmail(BuildContext context, int id) async {
@@ -195,7 +228,7 @@ class ShareScreenOptions {
 
   static void _showBottomDialog(BuildContext context,
       Function(String languageCode, bool isBlackAndWhite) onLanguageSelected,
-      {bool showTemplateOption = true}) {
+      {bool showTemplateOption = true, bool multiPaymentFlag = false}) {
     //String systemLanguageCode = Localizations.localeOf(context).languageCode; // Get system's default language
     String _selectedLanguageCode = 'ar';
     isBlackAndWhiteFlag = false;
@@ -305,22 +338,24 @@ class ShareScreenOptions {
                     const SizedBox(height: 20),
                     Row(
                       children: [
-                        Expanded(
-                          child: _buildSelectionCard(
-                            context: context,
-                            title: Provider.of<LocalizationService>(context,
-                                    listen: false)
-                                .getLocalizedString("b_and_w"),
-                            icon: Icons.receipt_long_outlined,
-                            isSelected: isBlackAndWhiteFlag,
-                            onTap: () {
-                              setState(() {
-                                isBlackAndWhiteFlag = true;
-                              });
-                            },
+                        if (multiPaymentFlag == false) ...[
+                          Expanded(
+                            child: _buildSelectionCard(
+                              context: context,
+                              title: Provider.of<LocalizationService>(context,
+                                      listen: false)
+                                  .getLocalizedString("b_and_w"),
+                              icon: Icons.receipt_long_outlined,
+                              isSelected: isBlackAndWhiteFlag,
+                              onTap: () {
+                                setState(() {
+                                  isBlackAndWhiteFlag = true;
+                                });
+                              },
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
+                          const SizedBox(width: 16),
+                        ],
                         Expanded(
                           child: _buildSelectionCard(
                             context: context,
@@ -643,6 +678,104 @@ class ShareScreenOptions {
       print('Error generating PDF: $e');
       return null;
     }
+  }
+
+  static Future<File?> sharePdfForIds(
+      BuildContext context, List<int> ids, String languageCode) async {
+    final List<Payment> result = [];
+    if (ids.isEmpty) return null;
+
+    // Get the current localization service without changing the app's locale
+    final localizationService =
+        Provider.of<LocalizationService>(context, listen: false);
+
+    // Fetch localized strings for the specified language code
+    final localizedStringsDynamic =
+        await localizationService.getLocalizedStringsForLanguage(languageCode);
+
+    // Convert to Map<String, String>
+    final localizedStrings = localizedStringsDynamic.map(
+      (key, value) => MapEntry(key, value.toString()),
+    );
+    // Prepare Payment objects
+    for (final id in ids) {
+      try {
+        final paymentMap = await DatabaseProvider.getPaymentById(id);
+        if (paymentMap == null) continue;
+
+        Payment payment = Payment.fromMap(paymentMap);
+
+        if (payment.currency != null) {
+          final currencyDynamic =
+              await DatabaseProvider.getCurrencyById(payment.currency!);
+          if (currencyDynamic != null) {
+            payment.currency = languageCode == 'ar'
+                ? (currencyDynamic['arabicName']?.toString() ?? '')
+                : (currencyDynamic['englishName']?.toString() ?? '');
+          }
+        }
+
+        if (payment.bankBranch != null) {
+          final bankDynamic =
+              await DatabaseProvider.getBankById(payment.bankBranch!);
+          if (bankDynamic != null) {
+            payment.bankBranch = languageCode == 'ar'
+                ? (bankDynamic['arabicName']?.toString() ?? '')
+                : (bankDynamic['englishName']?.toString() ?? '');
+          }
+        }
+
+        result.add(payment);
+      } catch (e) {
+        print('Failed to build payment object for id $id: $e');
+        continue;
+      }
+    }
+
+    final pw.MemoryImage imageSignature = await getSignture();
+
+    final amiriFont =
+        pw.Font.ttf(await rootBundle.load('assets/fonts/Amiri-Regular.ttf'));
+
+    final amiriBoldFont =
+        pw.Font.ttf(await rootBundle.load('assets/fonts/Amiri-Bold.ttf'));
+    final font = amiriFont;
+    final boldFont = amiriBoldFont;
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? usernameLogin = prefs.getString('usernameLogin');
+
+    pw.Document pdf = pw.Document();
+
+    final pw.MemoryImage headerLogo = await getColoredHeaderLogo(languageCode);
+    final pw.MemoryImage headerTitle =
+        await getColoredHeaderTitle(languageCode);
+
+    pdf = await PdfHelper.generateColoredPdfMultiPayment(
+      payments: result,
+      localizedStrings: localizedStrings,
+      font: font,
+      boldFont: boldFont,
+      headerLogo: headerLogo,
+      headerTitle: headerTitle,
+      imageSignature: imageSignature,
+      languageCode: languageCode,
+      usernameLogin: usernameLogin,
+    );
+    final directory = await getTemporaryDirectory();
+
+    for (var file in Directory(directory.path).listSync()) {
+      if (file is File && file.path.endsWith('.pdf')) {
+        await file.delete();
+      }
+    }
+
+    String fileName =
+        'إشعاردفع-${DateFormat('yyyy-MM-dd').format(result[0].transactionDate!)}.pdf';
+    final file = File('${directory.path}/$fileName');
+    await file.writeAsBytes(await pdf.save());
+    print("File saved at: ${file.path}");
+    return file;
   }
 
   static Future<pw.MemoryImage> getBlackAndWhiteImage() async {

@@ -54,6 +54,7 @@
 
   "printreceipt": "طباعة الإيصال",
   "voucherNumber": "رقم السند",
+  "voucher#": "# السند",
   "amount": "المبلغ",
   "sendSelected": "إرسال المحدد",
   "printSelected": "طباعة المحدد",
@@ -284,5 +285,7 @@
   "file": "ملف",
   "uploadFromGallery":"رفع من المعرض",
   "takePhoto":"التقاط صورة",
-  "uploadFile":"رفع ملف"
+  "uploadFile":"رفع ملف",
+  "paymentDetailCash":"بيانات الدفعة - نقداً",
+  "paymentDetailCheck":"بيانات الدفعة - شيكات"
 }

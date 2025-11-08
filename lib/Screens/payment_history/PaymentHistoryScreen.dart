@@ -466,7 +466,12 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                               color: Colors.green),
                           onPressed: hasSelection
                               ? () {
-                                  // TODO: bulk WhatsApp share for selected ids
+                                  ShareScreenOptions
+                                      .showLanguageSelectionAndShare(
+                                          context,
+                                          _selectedIds.toList(),
+                                          ShareOption.sendWhats,
+                                          multiPaymentFlag: true);
                                 }
                               : null,
                         );
@@ -476,7 +481,12 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                               color: AppColors.primaryRed),
                           onPressed: hasSelection
                               ? () {
-                                  // TODO: open as PDF for selected ids
+                                  ShareScreenOptions
+                                      .showLanguageSelectionAndShare(
+                                          context,
+                                          _selectedIds.toList(),
+                                          ShareOption.OpenPDF,
+                                          multiPaymentFlag: true);
                                 }
                               : null,
                         );
@@ -485,7 +495,12 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                           icon: Icon(Icons.email, color: Colors.blue),
                           onPressed: hasSelection
                               ? () {
-                                  // TODO: bulk email for selected ids
+                                  ShareScreenOptions
+                                      .showLanguageSelectionAndShare(
+                                          context,
+                                          _selectedIds.toList(),
+                                          ShareOption.sendEmail,
+                                          multiPaymentFlag: true);
                                 }
                               : null,
                         );
@@ -960,7 +975,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                               onPressed: () async {
                                 ShareScreenOptions
                                     .showLanguageSelectionAndShare(context,
-                                        record.id!, ShareOption.OpenPDF);
+                                        [record.id!], ShareOption.OpenPDF);
                               },
                             ),
                           ),
@@ -1148,8 +1163,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                             .selectedLanguageCode);
                                   } else
                                     ShareScreenOptions
-                                        .showLanguageSelectionAndShare(context,
-                                            record.id!, ShareOption.sendEmail);
+                                        .showLanguageSelectionAndShare(
+                                            context,
+                                            [record.id!],
+                                            ShareOption.sendEmail);
                                 },
                               ),
                             ),
@@ -1242,8 +1259,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                             .selectedLanguageCode);
                                   } else
                                     ShareScreenOptions
-                                        .showLanguageSelectionAndShare(context,
-                                            record.id!, ShareOption.sendWhats);
+                                        .showLanguageSelectionAndShare(
+                                            context,
+                                            [record.id!],
+                                            ShareOption.sendWhats);
                                 },
                               ),
                             ),

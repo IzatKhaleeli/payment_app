@@ -66,6 +66,7 @@
   "retry": "Retry",
 
   "voucherNumber": "Voucher Number",
+  "voucher#": "Voucher #",
   "amount": "Amount",
   "sendSelected": "Send Selected",
   "printSelected": "Print Selected",
@@ -284,5 +285,7 @@
   "file": "File",
 "uploadFromGallery":"Upload from gallery",
 "takePhoto":"Take a Photo",
-  "uploadFile":"Upload File"
+  "uploadFile":"Upload File",
+  "paymentDetailCash":"Payment Details - Cash",
+  "paymentDetailCheck":"Payment Details - Check"
 }

@@ -193,16 +193,24 @@ class PaymentService {
       http.Response? response;
 
       try {
-        response = await http
-            .post(
-              Uri.parse(apiUrl),
-              headers: headers,
-              body: json.encode(body),
-            )
-            .timeout(Duration(seconds: 4));
-        print("post request");
+        // Build multipart/form-data request and put the JSON in 'paymentRequest' field
+        final uri = Uri.parse(apiUrl);
+        final request = http.MultipartRequest('POST', uri);
+
+        // Add headers except content-type which MultipartRequest will set
+        headers.forEach((k, v) {
+          if (k.toLowerCase() != 'content-type') request.headers[k] = v;
+        });
+
+        request.fields['paymentRequest'] = json.encode(body);
+
+        // Send request and apply timeout
+        final streamedResponse =
+            await request.send().timeout(Duration(seconds: 10));
+        response = await http.Response.fromStream(streamedResponse);
+        print("multipart post request");
       } catch (e) {
-        print("catchhhh");
+        print("catchhhh: $e");
         GlobalErrorNotifier.showError("Error: $e");
       }
       if (response!.statusCode == 200) {

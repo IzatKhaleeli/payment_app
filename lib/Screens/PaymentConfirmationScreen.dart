@@ -193,41 +193,42 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           ],
         ),
       ),
-      floatingActionButton:
-          hasDisconnectedPermission == widget.paymentDetails?["isDisconnected"]
-              ? Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.all(2.0),
-                    child: FloatingActionButton(
-                      onPressed: () {
-                        print("payment detail to pass to record screen :");
-                        print(widget.paymentDetails);
-                        (widget.paymentDetails?['msisdnReceipt'] != null)
-                            ? Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      RecordPaymentDisconnectedScreen(
-                                    paymentParams: widget.paymentDetails!,
-                                  ),
-                                ),
-                              )
-                            : Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => RecordPaymentScreen(
-                                    paymentParams: widget.paymentDetails!,
-                                  ),
-                                ),
-                              );
-                      },
-                      backgroundColor: AppColors.primaryRed,
-                      child: Icon(Icons.add, color: Colors.white),
-                    ),
-                  ),
-                )
-              : SizedBox.shrink(),
+      floatingActionButton: widget.paymentDetails?["isDisconnected"] == 0 ||
+              (hasDisconnectedPermission ==
+                  widget.paymentDetails?["isDisconnected"])
+          ? Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(2.0),
+                child: FloatingActionButton(
+                  onPressed: () {
+                    print("payment detail to pass to record screen :");
+                    print(widget.paymentDetails);
+                    (widget.paymentDetails?['msisdnReceipt'] != null)
+                        ? Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  RecordPaymentDisconnectedScreen(
+                                paymentParams: widget.paymentDetails!,
+                              ),
+                            ),
+                          )
+                        : Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RecordPaymentScreen(
+                                paymentParams: widget.paymentDetails!,
+                              ),
+                            ),
+                          );
+                  },
+                  backgroundColor: AppColors.primaryRed,
+                  child: Icon(Icons.add, color: Colors.white),
+                ),
+              ),
+            )
+          : SizedBox.shrink(),
     );
   }
 
