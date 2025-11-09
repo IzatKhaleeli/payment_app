@@ -4,52 +4,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 class PdfHelper {
-  // Small helpers for table header and data cells used by multi-payment PDF
-  static pw.Widget headerCell(String text, pw.Font boldFont,
-      {bool rightBorder = false}) {
-    return pw.Container(
-      padding: pw.EdgeInsets.all(6),
-      alignment: pw.Alignment.center,
-      decoration: pw.BoxDecoration(
-        color: PdfColors.grey500,
-        border: pw.Border(
-          bottom: pw.BorderSide(color: PdfColors.grey400, width: 1.0),
-          right: rightBorder
-              ? pw.BorderSide(color: PdfColors.grey400, width: 1.0)
-              : pw.BorderSide.none,
-        ),
-      ),
-      child: pw.Text(text,
-          textAlign: pw.TextAlign.center,
-          style: pw.TextStyle(font: boldFont, color: PdfColors.white)),
-    );
-  }
-
-  static pw.Widget dataCell(String text, pw.Font font, bool isEnglish,
-      {bool rightBorder = false}) {
-    return pw.Container(
-      padding: pw.EdgeInsets.all(6),
-      decoration: pw.BoxDecoration(
-        border: pw.Border(
-          top: pw.BorderSide(color: PdfColors.grey300, width: 1.0),
-          right: rightBorder
-              ? pw.BorderSide(color: PdfColors.grey300, width: 1.0)
-              : pw.BorderSide.none,
-        ),
-      ),
-      child: pw.Directionality(
-        textDirection: isEnglish ? pw.TextDirection.ltr : pw.TextDirection.rtl,
-        child: pw.Align(
-          alignment:
-              isEnglish ? pw.Alignment.centerLeft : pw.Alignment.centerRight,
-          child: pw.Text(text,
-              textAlign: isEnglish ? pw.TextAlign.left : pw.TextAlign.right,
-              style: pw.TextStyle(font: font)),
-        ),
-      ),
-    );
-  }
-
   static Future<pw.Document> generatePdf({
     required Payment payment,
     required Map<String, String>? bankDetails,
@@ -562,590 +516,6 @@ class PdfHelper {
     return pdf;
   }
 
-  static Future<pw.Document> generateColoredPdfMultiPayment({
-    required List<Payment> payments,
-    required Map<String, String> localizedStrings,
-    required pw.Font font,
-    required pw.Font boldFont,
-    required pw.MemoryImage headerLogo,
-    required pw.MemoryImage headerTitle,
-    required pw.MemoryImage imageSignature,
-    required String languageCode,
-    String? usernameLogin,
-  }) async {
-    final isEnglish = languageCode == 'en';
-
-    // Representative customer details from the first payment (if any)
-    final Payment? firstPayment = payments.isNotEmpty ? payments.first : null;
-    DateTime transactionDate = firstPayment?.transactionDate ?? DateTime.now();
-    String formattedDate =
-        '${transactionDate.year.toString().padLeft(4, '0')}/${transactionDate.month.toString().padLeft(2, '0')}/${transactionDate.day.toString().padLeft(2, '0')} ${transactionDate.hour.toString().padLeft(2, '0')}:${transactionDate.minute.toString().padLeft(2, '0')}';
-
-    final List<Map<String, String>> customerDetails = [];
-    if (firstPayment != null) {
-      customerDetails.add({
-        'title': localizedStrings['customerName']!,
-        'value': firstPayment.customerName
-      });
-      if (firstPayment.msisdn != null && firstPayment.msisdn!.isNotEmpty) {
-        customerDetails.add({
-          'title': localizedStrings['mobileNumber']!,
-          'value': firstPayment.msisdn!
-        });
-      }
-      customerDetails.add({
-        'title': localizedStrings['transactionDate']!,
-        'value': formattedDate
-      });
-      customerDetails.add({
-        'title': localizedStrings['receiptNumber']!,
-        'value': firstPayment.voucherSerialNumber
-      });
-    }
-
-    // Build simple lists (no title/value) for cash and check
-    final List<Map<String, String>> cashList = [];
-    final List<Map<String, String>> checkList = [];
-
-    for (final p in payments) {
-      final currencyLabel = p.currency ?? '';
-      if (p.paymentMethod.toLowerCase() == 'cash' ||
-          p.paymentMethod.toLowerCase() == 'كاش') {
-        cashList.add({
-          'voucher': p.voucherSerialNumber,
-          'amount': (p.amount ?? 0).toString(),
-          'currency': currencyLabel,
-        });
-      } else {
-        checkList.add({
-          'voucher': p.voucherSerialNumber,
-          'currency': currencyLabel,
-          'amountCheck': (p.amountCheck ?? 0).toString(),
-          'checkNumber': p.checkNumber != null ? p.checkNumber.toString() : '',
-          'bankBranch': p.bankBranch ?? '',
-          'dueDate': p.dueDateCheck != null
-              ? DateFormat('yyyy-MM-dd').format(p.dueDateCheck!)
-              : '',
-        });
-      }
-    }
-
-    final List<Map<String, String>> additionalDetail = [
-      {'title': localizedStrings['userid']!, 'value': usernameLogin ?? ''},
-    ];
-
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.Page(
-        margin: const pw.EdgeInsets.all(16),
-        build: (pw.Context context) {
-          return pw.Directionality(
-            textDirection:
-                isEnglish ? pw.TextDirection.ltr : pw.TextDirection.rtl,
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-              children: [
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: isEnglish
-                      ? [
-                          pw.Column(
-                              crossAxisAlignment: pw.CrossAxisAlignment.start,
-                              children: [pw.Image(headerTitle, height: 75)]),
-                          pw.Padding(
-                              padding: pw.EdgeInsets.only(top: 40),
-                              child: pw.Image(headerLogo, height: 90)),
-                        ]
-                      : [
-                          pw.Padding(
-                              padding: pw.EdgeInsets.only(top: 40),
-                              child: pw.Image(headerLogo, height: 90)),
-                          pw.Column(
-                              crossAxisAlignment: pw.CrossAxisAlignment.end,
-                              children: [pw.Image(headerTitle, height: 75)]),
-                        ],
-                ),
-                pw.SizedBox(height: 12),
-                buildSectionHeader(
-                  title:
-                      localizedStrings['customersDetail'] ?? 'Customer Details',
-                  isArabic: isEnglish ? false : true,
-                  font: font,
-                  boldFont: boldFont,
-                ),
-                pw.SizedBox(height: 12),
-                buildAreaFlexible(
-                  font: font,
-                  boldFont: boldFont,
-                  isArabic: isEnglish ? false : true,
-                  fields: [
-                    {
-                      'title':
-                          localizedStrings['customerName'] ?? 'Customer Name',
-                      'value': customerDetails.isNotEmpty
-                          ? customerDetails[0]['value'] ?? ''
-                          : ''
-                    },
-                    {
-                      'title':
-                          localizedStrings['mobileNumber'] ?? 'Mobile Number',
-                      'value': customerDetails.length > 1
-                          ? customerDetails[1]['value'] ?? ''
-                          : ''
-                    },
-                    {
-                      'title': localizedStrings['date'] ?? 'Date',
-                      'value': customerDetails.length > 2
-                          ? customerDetails[2]['value'] ?? ''
-                          : ''
-                    },
-                  ],
-                ),
-                // Cash section
-                buildSectionHeader(
-                    title: localizedStrings['paymentDetailCash'] ??
-                        'Cash Payments',
-                    isArabic: !isEnglish,
-                    font: font,
-                    boldFont: boldFont),
-                pw.SizedBox(height: 8),
-                if (cashList.isNotEmpty)
-                  pw.Table(
-                    columnWidths: {
-                      0: pw.FlexColumnWidth(1),
-                      1: pw.FlexColumnWidth(1),
-                      2: pw.FlexColumnWidth(1)
-                    },
-                    children: [
-                      pw.TableRow(
-                          children: isEnglish
-                              ? [
-                                  // English: show Voucher on the left
-                                  pw.Container(
-                                    padding: pw.EdgeInsets.all(6),
-                                    alignment: pw.Alignment.center,
-                                    decoration: pw.BoxDecoration(
-                                      color: PdfColors.grey500,
-                                      border: pw.Border(
-                                        bottom: pw.BorderSide(
-                                            color: PdfColors.grey400,
-                                            width: 1.0),
-                                      ),
-                                    ),
-                                    child: pw.Text(
-                                      localizedStrings['voucher#'] ??
-                                          'Voucher #',
-                                      textAlign: pw.TextAlign.center,
-                                      style: pw.TextStyle(
-                                          font: boldFont,
-                                          color: PdfColors.white),
-                                    ),
-                                  ),
-                                  pw.Container(
-                                    padding: pw.EdgeInsets.all(6),
-                                    alignment: pw.Alignment.center,
-                                    decoration: pw.BoxDecoration(
-                                      color: PdfColors.grey500,
-                                      border: pw.Border(
-                                        bottom: pw.BorderSide(
-                                            color: PdfColors.grey400,
-                                            width: 1.0),
-                                        right: pw.BorderSide(
-                                            color: PdfColors.grey400,
-                                            width: 1.0),
-                                      ),
-                                    ),
-                                    child: pw.Text(
-                                      localizedStrings['amount'] ?? 'Amount',
-                                      textAlign: pw.TextAlign.center,
-                                      style: pw.TextStyle(
-                                          font: boldFont,
-                                          color: PdfColors.white),
-                                    ),
-                                  ),
-                                  pw.Container(
-                                    padding: pw.EdgeInsets.all(6),
-                                    alignment: pw.Alignment.center,
-                                    decoration: pw.BoxDecoration(
-                                      color: PdfColors.grey500,
-                                      border: pw.Border(
-                                        bottom: pw.BorderSide(
-                                            color: PdfColors.grey400,
-                                            width: 1.0),
-                                      ),
-                                    ),
-                                    child: pw.Text(
-                                      localizedStrings['currency'] ??
-                                          'Currency',
-                                      textAlign: pw.TextAlign.center,
-                                      style: pw.TextStyle(
-                                          font: boldFont,
-                                          color: PdfColors.white),
-                                    ),
-                                  ),
-                                ]
-                              : [
-                                  // Arabic (RTL): keep original order so voucher is on the right
-                                  pw.Container(
-                                    padding: pw.EdgeInsets.all(6),
-                                    alignment: pw.Alignment.center,
-                                    decoration: pw.BoxDecoration(
-                                      color: PdfColors.grey500,
-                                      border: pw.Border(
-                                        bottom: pw.BorderSide(
-                                            color: PdfColors.grey400,
-                                            width: 1.0),
-                                        right: pw.BorderSide(
-                                            color: PdfColors.grey400,
-                                            width: 1.0),
-                                      ),
-                                    ),
-                                    child: pw.Text(
-                                      localizedStrings['amount'] ?? 'Amount',
-                                      textAlign: pw.TextAlign.center,
-                                      style: pw.TextStyle(
-                                          font: boldFont,
-                                          color: PdfColors.white),
-                                    ),
-                                  ),
-                                  pw.Container(
-                                    padding: pw.EdgeInsets.all(6),
-                                    alignment: pw.Alignment.center,
-                                    decoration: pw.BoxDecoration(
-                                      color: PdfColors.grey500,
-                                      border: pw.Border(
-                                        bottom: pw.BorderSide(
-                                            color: PdfColors.grey400,
-                                            width: 1.0),
-                                      ),
-                                    ),
-                                    child: pw.Text(
-                                      localizedStrings['currency'] ??
-                                          'Currency',
-                                      textAlign: pw.TextAlign.center,
-                                      style: pw.TextStyle(
-                                          font: boldFont,
-                                          color: PdfColors.white),
-                                    ),
-                                  ),
-                                  pw.Container(
-                                    padding: pw.EdgeInsets.all(6),
-                                    alignment: pw.Alignment.center,
-                                    decoration: pw.BoxDecoration(
-                                      color: PdfColors.grey500,
-                                      border: pw.Border(
-                                        bottom: pw.BorderSide(
-                                            color: PdfColors.grey400,
-                                            width: 1.0),
-                                        right: pw.BorderSide(
-                                            color: PdfColors.grey400,
-                                            width: 1.0),
-                                      ),
-                                    ),
-                                    child: pw.Text(
-                                      localizedStrings['voucher#'] ??
-                                          'Voucher #',
-                                      textAlign: pw.TextAlign.center,
-                                      style: pw.TextStyle(
-                                          font: boldFont,
-                                          color: PdfColors.white),
-                                    ),
-                                  ),
-                                ]),
-                      // rows
-                      ...cashList.map(
-                        (r) => pw.TableRow(
-                          children: isEnglish
-                              ? [
-                                  // English: voucher on left
-                                  pw.Container(
-                                    padding: pw.EdgeInsets.all(6),
-                                    decoration: pw.BoxDecoration(
-                                      border: pw.Border(
-                                        top: pw.BorderSide(
-                                            color: PdfColors.grey300,
-                                            width: 1.0),
-                                      ),
-                                    ),
-                                    child: pw.Text(r['voucher'] ?? '',
-                                        style: pw.TextStyle(font: font)),
-                                  ),
-                                  pw.Container(
-                                    padding: pw.EdgeInsets.all(6),
-                                    decoration: pw.BoxDecoration(
-                                      border: pw.Border(
-                                        top: pw.BorderSide(
-                                            color: PdfColors.grey300,
-                                            width: 1.0),
-                                        right: pw.BorderSide(
-                                            color: PdfColors.grey300,
-                                            width: 1.0),
-                                      ),
-                                    ),
-                                    child: pw.Text(r['amount'] ?? '',
-                                        style: pw.TextStyle(font: font)),
-                                  ),
-                                  pw.Container(
-                                    padding: pw.EdgeInsets.all(6),
-                                    decoration: pw.BoxDecoration(
-                                      border: pw.Border(
-                                        top: pw.BorderSide(
-                                            color: PdfColors.grey300,
-                                            width: 1.0),
-                                      ),
-                                    ),
-                                    child: pw.Text(r['currency'] ?? '',
-                                        style: pw.TextStyle(font: font)),
-                                  ),
-                                ]
-                              : [
-                                  // Arabic: keep voucher on right
-                                  pw.Container(
-                                    padding: pw.EdgeInsets.all(6),
-                                    decoration: pw.BoxDecoration(
-                                      border: pw.Border(
-                                        top: pw.BorderSide(
-                                            color: PdfColors.grey300,
-                                            width: 1.0),
-                                        right: pw.BorderSide(
-                                            color: PdfColors.grey300,
-                                            width: 1.0),
-                                      ),
-                                    ),
-                                    child: pw.Text(r['amount'] ?? '',
-                                        style: pw.TextStyle(font: font)),
-                                  ),
-                                  pw.Container(
-                                    padding: pw.EdgeInsets.all(6),
-                                    decoration: pw.BoxDecoration(
-                                      border: pw.Border(
-                                        top: pw.BorderSide(
-                                            color: PdfColors.grey300,
-                                            width: 1.0),
-                                      ),
-                                    ),
-                                    child: pw.Text(r['currency'] ?? '',
-                                        style: pw.TextStyle(font: font)),
-                                  ),
-                                  pw.Container(
-                                    padding: pw.EdgeInsets.all(6),
-                                    decoration: pw.BoxDecoration(
-                                      border: pw.Border(
-                                        top: pw.BorderSide(
-                                            color: PdfColors.grey300,
-                                            width: 1.0),
-                                        right: pw.BorderSide(
-                                            color: PdfColors.grey300,
-                                            width: 1.0),
-                                      ),
-                                    ),
-                                    child: pw.Text(r['voucher'] ?? '',
-                                        style: pw.TextStyle(font: font)),
-                                  ),
-                                ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                pw.SizedBox(height: 12),
-                // Check section
-                buildSectionHeader(
-                    title: localizedStrings['paymentDetailCheck'] ??
-                        'Check Payments',
-                    isArabic: !isEnglish,
-                    font: font,
-                    boldFont: boldFont),
-                pw.SizedBox(height: 8),
-                if (checkList.isNotEmpty)
-                  pw.Table(
-                    columnWidths: isEnglish
-                        ? {
-                            0: pw.FlexColumnWidth(0.7),
-                            1: pw.FlexColumnWidth(0.7),
-                            2: pw.FlexColumnWidth(1),
-                            3: pw.FlexColumnWidth(1),
-                            4: pw.FlexColumnWidth(1),
-                            5: pw.FlexColumnWidth(1),
-                          }
-                        : {
-                            0: pw.FlexColumnWidth(1),
-                            1: pw.FlexColumnWidth(1),
-                            2: pw.FlexColumnWidth(1),
-                            3: pw.FlexColumnWidth(1),
-                            4: pw.FlexColumnWidth(0.7),
-                            5: pw.FlexColumnWidth(0.7),
-                          },
-                    children: [
-                      // header
-                      pw.TableRow(
-                        children: isEnglish
-                            ? [
-                                // Arabic: opposite order of English (voucher first)
-                                headerCell(
-                                    localizedStrings['voucher#'] ?? 'Voucher #',
-                                    boldFont,
-                                    rightBorder: true),
-                                headerCell(
-                                    localizedStrings['currency'] ?? 'Currency',
-                                    boldFont),
-                                headerCell(
-                                    localizedStrings['amountCheck'] ?? 'Amount',
-                                    boldFont,
-                                    rightBorder: true),
-                                headerCell(
-                                    localizedStrings['checkNumber'] ??
-                                        'Check No',
-                                    boldFont,
-                                    rightBorder: true),
-                                headerCell(
-                                    localizedStrings['bankBranchCheck'] ??
-                                        'Bank',
-                                    boldFont,
-                                    rightBorder: true),
-                                headerCell(
-                                    localizedStrings['dueDateCheck'] ??
-                                        'Due Date',
-                                    boldFont),
-                              ]
-                            : [
-                                headerCell(
-                                    localizedStrings['dueDateCheck'] ??
-                                        'Due Date',
-                                    boldFont),
-                                headerCell(
-                                    localizedStrings['bankBranchCheck'] ??
-                                        'Bank',
-                                    boldFont,
-                                    rightBorder: true),
-                                headerCell(
-                                    localizedStrings['checkNumber'] ??
-                                        'Check No',
-                                    boldFont,
-                                    rightBorder: true),
-                                headerCell(
-                                    localizedStrings['amountCheck'] ?? 'Amount',
-                                    boldFont,
-                                    rightBorder: true),
-                                headerCell(
-                                    localizedStrings['currency'] ?? 'Currency',
-                                    boldFont),
-                                headerCell(
-                                    localizedStrings['voucher#'] ?? 'Voucher #',
-                                    boldFont,
-                                    rightBorder: true),
-                              ],
-                      ),
-
-                      ...checkList.map(
-                        (r) => pw.TableRow(
-                          children: isEnglish
-                              ? [
-                                  // Arabic: reverse order to match header (voucher, currency, amount, checkNo, bank, dueDate)
-                                  dataCell(r['voucher'] ?? '', font, isEnglish,
-                                      rightBorder: true),
-                                  dataCell(
-                                      r['currency'] ?? '', font, isEnglish),
-                                  dataCell(
-                                      r['amountCheck'] ?? '', font, isEnglish,
-                                      rightBorder: true),
-                                  dataCell(
-                                      r['checkNumber'] ?? '', font, isEnglish,
-                                      rightBorder: true),
-                                  dataCell(
-                                      r['bankBranch'] ?? '', font, isEnglish,
-                                      rightBorder: true),
-                                  dataCell(r['dueDate'] ?? '', font, isEnglish),
-                                ]
-                              : [
-                                  dataCell(r['dueDate'] ?? '', font, isEnglish),
-                                  dataCell(
-                                      r['bankBranch'] ?? '', font, isEnglish,
-                                      rightBorder: true),
-                                  dataCell(
-                                      r['checkNumber'] ?? '', font, isEnglish,
-                                      rightBorder: true),
-                                  dataCell(
-                                      r['amountCheck'] ?? '', font, isEnglish,
-                                      rightBorder: true),
-                                  dataCell(
-                                      r['currency'] ?? '', font, isEnglish),
-                                  dataCell(r['voucher'] ?? '', font, isEnglish,
-                                      rightBorder: true),
-                                ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                pw.SizedBox(height: 12),
-                pw.Spacer(),
-                buildSectionHeader(
-                    title: localizedStrings['additionalDetails'] ??
-                        'Additional Details',
-                    isArabic: !isEnglish,
-                    font: font,
-                    boldFont: boldFont),
-                pw.SizedBox(height: 12),
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: isEnglish
-                      ? [
-                          pw.Expanded(
-                            child: buildLabelValueRow(
-                                title: localizedStrings['employeeid'] ??
-                                    'Employee Name',
-                                value: additionalDetail.first['value'] ?? '',
-                                font: font,
-                                boldFont: boldFont,
-                                isArabic: !isEnglish),
-                          ),
-                          pw.Container(
-                            height: 80,
-                            width: 160,
-                            child: pw.Image(imageSignature,
-                                fit: pw.BoxFit.contain),
-                          ),
-                        ]
-                      : [
-                          pw.Container(
-                              height: 80,
-                              width: 160,
-                              child: pw.Image(imageSignature,
-                                  fit: pw.BoxFit.contain)),
-                          pw.Expanded(
-                              child: buildLabelValueRow(
-                                  title: localizedStrings['employeeid'] ??
-                                      'Employee Name',
-                                  value: additionalDetail.first['value'] ?? '',
-                                  font: font,
-                                  boldFont: boldFont,
-                                  isArabic: !isEnglish)),
-                        ],
-                ),
-                pw.Container(
-                  alignment: pw.Alignment.center,
-                  padding: pw.EdgeInsets.symmetric(vertical: 16),
-                  child: pw.Text(
-                    localizedStrings['footerPdf'] ??
-                        'Please keep the receipt as proof of payment',
-                    style: pw.TextStyle(
-                        fontSize: 16,
-                        fontWeight: pw.FontWeight.bold,
-                        font: font),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-
-    return pdf;
-  }
-
   static pw.Widget buildAreaFlexible({
     required pw.Font font,
     required pw.Font boldFont,
@@ -1567,6 +937,401 @@ class PdfHelper {
         mainAxisAlignment:
             isArabic ? pw.MainAxisAlignment.end : pw.MainAxisAlignment.start,
         children: rowChildren,
+      ),
+    );
+  }
+
+  static Future<pw.Document> generateColoredPdfMultiPayment({
+    required List<Payment> payments,
+    required Map<String, String> localizedStrings,
+    required pw.Font font,
+    required pw.Font boldFont,
+    required pw.MemoryImage headerLogo,
+    required pw.MemoryImage headerTitle,
+    required pw.MemoryImage imageSignature,
+    required String languageCode,
+    String? usernameLogin,
+  }) async {
+    final isEnglish = languageCode == 'en';
+
+    // Representative customer details from the first payment (if any)
+    final Payment? firstPayment = payments.isNotEmpty ? payments.first : null;
+    DateTime transactionDate = firstPayment?.transactionDate ?? DateTime.now();
+    String formattedDate =
+        '${transactionDate.year.toString().padLeft(4, '0')}/${transactionDate.month.toString().padLeft(2, '0')}/${transactionDate.day.toString().padLeft(2, '0')} ${transactionDate.hour.toString().padLeft(2, '0')}:${transactionDate.minute.toString().padLeft(2, '0')}';
+
+    final List<Map<String, String>> customerDetails = [];
+    if (firstPayment != null) {
+      customerDetails.add({
+        'title': localizedStrings['customerName']!,
+        'value': firstPayment.customerName
+      });
+      if (firstPayment.msisdn != null && firstPayment.msisdn!.isNotEmpty) {
+        customerDetails.add({
+          'title': localizedStrings['mobileNumber']!,
+          'value': firstPayment.msisdn!
+        });
+      }
+      customerDetails.add({
+        'title': localizedStrings['transactionDate']!,
+        'value': formattedDate
+      });
+      customerDetails.add({
+        'title': localizedStrings['receiptNumber']!,
+        'value': firstPayment.voucherSerialNumber
+      });
+    }
+
+    // Build simple lists (no title/value) for cash and check
+    final List<Map<String, String>> cashList = [];
+    final List<Map<String, String>> checkList = [];
+
+    for (final p in payments) {
+      final currencyLabel = p.currency ?? '';
+      if (p.paymentMethod.toLowerCase() == 'cash' ||
+          p.paymentMethod.toLowerCase() == 'كاش') {
+        cashList.add({
+          'voucher': p.voucherSerialNumber,
+          'amount': (p.amount ?? 0).toString(),
+          'currency': currencyLabel,
+        });
+      } else {
+        checkList.add({
+          'voucher': p.voucherSerialNumber,
+          'currency': currencyLabel,
+          'amountCheck': (p.amountCheck ?? 0).toString(),
+          'checkNumber': p.checkNumber != null ? p.checkNumber.toString() : '',
+          'bankBranch': p.bankBranch ?? '',
+          'dueDate': p.dueDateCheck != null
+              ? DateFormat('yyyy-MM-dd').format(p.dueDateCheck!)
+              : '',
+        });
+      }
+    }
+
+    final List<Map<String, String>> additionalDetail = [
+      {'title': localizedStrings['userid']!, 'value': usernameLogin ?? ''},
+    ];
+
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        margin: const pw.EdgeInsets.all(16),
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) => [
+          pw.Directionality(
+            textDirection:
+                isEnglish ? pw.TextDirection.ltr : pw.TextDirection.rtl,
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+              children: [
+                // ---------------- HEADER ----------------
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: isEnglish
+                      ? [
+                          pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
+                              children: [pw.Image(headerTitle, height: 75)]),
+                          pw.Padding(
+                              padding: pw.EdgeInsets.only(top: 40),
+                              child: pw.Image(headerLogo, height: 90)),
+                        ]
+                      : [
+                          pw.Padding(
+                              padding: pw.EdgeInsets.only(top: 40),
+                              child: pw.Image(headerLogo, height: 90)),
+                          pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.end,
+                              children: [pw.Image(headerTitle, height: 75)]),
+                        ],
+                ),
+                pw.SizedBox(height: 12),
+
+                // ---------------- CUSTOMER DETAILS ----------------
+                buildSectionHeader(
+                  title:
+                      localizedStrings['customersDetail'] ?? 'Customer Details',
+                  isArabic: !isEnglish,
+                  font: font,
+                  boldFont: boldFont,
+                ),
+                pw.SizedBox(height: 12),
+                buildAreaFlexible(
+                  font: font,
+                  boldFont: boldFont,
+                  isArabic: !isEnglish,
+                  fields: customerDetails,
+                ),
+
+                // ---------------- CASH TABLE ----------------
+                buildSectionHeader(
+                  title:
+                      localizedStrings['paymentDetailCash'] ?? 'Cash Payments',
+                  isArabic: !isEnglish,
+                  font: font,
+                  boldFont: boldFont,
+                ),
+                pw.SizedBox(height: 8),
+                if (cashList.isNotEmpty)
+                  buildCashTable(cashList, font, boldFont, isEnglish),
+                pw.SizedBox(height: 12),
+
+                // ---------------- CHECK TABLE ----------------
+                buildSectionHeader(
+                  title: localizedStrings['paymentDetailCheck'] ??
+                      'Check Payments',
+                  isArabic: !isEnglish,
+                  font: font,
+                  boldFont: boldFont,
+                ),
+                pw.SizedBox(height: 8),
+                if (checkList.isNotEmpty)
+                  buildCheckTable(checkList, font, boldFont, isEnglish),
+                pw.SizedBox(height: 12),
+
+// ---------------- FOOTER SECTION ----------------
+// Wrap footer section in a column to keep it together
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                  children: [
+                    buildSectionHeader(
+                      title: localizedStrings['additionalDetails'] ??
+                          'Additional Details',
+                      isArabic: !isEnglish,
+                      font: font,
+                      boldFont: boldFont,
+                    ),
+                    pw.SizedBox(height: 12),
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: isEnglish
+                          ? [
+                              pw.Container(
+                                width: 250,
+                                child: buildLabelValueRow(
+                                  title: localizedStrings['employeeid'] ??
+                                      'Employee Name',
+                                  value: additionalDetail.first['value'] ?? '',
+                                  font: font,
+                                  boldFont: boldFont,
+                                  isArabic: false,
+                                ),
+                              ),
+                              pw.Container(
+                                height: 80,
+                                width: 160,
+                                child: pw.Image(imageSignature,
+                                    fit: pw.BoxFit.contain),
+                              ),
+                            ]
+                          : [
+                              pw.Container(
+                                height: 80,
+                                width: 160,
+                                child: pw.Image(imageSignature,
+                                    fit: pw.BoxFit.contain),
+                              ),
+                              pw.Container(
+                                width: 250,
+                                child: buildLabelValueRow(
+                                  title: localizedStrings['employeeid'] ??
+                                      'Employee Name',
+                                  value: additionalDetail.first['value'] ?? '',
+                                  font: font,
+                                  boldFont: boldFont,
+                                  isArabic: true,
+                                ),
+                              ),
+                            ],
+                    ),
+                    pw.SizedBox(height: 16),
+                    pw.Container(
+                      alignment: pw.Alignment.center,
+                      padding: pw.EdgeInsets.symmetric(vertical: 16),
+                      child: pw.Text(
+                        localizedStrings['footerPdf'] ??
+                            'Please keep the receipt as proof of payment',
+                        style: pw.TextStyle(
+                            fontSize: 16,
+                            fontWeight: pw.FontWeight.bold,
+                            font: font),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return pdf;
+  }
+
+  static pw.Widget buildCashTable(
+    List<Map<String, dynamic>> cashList,
+    pw.Font font,
+    pw.Font boldFont,
+    bool isEnglish,
+  ) {
+    return pw.Table(
+      columnWidths: {
+        0: pw.FlexColumnWidth(1),
+        1: pw.FlexColumnWidth(1),
+        2: pw.FlexColumnWidth(1),
+      },
+      children: [
+        // Header
+        pw.TableRow(
+          children: isEnglish
+              ? [
+                  headerCell('Voucher #', boldFont),
+                  headerCell('Amount', boldFont),
+                  headerCell('Currency', boldFont),
+                ]
+              : [
+                  headerCell('Amount', boldFont),
+                  headerCell('Currency', boldFont),
+                  headerCell('Voucher #', boldFont),
+                ],
+        ),
+        // Rows
+        ...cashList.map(
+          (r) => pw.TableRow(
+            children: isEnglish
+                ? [
+                    dataCell(r['voucher'] ?? '', font, isEnglish),
+                    dataCell(r['amount'] ?? '', font, isEnglish),
+                    dataCell(r['currency'] ?? '', font, isEnglish),
+                  ]
+                : [
+                    dataCell(r['amount'] ?? '', font, isEnglish),
+                    dataCell(r['currency'] ?? '', font, isEnglish),
+                    dataCell(r['voucher'] ?? '', font, isEnglish),
+                  ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  static pw.Widget buildCheckTable(
+    List<Map<String, dynamic>> checkList,
+    pw.Font font,
+    pw.Font boldFont,
+    bool isEnglish,
+  ) {
+    return pw.Table(
+      columnWidths: isEnglish
+          ? {
+              0: pw.FlexColumnWidth(0.7),
+              1: pw.FlexColumnWidth(0.7),
+              2: pw.FlexColumnWidth(1),
+              3: pw.FlexColumnWidth(1),
+              4: pw.FlexColumnWidth(1),
+              5: pw.FlexColumnWidth(1),
+            }
+          : {
+              0: pw.FlexColumnWidth(1),
+              1: pw.FlexColumnWidth(1),
+              2: pw.FlexColumnWidth(1),
+              3: pw.FlexColumnWidth(1),
+              4: pw.FlexColumnWidth(0.7),
+              5: pw.FlexColumnWidth(0.7),
+            },
+      children: [
+        // Header
+        pw.TableRow(
+          children: isEnglish
+              ? [
+                  headerCell('Voucher #', boldFont),
+                  headerCell('Currency', boldFont),
+                  headerCell('Amount', boldFont),
+                  headerCell('Check No', boldFont),
+                  headerCell('Bank', boldFont),
+                  headerCell('Due Date', boldFont),
+                ]
+              : [
+                  headerCell('Due Date', boldFont),
+                  headerCell('Bank', boldFont),
+                  headerCell('Check No', boldFont),
+                  headerCell('Amount', boldFont),
+                  headerCell('Currency', boldFont),
+                  headerCell('Voucher #', boldFont),
+                ],
+        ),
+
+        // Rows
+        ...checkList.map(
+          (r) => pw.TableRow(
+            children: isEnglish
+                ? [
+                    dataCell(r['voucher'] ?? '', font, isEnglish),
+                    dataCell(r['currency'] ?? '', font, isEnglish),
+                    dataCell(r['amountCheck'] ?? '', font, isEnglish),
+                    dataCell(r['checkNumber'] ?? '', font, isEnglish),
+                    dataCell(r['bankBranch'] ?? '', font, isEnglish),
+                    dataCell(r['dueDate'] ?? '', font, isEnglish),
+                  ]
+                : [
+                    dataCell(r['dueDate'] ?? '', font, isEnglish),
+                    dataCell(r['bankBranch'] ?? '', font, isEnglish),
+                    dataCell(r['checkNumber'] ?? '', font, isEnglish),
+                    dataCell(r['amountCheck'] ?? '', font, isEnglish),
+                    dataCell(r['currency'] ?? '', font, isEnglish),
+                    dataCell(r['voucher'] ?? '', font, isEnglish),
+                  ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  static pw.Widget headerCell(String text, pw.Font boldFont,
+      {bool rightBorder = false}) {
+    return pw.Container(
+      padding: pw.EdgeInsets.all(6),
+      alignment: pw.Alignment.center,
+      decoration: pw.BoxDecoration(
+        color: PdfColors.grey500,
+        border: pw.Border(
+          bottom: pw.BorderSide(color: PdfColors.grey400, width: 1.0),
+          right: rightBorder
+              ? pw.BorderSide(color: PdfColors.grey400, width: 1.0)
+              : pw.BorderSide.none,
+        ),
+      ),
+      child: pw.Text(text,
+          textAlign: pw.TextAlign.center,
+          style: pw.TextStyle(font: boldFont, color: PdfColors.white)),
+    );
+  }
+
+  static pw.Widget dataCell(String text, pw.Font font, bool isEnglish,
+      {bool rightBorder = false}) {
+    return pw.Container(
+      padding: pw.EdgeInsets.all(6),
+      decoration: pw.BoxDecoration(
+        border: pw.Border(
+          top: pw.BorderSide(color: PdfColors.grey300, width: 1.0),
+          right: rightBorder
+              ? pw.BorderSide(color: PdfColors.grey300, width: 1.0)
+              : pw.BorderSide.none,
+        ),
+      ),
+      child: pw.Directionality(
+        textDirection: isEnglish ? pw.TextDirection.ltr : pw.TextDirection.rtl,
+        child: pw.Align(
+          alignment:
+              isEnglish ? pw.Alignment.centerLeft : pw.Alignment.centerRight,
+          child: pw.Text(text,
+              textAlign: isEnglish ? pw.TextAlign.left : pw.TextAlign.right,
+              style: pw.TextStyle(font: font)),
+        ),
       ),
     );
   }
