@@ -25,6 +25,7 @@ import 'recordPayment/RecordPaymentScreen.dart';
 import '../Screens/ShareScreenOptions.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../Screens/printerService/iosMethods.dart' as iosPlat;
+import '../Custom_Widgets/ImageGalleryPreview.dart';
 
 class PaymentConfirmationScreen extends StatefulWidget {
   final int paymentId;
@@ -389,9 +390,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               scale,
               paymentMethod,
               Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString(
-                          paymentDetails['paymentMethod'].toLowerCase()) ??
-                  ''),
+                  .getLocalizedString(
+                      paymentDetails['paymentMethod'].toLowerCase())),
           if ((paymentDetails['paymentMethod']?.toLowerCase() == "check") ||
               (paymentDetails['paymentMethod'] == "شيك")) ...[
             _divider(scale),
@@ -421,9 +421,10 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
             _detailItem(
                 scale,
                 dueDateCheck,
-                DateFormat('yyyy-MM-dd').format(
-                        DateTime.parse(paymentDetails['dueDateCheck'])) ??
-                    ''),
+                paymentDetails['dueDateCheck'] != null
+                    ? DateFormat('yyyy-MM-dd')
+                        .format(DateTime.parse(paymentDetails['dueDateCheck']))
+                    : ''),
           ],
           if ((paymentDetails['paymentMethod']?.toLowerCase() == "cash") ||
               (paymentDetails['paymentMethod'] == "كاش")) ...[
@@ -485,7 +486,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               Provider.of<LocalizationService>(context, listen: false)
                   .selectedLanguageCode),
           _divider(scale),
-          // check images row with attachment icon
           Padding(
             padding: EdgeInsets.symmetric(vertical: 6 * scale),
             child: Row(
@@ -547,20 +547,19 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       if (images.isEmpty) {
         CustomPopups.showCustomResultPopup(
           context: context,
-          icon: Icon(Icons.info, color: AppColors.primaryRed, size: 40),
+          icon: Icon(Icons.info, color: AppColors.informationPopup, size: 40),
           message: Provider.of<LocalizationService>(context, listen: false)
               .getLocalizedString('noImagesAttached'),
           buttonText: Provider.of<LocalizationService>(context, listen: false)
               .getLocalizedString('ok'),
           onPressButton: () {
-            // Define what happens when the button is pressed
             print('Success acknowledged');
           },
         );
         return;
       }
 
-      // decode base64 to bytes and open a dialog with PageView
+      // decode base64 to bytes
       final List<Uint8List> bytesList = images.map<Uint8List>((img) {
         final String b64 = img['base64Content'] ?? '';
         try {
@@ -570,85 +569,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         }
       }).toList();
 
-      int currentIndex = 0;
-      final pageController = PageController(initialPage: currentIndex);
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return StatefulBuilder(builder: (context, setState) {
-            return Dialog(
-              insetPadding: EdgeInsets.zero,
-              backgroundColor: Colors.black.withOpacity(0.9),
-              child: Stack(
-                children: [
-                  PageView.builder(
-                    itemCount: bytesList.length,
-                    controller: pageController,
-                    onPageChanged: (i) => setState(() => currentIndex = i),
-                    itemBuilder: (context, index) {
-                      final bytes = bytesList[index];
-                      if (bytes.isEmpty)
-                        return Center(
-                            child: Text('Invalid image',
-                                style: TextStyle(color: Colors.white)));
-                      return InteractiveViewer(
-                        child: Center(
-                          child: Image.memory(bytes, fit: BoxFit.contain),
-                        ),
-                      );
-                    },
-                  ),
-                  Positioned(
-                    left: 8,
-                    top: 28,
-                    child: IconButton(
-                      icon: Icon(Icons.close, color: Colors.white, size: 28),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                  if (bytesList.length > 1) ...[
-                    // center-left arrow
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: EdgeInsets.only(left: 8.0),
-                        child: IconButton(
-                          icon: Icon(Icons.arrow_forward_ios,
-                              color: Colors.white),
-                          onPressed: () {
-                            if (currentIndex > 0) {
-                              pageController.previousPage(
-                                  duration: Duration(milliseconds: 250),
-                                  curve: Curves.easeInOut);
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                    // center-right arrow
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Padding(
-                        padding: EdgeInsets.only(right: 8.0),
-                        child: IconButton(
-                          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-                          onPressed: () {
-                            if (currentIndex < bytesList.length - 1) {
-                              pageController.nextPage(
-                                  duration: Duration(milliseconds: 250),
-                                  curve: Curves.easeInOut);
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            );
-          });
-        },
-      );
+      // delegate to reusable widget
+      await showImageGalleryPreview(context: context, images: bytesList);
     } catch (e) {
       print('Error showing images preview: $e');
     }
