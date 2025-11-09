@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:ooredoo_app/Services/LocalizationService.dart';
 import '../Models/Payment.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -954,7 +955,6 @@ class PdfHelper {
   }) async {
     final isEnglish = languageCode == 'en';
 
-    // Representative customer details from the first payment (if any)
     final Payment? firstPayment = payments.isNotEmpty ? payments.first : null;
     DateTime transactionDate = firstPayment?.transactionDate ?? DateTime.now();
     String formattedDate =
@@ -976,13 +976,8 @@ class PdfHelper {
         'title': localizedStrings['transactionDate']!,
         'value': formattedDate
       });
-      customerDetails.add({
-        'title': localizedStrings['receiptNumber']!,
-        'value': firstPayment.voucherSerialNumber
-      });
     }
 
-    // Build simple lists (no title/value) for cash and check
     final List<Map<String, String>> cashList = [];
     final List<Map<String, String>> checkList = [];
 
@@ -1075,7 +1070,8 @@ class PdfHelper {
                 ),
                 pw.SizedBox(height: 8),
                 if (cashList.isNotEmpty)
-                  buildCashTable(cashList, font, boldFont, isEnglish),
+                  buildCashTable(
+                      cashList, font, boldFont, isEnglish, localizedStrings),
                 pw.SizedBox(height: 12),
 
                 // ---------------- CHECK TABLE ----------------
@@ -1088,7 +1084,8 @@ class PdfHelper {
                 ),
                 pw.SizedBox(height: 8),
                 if (checkList.isNotEmpty)
-                  buildCheckTable(checkList, font, boldFont, isEnglish),
+                  buildCheckTable(
+                      checkList, font, boldFont, isEnglish, localizedStrings),
                 pw.SizedBox(height: 12),
 
 // ---------------- FOOTER SECTION ----------------
@@ -1173,11 +1170,11 @@ class PdfHelper {
   }
 
   static pw.Widget buildCashTable(
-    List<Map<String, dynamic>> cashList,
-    pw.Font font,
-    pw.Font boldFont,
-    bool isEnglish,
-  ) {
+      List<Map<String, dynamic>> cashList,
+      pw.Font font,
+      pw.Font boldFont,
+      bool isEnglish,
+      Map<String, String> localizedStrings) {
     return pw.Table(
       columnWidths: {
         0: pw.FlexColumnWidth(1),
@@ -1189,14 +1186,18 @@ class PdfHelper {
         pw.TableRow(
           children: isEnglish
               ? [
-                  headerCell('Voucher #', boldFont),
-                  headerCell('Amount', boldFont),
-                  headerCell('Currency', boldFont),
+                  headerCell(
+                      localizedStrings['voucher#'] ?? 'Voucher #', boldFont),
+                  headerCell(localizedStrings['amount'] ?? 'Amount', boldFont),
+                  headerCell(
+                      localizedStrings['currency'] ?? 'Currency', boldFont),
                 ]
               : [
-                  headerCell('Amount', boldFont),
-                  headerCell('Currency', boldFont),
-                  headerCell('Voucher #', boldFont),
+                  headerCell(localizedStrings['amount'] ?? 'Amount', boldFont),
+                  headerCell(
+                      localizedStrings['currency'] ?? 'Currency', boldFont),
+                  headerCell(
+                      localizedStrings['voucher#'] ?? 'Voucher #', boldFont),
                 ],
         ),
         // Rows
@@ -1220,11 +1221,11 @@ class PdfHelper {
   }
 
   static pw.Widget buildCheckTable(
-    List<Map<String, dynamic>> checkList,
-    pw.Font font,
-    pw.Font boldFont,
-    bool isEnglish,
-  ) {
+      List<Map<String, dynamic>> checkList,
+      pw.Font font,
+      pw.Font boldFont,
+      bool isEnglish,
+      Map<String, String> localizedStrings) {
     return pw.Table(
       columnWidths: isEnglish
           ? {
@@ -1248,20 +1249,32 @@ class PdfHelper {
         pw.TableRow(
           children: isEnglish
               ? [
-                  headerCell('Voucher #', boldFont),
-                  headerCell('Currency', boldFont),
-                  headerCell('Amount', boldFont),
-                  headerCell('Check No', boldFont),
-                  headerCell('Bank', boldFont),
-                  headerCell('Due Date', boldFont),
+                  headerCell(
+                      localizedStrings['voucher#'] ?? 'Voucher #', boldFont),
+                  headerCell(
+                      localizedStrings['currency'] ?? 'Currency', boldFont),
+                  headerCell(
+                      localizedStrings['amountCheck'] ?? 'Amount', boldFont),
+                  headerCell(
+                      localizedStrings['checkNumber'] ?? 'Check No', boldFont),
+                  headerCell(
+                      localizedStrings['bankBranchCheck'] ?? 'Bank', boldFont),
+                  headerCell(
+                      localizedStrings['dueDateCheck'] ?? 'Due Date', boldFont),
                 ]
               : [
-                  headerCell('Due Date', boldFont),
-                  headerCell('Bank', boldFont),
-                  headerCell('Check No', boldFont),
-                  headerCell('Amount', boldFont),
-                  headerCell('Currency', boldFont),
-                  headerCell('Voucher #', boldFont),
+                  headerCell(
+                      localizedStrings['dueDateCheck'] ?? 'Due Date', boldFont),
+                  headerCell(
+                      localizedStrings['bankBranchCheck'] ?? 'Bank', boldFont),
+                  headerCell(
+                      localizedStrings['checkNumber'] ?? 'Check No', boldFont),
+                  headerCell(
+                      localizedStrings['amountCheck'] ?? 'Amount', boldFont),
+                  headerCell(
+                      localizedStrings['currency'] ?? 'Currency', boldFont),
+                  headerCell(
+                      localizedStrings['voucher#'] ?? 'Voucher #', boldFont),
                 ],
         ),
 
