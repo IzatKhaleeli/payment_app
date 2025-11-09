@@ -25,6 +25,7 @@ class Payment {
   String? msisdnReceipt;
   int? isDisconnected;
   CancellationStatus? cancellationStatus;
+  // removed legacy checkImages field; images are stored in `check_images` table
 
   Payment({
     this.transactionDate,
@@ -51,6 +52,7 @@ class Payment {
     this.cancellationStatus,
     this.checkApproval = 0,
     this.notifyFinance = 0,
+    // removed checkImages
   }) {}
 
   factory Payment.fromMap(Map<String, dynamic> map) {
@@ -125,6 +127,7 @@ class Payment {
               : 0,
       cancellationStatus:
           CancellationStatusExtension.fromString(map['cancellationStatus']),
+      // images are not loaded here; use DatabaseProvider.getCheckImagesByPaymentId(id)
     );
   }
   // delete vougher serial number duplicate
@@ -154,6 +157,7 @@ class Payment {
       'checkApproval': checkApproval,
       'notifyFinance': notifyFinance,
       'cancellationStatus': cancellationStatus?.value,
+      // check images are stored in separate table
     };
   }
 

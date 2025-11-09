@@ -287,5 +287,7 @@
   "takePhoto":"التقاط صورة",
   "uploadFile":"رفع ملف",
   "paymentDetailCash":"بيانات الدفعة - نقداً",
-  "paymentDetailCheck":"بيانات الدفعة - شيكات"
+  "paymentDetailCheck":"بيانات الدفعة - شيكات",
+  "checkImages":"المرفقات",
+  "noImagesAttached": "لا توجد صور مرفقة"
 }

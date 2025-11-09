@@ -9,6 +9,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../Services/database.dart';
 import 'package:intl/intl.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:number_to_words_english/number_to_words_english.dart';
@@ -24,8 +26,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'globalError.dart';
 
 class PaymentService {
-  static bool _isErrorShowing = false;
-
   static Timer? _networkTimer; // Reference to the Timer
   static final StreamController<void> _syncController =
       StreamController<void>.broadcast();
@@ -181,8 +181,8 @@ class PaymentService {
         'theSumOf': theSumOf,
         'isDeposit': payment['isDepositChecked'] == 0 ? false : true,
         "isDisconnected": payment['isDisconnected'],
-        "checkApproval": payment['checkApproval'],
-        "notifyFinance": payment['notifyFinance'],
+        "toCheckApproval": payment['checkApproval'],
+        "toNotifyFinance": payment['notifyFinance'],
       };
       print("body payment to sync :${body}");
 
@@ -203,6 +203,42 @@ class PaymentService {
         });
 
         request.fields['paymentRequest'] = json.encode(body);
+
+        // Attach any related check images from local database
+        try {
+          List<Map<String, dynamic>> images =
+              await DatabaseProvider.getCheckImagesByPaymentId(payment['id']);
+          for (var img in images) {
+            try {
+              String base64Content = img['base64Content'] ?? '';
+              if (base64Content.isEmpty) continue;
+              List<int> bytes = base64.decode(base64Content);
+              String fileName =
+                  img['fileName'] ?? '${payment['transactionId']}_img.jpg';
+              String? mimeType = img['mimeType'] ??
+                  lookupMimeType(fileName, headerBytes: bytes) ??
+                  'image/jpeg';
+              MediaType? mediaType;
+              try {
+                mediaType = MediaType.parse(mimeType ?? 'image/jpeg');
+              } catch (e) {
+                mediaType = MediaType('image', 'jpeg');
+              }
+
+              final multipartFile = http.MultipartFile.fromBytes(
+                'attachments',
+                bytes,
+                filename: fileName,
+                contentType: mediaType,
+              );
+              request.files.add(multipartFile);
+            } catch (e) {
+              print('Error attaching image for payment ${payment['id']}: $e');
+            }
+          }
+        } catch (e) {
+          print('Error fetching images for payment ${payment['id']}: $e');
+        }
 
         // Send request and apply timeout
         final streamedResponse =

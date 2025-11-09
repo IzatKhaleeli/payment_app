@@ -287,5 +287,7 @@
 "takePhoto":"Take a Photo",
   "uploadFile":"Upload File",
   "paymentDetailCash":"Payment Details - Cash",
-  "paymentDetailCheck":"Payment Details - Check"
+  "paymentDetailCheck":"Payment Details - Check",
+  "checkImages":"Attchments",
+  "noImagesAttached": "No attachments attached"
 }

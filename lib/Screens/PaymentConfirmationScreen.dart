@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -26,7 +28,6 @@ import '../Screens/printerService/iosMethods.dart' as iosPlat;
 
 class PaymentConfirmationScreen extends StatefulWidget {
   final int paymentId;
-  Map<String, dynamic>? paymentDetails;
   PaymentConfirmationScreen({required this.paymentId});
 
   @override
@@ -37,7 +38,7 @@ class PaymentConfirmationScreen extends StatefulWidget {
 class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   int hasDisconnectedPermission = 0;
 
-  late LocalizationService _localizationService;
+  Map<String, dynamic>? _paymentDetails;
   String voucherNumber = "";
   String paymentInvoiceFor = "";
   String amountCheck = "";
@@ -73,6 +74,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   String cancelReason = "";
   String isDisconnected = "";
   String cancellationStatus = "";
+  String checkImages = "";
 
   String saved = "";
   String synced = "";
@@ -97,8 +99,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _localizationService =
-        Provider.of<LocalizationService>(context, listen: false);
     _initializeLocalizationStrings();
   }
 
@@ -110,12 +110,10 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
   Future<void> _fetchPaymentDetails() async {
     try {
-      if (widget.paymentId != null) {
-        widget.paymentDetails =
-            await DatabaseProvider.getPaymentById(widget.paymentId);
-        String currencyId =
-            widget.paymentDetails!['currency']?.toString() ?? '';
-        // Fetch the currency by ID
+      // widget.paymentId is non-nullable
+      _paymentDetails = await DatabaseProvider.getPaymentById(widget.paymentId);
+      if (_paymentDetails != null) {
+        String currencyId = (_paymentDetails!['currency'] ?? '').toString();
         Map<String, dynamic>? currency =
             await DatabaseProvider.getCurrencyById(currencyId);
         if (!mounted) return;
@@ -124,11 +122,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               Provider.of<LocalizationService>(context, listen: false)
                           .selectedLanguageCode ==
                       'ar'
-                  ? currency!["arabicName"]
-                  : currency!["englishName"];
+                  ? currency!['arabicName']
+                  : currency!['englishName'];
         });
 
-        String bankId = widget.paymentDetails!['bankBranch']?.toString() ?? '';
+        String bankId = (_paymentDetails!['bankBranch'] ?? '').toString();
         Map<String, dynamic>? bank = await DatabaseProvider.getBankById(bankId);
         if (!mounted) return;
         setState(() {
@@ -137,8 +135,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 Provider.of<LocalizationService>(context, listen: false)
                             .selectedLanguageCode ==
                         'ar'
-                    ? bank["arabicName"] ?? 'Unknown Bank'
-                    : bank["englishName"] ?? 'Unknown Bank';
+                    ? bank['arabicName'] ?? 'Unknown Bank'
+                    : bank['englishName'] ?? 'Unknown Bank';
           } else {
             AppearedBank = 'Unknown Bank';
           }
@@ -150,7 +148,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       print('Error fetching payment details: $e');
     }
 
-    print("payment detailsss ${widget.paymentDetails}");
+    // print("payment detailsss ${_paymentDetails}");
   }
 
   @override
@@ -193,24 +191,24 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           ],
         ),
       ),
-      floatingActionButton: widget.paymentDetails?["isDisconnected"] == 0 ||
-              (hasDisconnectedPermission ==
-                  widget.paymentDetails?["isDisconnected"])
+      floatingActionButton: _paymentDetails?["isDisconnected"] == 0 ||
+              (hasDisconnectedPermission == _paymentDetails?["isDisconnected"])
           ? Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
                 padding: const EdgeInsets.all(2.0),
                 child: FloatingActionButton(
                   onPressed: () {
-                    print("payment detail to pass to record screen :");
-                    print(widget.paymentDetails);
-                    (widget.paymentDetails?['msisdnReceipt'] != null)
+                    // print("payment detail to pass to record screen :");
+                    // print(_paymentDetails);
+                    if (_paymentDetails == null) return;
+                    (_paymentDetails?['msisdnReceipt'] != null)
                         ? Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
                                   RecordPaymentDisconnectedScreen(
-                                paymentParams: widget.paymentDetails!,
+                                paymentParams: _paymentDetails!,
                               ),
                             ),
                           )
@@ -218,7 +216,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => RecordPaymentScreen(
-                                paymentParams: widget.paymentDetails!,
+                                paymentParams: _paymentDetails!,
                               ),
                             ),
                           );
@@ -237,7 +235,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     setState(() {
       hasDisconnectedPermission = prefs.getInt('disconnectedPermission') ?? 0;
     });
-    print("Loaded hasDisconnectedPermission: $hasDisconnectedPermission");
+    // print("Loaded hasDisconnectedPermission: $hasDisconnectedPermission");
   }
 
   void _initializeLocalizationStrings() {
@@ -287,14 +285,15 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     cancelPending = localizationService.getLocalizedString('cancelpending');
     cancellationStatus =
         localizationService.getLocalizedString('cancellationStatus');
+    checkImages = localizationService.getLocalizedString('checkImages');
   }
 
   Widget _buildPaymentDetailCard(double scale) {
-    if (widget.paymentDetails == null) {
+    if (_paymentDetails == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final paymentDetails = widget.paymentDetails!;
+    final paymentDetails = _paymentDetails!;
 
     return Container(
       padding: EdgeInsets.all(16 * scale),
@@ -485,9 +484,174 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               paymentDetails['paymentInvoiceFor']?.toString() ?? '',
               Provider.of<LocalizationService>(context, listen: false)
                   .selectedLanguageCode),
+          _divider(scale),
+          // check images row with attachment icon
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 6 * scale),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  checkImages,
+                  style: TextStyle(
+                    fontSize: 14 * scale,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          paymentDetails['checkImages'] != null
+                              ? Provider.of<LocalizationService>(context,
+                                      listen: false)
+                                  .getLocalizedString(
+                                      paymentDetails['checkImages']
+                                          .toLowerCase())
+                              : '',
+                          textAlign: TextAlign.end,
+                          style: TextStyle(
+                            fontSize: 14 * scale,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8 * scale),
+                      IconButton(
+                        icon: Icon(Icons.attach_file,
+                            color: AppColors.primaryRed),
+                        onPressed: () {
+                          _showImagesPreview();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _showImagesPreview() async {
+    try {
+      // fetch images for this payment
+      final images =
+          await DatabaseProvider.getCheckImagesByPaymentId(widget.paymentId);
+      if (images.isEmpty) {
+        CustomPopups.showCustomResultPopup(
+          context: context,
+          icon: Icon(Icons.info, color: AppColors.primaryRed, size: 40),
+          message: Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString('noImagesAttached'),
+          buttonText: Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString('ok'),
+          onPressButton: () {
+            // Define what happens when the button is pressed
+            print('Success acknowledged');
+          },
+        );
+        return;
+      }
+
+      // decode base64 to bytes and open a dialog with PageView
+      final List<Uint8List> bytesList = images.map<Uint8List>((img) {
+        final String b64 = img['base64Content'] ?? '';
+        try {
+          return base64.decode(b64);
+        } catch (_) {
+          return Uint8List(0);
+        }
+      }).toList();
+
+      int currentIndex = 0;
+      final pageController = PageController(initialPage: currentIndex);
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(builder: (context, setState) {
+            return Dialog(
+              insetPadding: EdgeInsets.zero,
+              backgroundColor: Colors.black.withOpacity(0.9),
+              child: Stack(
+                children: [
+                  PageView.builder(
+                    itemCount: bytesList.length,
+                    controller: pageController,
+                    onPageChanged: (i) => setState(() => currentIndex = i),
+                    itemBuilder: (context, index) {
+                      final bytes = bytesList[index];
+                      if (bytes.isEmpty)
+                        return Center(
+                            child: Text('Invalid image',
+                                style: TextStyle(color: Colors.white)));
+                      return InteractiveViewer(
+                        child: Center(
+                          child: Image.memory(bytes, fit: BoxFit.contain),
+                        ),
+                      );
+                    },
+                  ),
+                  Positioned(
+                    left: 8,
+                    top: 28,
+                    child: IconButton(
+                      icon: Icon(Icons.close, color: Colors.white, size: 28),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                  if (bytesList.length > 1) ...[
+                    // center-left arrow
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 8.0),
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_forward_ios,
+                              color: Colors.white),
+                          onPressed: () {
+                            if (currentIndex > 0) {
+                              pageController.previousPage(
+                                  duration: Duration(milliseconds: 250),
+                                  curve: Curves.easeInOut);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    // center-right arrow
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding: EdgeInsets.only(right: 8.0),
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                          onPressed: () {
+                            if (currentIndex < bytesList.length - 1) {
+                              pageController.nextPage(
+                                  duration: Duration(milliseconds: 250),
+                                  curve: Curves.easeInOut);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          });
+        },
+      );
+    } catch (e) {
+      print('Error showing images preview: $e');
+    }
   }
 
   Widget _buildSummaryHeader(
@@ -502,8 +666,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         paymentStatus != 'rejected');
     bool canCancel = (paymentStatus == 'synced' && cancellationStatus == null);
 
-    print("status actions ${paymentStatus}");
-    print("canSend ${canSend}");
+    // print("status actions ${paymentStatus}");
+    // print("canSend ${canSend}");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -541,10 +705,10 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         Provider.of<LocalizationService>(context, listen: false)
                             .getLocalizedString('cancelPayment'),
                     child: IconButton(
-                      icon: Icon(Icons.cancel, color: AppColors.primaryRed),
-                      onPressed: () async {
-                        if (widget.paymentId != null) {
-                          final int idToCancel = widget.paymentId!;
+                        icon: Icon(Icons.cancel, color: AppColors.primaryRed),
+                        onPressed: () async {
+                          // widget.paymentId is non-nullable
+                          final int idToCancel = widget.paymentId;
                           final result = await showDialog(
                             context: context,
                             builder: (BuildContext context) {
@@ -555,9 +719,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                             // If cancellation was successful, refresh the payment details
                             _fetchPaymentDetails();
                           }
-                        }
-                      },
-                    ),
+                        }),
                   ),
                 if (canSend) ...[
                   Tooltip(

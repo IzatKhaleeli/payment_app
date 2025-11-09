@@ -4,10 +4,12 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:sqflite/sqflite.dart';
+import '../Models/CheckImage.dart';
 
 class DatabaseProvider {
   static const _databaseName = 'payments.db';
-  static const _databaseVersion = 5;
+  // bumped to 6 to add check_images table
+  static const _databaseVersion = 6;
   static Database? _database;
   DatabaseProvider._();
 
@@ -59,6 +61,18 @@ class DatabaseProvider {
       ALTER TABLE payments ADD COLUMN notifyFinance BOOLEAN DEFAULT 0;
     ''');
     }
+    if (oldVersion < 6) {
+      // create dedicated check_images table (normalized storage)
+      await db.execute('''
+      CREATE TABLE IF NOT EXISTS check_images (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        paymentId INTEGER,
+        fileName TEXT,
+        mimeType TEXT,
+        base64Content TEXT
+      );
+    ''');
+    }
   }
 
   static Future<void> _onCreate(Database db, int version) async {
@@ -84,8 +98,8 @@ class DatabaseProvider {
         cancellationDate TEXT,
         userId ,
         isDepositChecked BOOLEAN DEFAULT 0,
-        checkApproval BOOLEAN DEFAULT 0,
-        notifyFinance BOOLEAN DEFAULT 0,
+  checkApproval BOOLEAN DEFAULT 0,
+  notifyFinance BOOLEAN DEFAULT 0,
         transactionId TEXT,
         msisdnReceipt TEXT,
         isDisconnected BOOLEAN DEFAULT 0,
@@ -108,6 +122,17 @@ class DatabaseProvider {
         arabicName TEXT,
         englishName TEXT
       )
+    ''');
+
+    // create check_images table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS check_images (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        paymentId INTEGER,
+        fileName TEXT,
+        mimeType TEXT,
+        base64Content TEXT
+      );
     ''');
   }
 
@@ -624,5 +649,39 @@ class DatabaseProvider {
   static Future<void> clearAllBanks() async {
     Database db = await database;
     await db.delete('banks');
+  }
+
+  // Check images helpers
+  static Future<int> insertCheckImage(Map<String, dynamic> imageData) async {
+    Database db = await database;
+    return await db.insert('check_images', imageData,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  static Future<List<Map<String, dynamic>>> getCheckImagesByPaymentId(
+      int paymentId) async {
+    Database db = await database;
+    return await db
+        .query('check_images', where: 'paymentId = ?', whereArgs: [paymentId]);
+  }
+
+  static Future<void> deleteCheckImage(int id) async {
+    Database db = await database;
+    await db.delete('check_images', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Insert multiple check images in a transaction. Returns list of inserted row ids.
+  static Future<List<int>> insertCheckImages(List<CheckImage> images) async {
+    final db = await database;
+    List<int> ids = [];
+    await db.transaction((txn) async {
+      for (var img in images) {
+        final map = img.toMap();
+        int id = await txn.insert('check_images', map,
+            conflictAlgorithm: ConflictAlgorithm.replace);
+        ids.add(id);
+      }
+    });
+    return ids;
   }
 }

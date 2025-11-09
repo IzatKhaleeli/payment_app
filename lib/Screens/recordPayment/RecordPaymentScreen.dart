@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,7 +9,7 @@ import '../../Models/Bank.dart';
 import '../../Models/Currency.dart';
 import '../../Services/database.dart';
 import 'package:provider/provider.dart';
-import '../../Utils/DecimalInputFormatter.dart';
+// removed unused DecimalInputFormatter import
 import '../../core/constants.dart';
 import '../PaymentConfirmationScreen.dart';
 import '../../Models/Payment.dart';
@@ -16,6 +17,8 @@ import '../../Services/LocalizationService.dart';
 import 'package:intl/intl.dart';
 import 'record_payment_widgets.dart' as record_widgets;
 import 'package:flutter/services.dart';
+import 'package:mime/mime.dart';
+import '../../Models/CheckImage.dart';
 
 import 'widgets/custom_textfield.dart';
 import 'widgets/upload_file_widget.dart';
@@ -193,11 +196,11 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         _customerNameController.text = payment.customerName;
         _msisdnController.text = payment.msisdn ?? '';
         _prNumberController.text = payment.prNumber ?? '';
-        _amountController.text = payment.amount.toString() ?? '';
-        _amountCheckController.text = payment.amountCheck.toString() ?? '';
-        _checkNumberController.text = payment.checkNumber.toString() ?? '';
+        _amountController.text = payment.amount?.toString() ?? '';
+        _amountCheckController.text = payment.amountCheck?.toString() ?? '';
+        _checkNumberController.text = payment.checkNumber?.toString() ?? '';
         _paymentInvoiceForController.text = payment.paymentInvoiceFor ?? '';
-        _dueDateCheckController.text = payment.dueDateCheck.toString() ?? '';
+        _dueDateCheckController.text = payment.dueDateCheck?.toString() ?? '';
       } else {
         print('No payment found with ID $id');
       }
@@ -205,45 +208,42 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
     if (widget.paymentParams != null) {
       Map<String, dynamic> paymentParams = widget.paymentParams!;
-      if (paymentParams != null) {
+      setState(() {
+        _selectedPaymentMethod = cash;
+        _selectedCurrencyDB = paymentParams["currency"];
+      });
+
+      if (paymentParams["paymentMethod"] == "Check") {
         setState(() {
-          _selectedPaymentMethod = cash;
+          _selectedPaymentMethod = check;
           _selectedCurrencyDB = paymentParams["currency"];
+          _selectedBankDB = paymentParams["bankBranch"];
         });
-
-        if (paymentParams["paymentMethod"] == "Check") {
-          setState(() {
-            _selectedPaymentMethod = check;
-            _selectedCurrencyDB = paymentParams["currency"];
-            _selectedBankDB = paymentParams["bankBranch"];
-          });
-        }
-
-        _customerNameController.text = paymentParams["customerName"];
-
-        _msisdnController.text = paymentParams["msisdn"] ?? '';
-
-        _prNumberController.text = paymentParams["prNumber"] ?? '';
-
-        _amountController.text = paymentParams["amount"].toString() ?? '';
-
-        _amountCheckController.text =
-            paymentParams["amountCheck"].toString() ?? '';
-
-        _checkNumberController.text =
-            paymentParams["checkNumber"].toString() ?? '';
-
-        _paymentInvoiceForController.text =
-            paymentParams["paymentInvoiceFor"] ?? '';
-
-        _dueDateCheckController.text =
-            paymentParams["dueDateCheck"].toString() ?? '';
-
-        isDepositChecked =
-            paymentParams["isDepositChecked"] == 0 ? false : true;
-        checkApprovalFlag = paymentParams["checkApproval"] == 0 ? false : true;
-        notifyFinanceFlag = paymentParams["notifyFinance"] == 0 ? false : true;
       }
+
+      _customerNameController.text = paymentParams["customerName"];
+
+      _msisdnController.text = paymentParams["msisdn"] ?? '';
+
+      _prNumberController.text = paymentParams["prNumber"] ?? '';
+
+      _amountController.text = paymentParams["amount"]?.toString() ?? '';
+
+      _amountCheckController.text =
+          paymentParams["amountCheck"]?.toString() ?? '';
+
+      _checkNumberController.text =
+          paymentParams["checkNumber"]?.toString() ?? '';
+
+      _paymentInvoiceForController.text =
+          paymentParams["paymentInvoiceFor"] ?? '';
+
+      _dueDateCheckController.text =
+          paymentParams["dueDateCheck"]?.toString() ?? '';
+
+      isDepositChecked = paymentParams["isDepositChecked"] == 0 ? false : true;
+      checkApprovalFlag = paymentParams["checkApproval"] == 0 ? false : true;
+      notifyFinanceFlag = paymentParams["notifyFinance"] == 0 ? false : true;
     } else {
       _selectedPaymentMethod = cash;
     }
@@ -699,11 +699,9 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       );
     } else if (items.any((currency) => currency.id == 'ILS')) {
       initialCurrency = items.firstWhere((currency) => currency.id == 'ILS');
-      if (initialCurrency != null) {
-        setState(() {
-          _selectedCurrencyDB = 'ILS';
-        });
-      }
+      setState(() {
+        _selectedCurrencyDB = 'ILS';
+      });
       print("check21");
     }
 
@@ -1216,7 +1214,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         customerName: _customerNameController.text,
         msisdn:
             _msisdnController.text.isNotEmpty ? _msisdnController.text : null,
-        prNumber: _prNumberController.text!,
+        prNumber: _prNumberController.text,
         paymentMethod: _selectedPaymentMethod!,
         amount: _selectedPaymentMethod!.toLowerCase() == 'cash' ||
                 _selectedPaymentMethod!.toLowerCase() == 'كاش'
@@ -1269,7 +1267,6 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       }
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? usernameLogin = prefs.getString('usernameLogin');
-      print("the user created is ${usernameLogin}");
       if (paymentDetails.id == null) {
         print("no id , create new payment ");
         idPaymentStored = await DatabaseProvider.savePayment({
@@ -1314,8 +1311,34 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
           'notifyFinance': paymentDetails.notifyFinance,
         });
       }
+
+      try {
+        if (selectedFiles.isNotEmpty) {
+          List<CheckImage> imageObjs = [];
+          for (var f in selectedFiles) {
+            final bytes = await f.readAsBytes();
+            final base64Content = base64Encode(bytes);
+            final fileName = f.path.split('/').last;
+            final mime =
+                lookupMimeType(f.path, headerBytes: bytes) ?? 'image/jpeg';
+            imageObjs.add(CheckImage(
+              paymentId: idPaymentStored,
+              fileName: fileName,
+              mimeType: mime,
+              base64Content: base64Content,
+            ));
+          }
+
+          print(
+              "Inserting check images: ${imageObjs.map((i) => i.toMap()).toList()}");
+          await DatabaseProvider.insertCheckImages(imageObjs);
+        }
+      } catch (e) {
+        print('Error saving check images: $e');
+      }
+
       print("_agreedPaymentMethodFinished");
-      Navigator.pop(context); // pop the dialog
+      Navigator.pop(context);
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
