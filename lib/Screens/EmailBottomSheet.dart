@@ -15,11 +15,13 @@ import '../Services/networking.dart';
 import '../core/constants.dart';
 
 class EmailBottomSheet extends StatefulWidget {
-  final Payment payment;
+  final List<Payment> payments;
+  final bool isMultiple;
 
   const EmailBottomSheet({
     Key? key,
-    required this.payment,
+    required this.payments,
+    this.isMultiple = false,
   }) : super(key: key);
 
   @override
@@ -85,6 +87,9 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     String languageCode,
     String transactionDate,
   ) async {
+    // Cache localization service and avoid calling Provider.of after awaits
+    final loc = Provider.of<LocalizationService>(context, listen: false);
+
     try {
       // Add headers
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -120,26 +125,24 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
           .timeout(Duration(seconds: 7));
 
       if (response == 200) {
+        if (!mounted) return;
         CustomPopups.showCustomResultPopup(
           context: context,
           icon: Icon(Icons.check_circle, color: Colors.green, size: 40),
-          message: Provider.of<LocalizationService>(context, listen: false)
-              .getLocalizedString("paymentSentEmailOk"),
-          buttonText: Provider.of<LocalizationService>(context, listen: false)
-              .getLocalizedString("ok"),
+          message: loc.getLocalizedString("paymentSentEmailOk"),
+          buttonText: loc.getLocalizedString("ok"),
           onPressButton: () {
             // Define what happens when the button is pressed
             print('Success acknowledged');
           },
         );
       } else if (response.statusCode == 429) {
+        if (!mounted) return;
         CustomPopups.showCustomResultPopup(
           context: context,
           icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
-          message: Provider.of<LocalizationService>(context, listen: false)
-              .getLocalizedString("exceedNumberOfRequest"),
-          buttonText: Provider.of<LocalizationService>(context, listen: false)
-              .getLocalizedString("ok"),
+          message: loc.getLocalizedString("exceedNumberOfRequest"),
+          buttonText: loc.getLocalizedString("ok"),
           onPressButton: () {
             print('Exceed number of request');
           },
@@ -169,41 +172,36 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
             emailDetailsJson: emailDetailsJson,
           );
           if (reloginResponse == 200) {
+            if (!mounted) return;
             CustomPopups.showCustomResultPopup(
               context: context,
               icon: Icon(Icons.check_circle, color: Colors.green, size: 40),
-              message: Provider.of<LocalizationService>(context, listen: false)
-                  .getLocalizedString("paymentSentEmailOk"),
-              buttonText:
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString("ok"),
+              message: loc.getLocalizedString("paymentSentEmailOk"),
+              buttonText: loc.getLocalizedString("ok"),
               onPressButton: () {
                 // Define what happens when the button is pressed
                 print('Success acknowledged');
               },
             );
           } else if (response.statusCode == 429) {
+            if (!mounted) return;
             CustomPopups.showCustomResultPopup(
               context: context,
               icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
-              message: Provider.of<LocalizationService>(context, listen: false)
-                  .getLocalizedString("exceedNumberOfRequest"),
-              buttonText:
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString("ok"),
+              message: loc.getLocalizedString("exceedNumberOfRequest"),
+              buttonText: loc.getLocalizedString("ok"),
               onPressButton: () {
                 print('Exceed number of request');
               },
             );
           } else {
+            if (!mounted) return;
             CustomPopups.showCustomResultPopup(
               context: context,
               icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
               message:
-                  '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $reloginResponse.statusCode',
-              buttonText:
-                  Provider.of<LocalizationService>(context, listen: false)
-                      .getLocalizedString("ok"),
+                  '${loc.getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $reloginResponse.statusCode',
+              buttonText: loc.getLocalizedString("ok"),
               onPressButton: () {
                 print(
                     'Failed to upload file. Status code: ${reloginResponse.statusCode}');
@@ -212,13 +210,12 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
           }
         }
       } else if (response.statusCode == 408) {
+        if (!mounted) return;
         CustomPopups.showCustomResultPopup(
           context: context,
           icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
-          message: Provider.of<LocalizationService>(context, listen: false)
-              .getLocalizedString("networkTimeoutError"),
-          buttonText: Provider.of<LocalizationService>(context, listen: false)
-              .getLocalizedString("ok"),
+          message: loc.getLocalizedString("networkTimeoutError"),
+          buttonText: loc.getLocalizedString("ok"),
           onPressButton: () {
             print('Error timeout');
           },
@@ -226,51 +223,47 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
       } else {
         print(response.statusCode);
         print(response.reasonPhrase);
-
+        if (!mounted) return;
         CustomPopups.showCustomResultPopup(
           context: context,
           icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
           message:
-              '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $response.statusCode',
-          buttonText: Provider.of<LocalizationService>(context, listen: false)
-              .getLocalizedString("ok"),
+              '${loc.getLocalizedString("paymentSentEmailFailed")}: Failed to upload file , $response.statusCode',
+          buttonText: loc.getLocalizedString("ok"),
           onPressButton: () {
             print('Failed to upload file. Status code: ${response.statusCode}');
           },
         );
       }
-    } on SocketException catch (e) {
+    } on SocketException {
+      if (!mounted) return;
       CustomPopups.showCustomResultPopup(
         context: context,
         icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
-        message: Provider.of<LocalizationService>(context, listen: false)
-            .getLocalizedString("networkError"),
-        buttonText: Provider.of<LocalizationService>(context, listen: false)
-            .getLocalizedString("ok"),
+        message: loc.getLocalizedString("networkError"),
+        buttonText: loc.getLocalizedString("ok"),
         onPressButton: () {
           print('Network error acknowledged');
         },
       );
-    } on TimeoutException catch (e) {
+    } on TimeoutException {
+      if (!mounted) return;
       CustomPopups.showCustomResultPopup(
         context: context,
         icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
-        message: Provider.of<LocalizationService>(context, listen: false)
-            .getLocalizedString("networkTimeoutError"),
-        buttonText: Provider.of<LocalizationService>(context, listen: false)
-            .getLocalizedString("ok"),
+        message: loc.getLocalizedString("networkTimeoutError"),
+        buttonText: loc.getLocalizedString("ok"),
         onPressButton: () {
           print('Timeout error acknowledged');
         },
       );
     } catch (e) {
+      if (!mounted) return;
       CustomPopups.showCustomResultPopup(
         context: context,
         icon: Icon(Icons.error, color: AppColors.primaryRed, size: 40),
-        message:
-            '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentEmailFailed")}',
-        buttonText: Provider.of<LocalizationService>(context, listen: false)
-            .getLocalizedString("ok"),
+        message: '${loc.getLocalizedString("paymentSentEmailFailed")}',
+        buttonText: loc.getLocalizedString("ok"),
         onPressButton: () {
 // Define what happens when the button is pressed
           print('Error: $e');
@@ -284,7 +277,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
     if (_emailJson == null) {
       return Center(child: CircularProgressIndicator());
     }
-    DateTime transactionDate = widget.payment.transactionDate!;
+    DateTime transactionDate = widget.payments.first.transactionDate!;
 
 // Extract year, month, day, hour, and minute
     int year = transactionDate.year;
@@ -424,22 +417,24 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                         },
                       ),
                     ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildSelectionCard(
-                        context: context,
-                        title: Provider.of<LocalizationService>(context,
-                                listen: false)
-                            .getLocalizedString("b_and_w"),
-                        icon: Icons.receipt_long_outlined,
-                        isSelected: isBlackAndWhite,
-                        onTap: () {
-                          setState(() {
-                            isBlackAndWhite = true;
-                          });
-                        },
+                    if (widget.isMultiple != true) ...[
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: _buildSelectionCard(
+                          context: context,
+                          title: Provider.of<LocalizationService>(context,
+                                  listen: false)
+                              .getLocalizedString("b_and_w"),
+                          icon: Icons.receipt_long_outlined,
+                          isSelected: isBlackAndWhite,
+                          onTap: () {
+                            setState(() {
+                              isBlackAndWhite = true;
+                            });
+                          },
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
                 SizedBox(height: 20),
@@ -465,26 +460,24 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                               }
                               if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$')
                                   .hasMatch(_toController.text)) {
-                                _errorText = appLocalization.getLocalizedString(
-                                    'invalidEmailError'); // Localized string for invalid email
+                                _errorText = appLocalization
+                                    .getLocalizedString('invalidEmailError');
                                 return;
                               }
-                              _errorText = null; // Clear error if valid
+                              _errorText = null;
                             });
                             if (_errorText == null) {
-                              // Handle send action
-                              String transactionDate = widget
-                                  .payment.transactionDate
-                                  .toString(); // Your original string
+                              final firstPayment = widget.payments.first;
+                              String transactionDate =
+                                  firstPayment.transactionDate.toString();
                               int spaceIndex = transactionDate.indexOf(' ');
 
-                              String result; // Define the result variable
+                              String result;
                               if (spaceIndex != -1) {
-                                result = transactionDate.substring(0,
-                                    spaceIndex); // Get the part before the first space
-                              } else {
                                 result =
-                                    transactionDate; // If no space found, use the entire string
+                                    transactionDate.substring(0, spaceIndex);
+                              } else {
+                                result = transactionDate;
                               }
 
                               String fileName = "اشعاردفع-${result}";
@@ -492,11 +485,24 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                               print("To: $toEmail");
                               print("Subject: $fileName");
 
-                              final file = await ShareScreenOptions.sharePdf(
+                              File? file;
+
+                              if (widget.isMultiple) {
+                                file = await ShareScreenOptions.sharePdfForIds(
                                   context,
-                                  widget.payment.id!,
+                                  widget.payments
+                                      .map((payment) => payment.id!)
+                                      .toList(),
                                   _selectedLanguage,
-                                  isBlackAndWhite: isBlackAndWhite);
+                                );
+                              } else {
+                                file = await ShareScreenOptions.sharePdf(
+                                    context,
+                                    firstPayment.id!,
+                                    _selectedLanguage,
+                                    isBlackAndWhite: isBlackAndWhite);
+                              }
+
                               if (file == null) {
                                 print("file is null");
                               } else {
@@ -660,11 +666,12 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
   }
 }
 
-void showEmailBottomSheet(BuildContext context, Payment payment) {
+void showEmailBottomSheet(BuildContext context, List<Payment> payments,
+    {bool isMultiple = false}) {
   showModalBottomSheet(
     context: context,
-    isScrollControlled:
-        true, // Enable the bottom sheet to resize based on the content
-    builder: (context) => EmailBottomSheet(payment: payment),
+    isScrollControlled: true,
+    builder: (context) =>
+        EmailBottomSheet(payments: payments, isMultiple: isMultiple),
   );
 }

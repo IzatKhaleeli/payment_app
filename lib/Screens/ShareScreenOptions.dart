@@ -42,19 +42,12 @@ class ShareScreenOptions {
 
     switch (option) {
       case ShareOption.sendEmail:
-        // accept list: send email bottom sheet per id
-        if (ids.length == 1) {
-          _shareViaEmail(context, ids.first);
-        } else {
-          _shareViaEmailBulk(context, ids);
-        }
+        _shareViaEmail(context, ids, isMultiple: ids.length > 1);
         break;
       case ShareOption.sendSms:
-        // preserve original behavior: use first id only
         _shareViaSms(context, ids.first);
         break;
       case ShareOption.print:
-        // preserve original behavior: use first id only
         _showBottomDialog(
           context,
           (String languageCode, bool isBlackAndWhite) async {
@@ -84,7 +77,6 @@ class ShareScreenOptions {
         );
         break;
       case ShareOption.OpenPDF:
-        // accept list: open first available PDF among ids
         _showBottomDialog(
           context,
           (String languageCode, bool isBlackAndWhite) async {
@@ -95,12 +87,11 @@ class ShareScreenOptions {
         );
         break;
       case ShareOption.sendWhats:
-        // accept list: share via WhatsApp for each id
         _showBottomDialog(context,
             (String languageCode, bool isBlackAndWhite) async {
           await _shareWhatsForIds(context, ids, languageCode,
-              isBlackAndWhite: isBlackAndWhite);
-        });
+              isBlackAndWhite: isBlackAndWhite, isMultiple: ids.length > 1);
+        }, multiPaymentFlag: ids.length > 1);
         break;
       default:
         break;
@@ -115,13 +106,6 @@ class ShareScreenOptions {
         return PrinterConfirmationBottomSheet(pdfFilePath: path);
       },
     );
-  }
-
-  static Future<void> _shareViaEmailBulk(
-      BuildContext context, List<int> ids) async {
-    for (final id in ids) {
-      await _shareViaEmail(context, id);
-    }
   }
 
   static Future<void> _openPdfForIds(
@@ -151,16 +135,24 @@ class ShareScreenOptions {
 
   static Future<void> _shareWhatsForIds(
       BuildContext context, List<int> ids, String languageCode,
-      {bool isBlackAndWhite = true}) async {
-    for (final id in ids) {
-      final file = await sharePdf(context, id, languageCode,
+      {bool isBlackAndWhite = true, bool isMultiple = false}) async {
+    File? file;
+
+    String WhatsappText = " ";
+    if (isMultiple) {
+      file = await sharePdfForIds(
+        context,
+        ids,
+        languageCode,
+      );
+    } else {
+      file = await sharePdf(context, ids.first, languageCode,
           isBlackAndWhite: isBlackAndWhite);
-      if (file != null && await file.exists()) {
-        final paymentMap = await DatabaseProvider.getPaymentById(id);
-        if (paymentMap == null) {
-          print('No payment details found for ID $id');
-          continue;
-        }
+
+      final paymentMap = await DatabaseProvider.getPaymentById(ids.first);
+      if (paymentMap == null) {
+        print('No payment details found for ID $ids.first');
+      } else {
         final payment = Payment.fromMap(paymentMap);
         SharedPreferences prefs = await SharedPreferences.getInstance();
         String? storedUsername = prefs.getString('usernameLogin');
@@ -174,42 +166,51 @@ class ShareScreenOptions {
         double amount = payment.paymentMethod.toLowerCase() == 'cash'
             ? payment.amount!
             : payment.amountCheck!;
-        String WhatsappText = languageCode == "en"
+        WhatsappText = languageCode == "en"
             ? '${amount} ${appearedCurrency} ${payment.paymentMethod.toLowerCase()} payment has been recieved by account manager ${storedUsername}\nTransaction reference: ${payment.voucherSerialNumber}'
             : 'تم استلام دفعه ${Provider.of<LocalizationService>(context, listen: false).getLocalizedString(payment.paymentMethod.toLowerCase())} بقيمة ${amount} ${appearedCurrency} من مدير حسابكم ${storedUsername}\nرقم الحركة: ${payment.voucherSerialNumber}';
-        print("print stmt before send whats");
-        await Share.shareXFiles(
-          [XFile(file.path, mimeType: 'application/pdf')],
-          text: WhatsappText,
-        );
-      } else {
-        CustomPopups.showCustomResultPopup(
-          context: context,
-          icon: const Icon(Icons.error, color: AppColors.primaryRed, size: 40),
-          message:
-              '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentWhatsFailed")}: Failed to upload file',
-          buttonText: Provider.of<LocalizationService>(context, listen: false)
-              .getLocalizedString("ok"),
-          onPressButton: () {
-            print('Failed to upload file.');
-          },
-        );
       }
+    }
+
+    if (file != null && await file.exists()) {
+      print("print stmt before send whats");
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/pdf')],
+        text: WhatsappText,
+      );
+    } else {
+      CustomPopups.showCustomResultPopup(
+        context: context,
+        icon: const Icon(Icons.error, color: AppColors.primaryRed, size: 40),
+        message:
+            '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString("paymentSentWhatsFailed")}: Failed to upload file',
+        buttonText: Provider.of<LocalizationService>(context, listen: false)
+            .getLocalizedString("ok"),
+        onPressButton: () {
+          print('Failed to upload file.');
+        },
+      );
     }
   }
 
-  static Future<void> _shareViaEmail(BuildContext context, int id) async {
-    // Fetch payment details from the database
-    final paymentMap = await DatabaseProvider.getPaymentById(id);
-    if (paymentMap == null) {
-      print('No payment details found for ID $id');
-      return null;
+  static Future<void> _shareViaEmail(BuildContext context, List<int> ids,
+      {isMultiple = false}) async {
+    final List<Payment> payments = [];
+    for (final id in ids) {
+      final paymentMap = await DatabaseProvider.getPaymentById(id);
+      if (paymentMap == null) {
+        print('No payment details found for ID $id');
+        continue;
+      }
+
+      final payment = Payment.fromMap(paymentMap);
+      payments.add(payment);
     }
 
-    // Create a Payment instance from the fetched map
-    final payment = Payment.fromMap(paymentMap);
-
-    showEmailBottomSheet(context, payment);
+    if (payments.isNotEmpty) {
+      // Pass the whole list to the bottom sheet so it can handle multiple payments
+      showEmailBottomSheet(context, payments, isMultiple: isMultiple);
+    }
   }
 
   static Future<void> _shareViaSms(BuildContext context, int id) async {

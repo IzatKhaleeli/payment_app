@@ -54,7 +54,7 @@
 
   "printreceipt": "طباعة الإيصال",
   "voucherNumber": "رقم السند",
-  "voucher#": "# السند",
+  "voucher#": "رقم السند",
   "amount": "المبلغ",
   "sendSelected": "إرسال المحدد",
   "printSelected": "طباعة المحدد",
