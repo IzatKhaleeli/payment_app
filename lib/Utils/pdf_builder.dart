@@ -1014,155 +1014,145 @@ class PdfHelper {
       pw.MultiPage(
         margin: const pw.EdgeInsets.all(16),
         pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) => [
-          pw.Directionality(
-            textDirection:
-                isEnglish ? pw.TextDirection.ltr : pw.TextDirection.rtl,
-            child: pw.Column(
+        textDirection: isEnglish ? pw.TextDirection.ltr : pw.TextDirection.rtl,
+        build: (pw.Context context) {
+          return [
+            // ---------------- HEADER ----------------
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: isEnglish
+                  ? [
+                      pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [pw.Image(headerTitle, height: 75)]),
+                      pw.Padding(
+                          padding: pw.EdgeInsets.only(top: 40),
+                          child: pw.Image(headerLogo, height: 90)),
+                    ]
+                  : [
+                      pw.Padding(
+                          padding: pw.EdgeInsets.only(top: 40),
+                          child: pw.Image(headerLogo, height: 90)),
+                      pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.end,
+                          children: [pw.Image(headerTitle, height: 75)]),
+                    ],
+            ),
+            pw.SizedBox(height: 12),
+
+            // ---------------- CUSTOMER DETAILS ----------------
+            buildSectionHeader(
+              title: localizedStrings['customersDetail'] ?? 'Customer Details',
+              isArabic: !isEnglish,
+              font: font,
+              boldFont: boldFont,
+            ),
+            pw.SizedBox(height: 12),
+            buildAreaFlexible(
+              font: font,
+              boldFont: boldFont,
+              isArabic: !isEnglish,
+              fields: customerDetails,
+            ),
+
+            // ---------------- CASH TABLE ----------------
+            buildSectionHeader(
+              title: localizedStrings['paymentDetailCash'] ?? 'Cash Payments',
+              isArabic: !isEnglish,
+              font: font,
+              boldFont: boldFont,
+            ),
+            pw.SizedBox(height: 8),
+            if (cashList.isNotEmpty)
+              buildCashTable(
+                  cashList, font, boldFont, isEnglish, localizedStrings),
+            pw.SizedBox(height: 12),
+
+            // ---------------- CHECK TABLE ----------------
+            buildSectionHeader(
+              title: localizedStrings['paymentDetailCheck'] ?? 'Check Payments',
+              isArabic: !isEnglish,
+              font: font,
+              boldFont: boldFont,
+            ),
+            pw.SizedBox(height: 8),
+            if (checkList.isNotEmpty)
+              buildCheckTable(
+                  checkList, font, boldFont, isEnglish, localizedStrings),
+            pw.SizedBox(height: 12),
+
+            // ---------------- FOOTER SECTION ----------------
+            pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.stretch,
               children: [
-                // ---------------- HEADER ----------------
+                buildSectionHeader(
+                  title: localizedStrings['additionalDetails'] ??
+                      'Additional Details',
+                  isArabic: !isEnglish,
+                  font: font,
+                  boldFont: boldFont,
+                ),
+                pw.SizedBox(height: 12),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: isEnglish
                       ? [
-                          pw.Column(
-                              crossAxisAlignment: pw.CrossAxisAlignment.start,
-                              children: [pw.Image(headerTitle, height: 75)]),
-                          pw.Padding(
-                              padding: pw.EdgeInsets.only(top: 40),
-                              child: pw.Image(headerLogo, height: 90)),
+                          pw.Container(
+                            width: 250,
+                            child: buildLabelValueRow(
+                              title: localizedStrings['employeeid'] ??
+                                  'Employee Name',
+                              value: additionalDetail.first['value'] ?? '',
+                              font: font,
+                              boldFont: boldFont,
+                              isArabic: false,
+                            ),
+                          ),
+                          pw.Container(
+                            height: 80,
+                            width: 160,
+                            child: pw.Image(imageSignature,
+                                fit: pw.BoxFit.contain),
+                          ),
                         ]
                       : [
-                          pw.Padding(
-                              padding: pw.EdgeInsets.only(top: 40),
-                              child: pw.Image(headerLogo, height: 90)),
-                          pw.Column(
-                              crossAxisAlignment: pw.CrossAxisAlignment.end,
-                              children: [pw.Image(headerTitle, height: 75)]),
+                          pw.Container(
+                            height: 80,
+                            width: 160,
+                            child: pw.Image(imageSignature,
+                                fit: pw.BoxFit.contain),
+                          ),
+                          pw.Container(
+                            width: 250,
+                            child: buildLabelValueRow(
+                              title: localizedStrings['employeeid'] ??
+                                  'Employee Name',
+                              value: additionalDetail.first['value'] ?? '',
+                              font: font,
+                              boldFont: boldFont,
+                              isArabic: true,
+                            ),
+                          ),
                         ],
                 ),
-                pw.SizedBox(height: 12),
-
-                // ---------------- CUSTOMER DETAILS ----------------
-                buildSectionHeader(
-                  title:
-                      localizedStrings['customersDetail'] ?? 'Customer Details',
-                  isArabic: !isEnglish,
-                  font: font,
-                  boldFont: boldFont,
-                ),
-                pw.SizedBox(height: 12),
-                buildAreaFlexible(
-                  font: font,
-                  boldFont: boldFont,
-                  isArabic: !isEnglish,
-                  fields: customerDetails,
-                ),
-
-                // ---------------- CASH TABLE ----------------
-                buildSectionHeader(
-                  title:
-                      localizedStrings['paymentDetailCash'] ?? 'Cash Payments',
-                  isArabic: !isEnglish,
-                  font: font,
-                  boldFont: boldFont,
-                ),
-                pw.SizedBox(height: 8),
-                if (cashList.isNotEmpty)
-                  buildCashTable(
-                      cashList, font, boldFont, isEnglish, localizedStrings),
-                pw.SizedBox(height: 12),
-
-                // ---------------- CHECK TABLE ----------------
-                buildSectionHeader(
-                  title: localizedStrings['paymentDetailCheck'] ??
-                      'Check Payments',
-                  isArabic: !isEnglish,
-                  font: font,
-                  boldFont: boldFont,
-                ),
-                pw.SizedBox(height: 8),
-                if (checkList.isNotEmpty)
-                  buildCheckTable(
-                      checkList, font, boldFont, isEnglish, localizedStrings),
-                pw.SizedBox(height: 12),
-
-// ---------------- FOOTER SECTION ----------------
-// Wrap footer section in a column to keep it together
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-                  children: [
-                    buildSectionHeader(
-                      title: localizedStrings['additionalDetails'] ??
-                          'Additional Details',
-                      isArabic: !isEnglish,
-                      font: font,
-                      boldFont: boldFont,
-                    ),
-                    pw.SizedBox(height: 12),
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: isEnglish
-                          ? [
-                              pw.Container(
-                                width: 250,
-                                child: buildLabelValueRow(
-                                  title: localizedStrings['employeeid'] ??
-                                      'Employee Name',
-                                  value: additionalDetail.first['value'] ?? '',
-                                  font: font,
-                                  boldFont: boldFont,
-                                  isArabic: false,
-                                ),
-                              ),
-                              pw.Container(
-                                height: 80,
-                                width: 160,
-                                child: pw.Image(imageSignature,
-                                    fit: pw.BoxFit.contain),
-                              ),
-                            ]
-                          : [
-                              pw.Container(
-                                height: 80,
-                                width: 160,
-                                child: pw.Image(imageSignature,
-                                    fit: pw.BoxFit.contain),
-                              ),
-                              pw.Container(
-                                width: 250,
-                                child: buildLabelValueRow(
-                                  title: localizedStrings['employeeid'] ??
-                                      'Employee Name',
-                                  value: additionalDetail.first['value'] ?? '',
-                                  font: font,
-                                  boldFont: boldFont,
-                                  isArabic: true,
-                                ),
-                              ),
-                            ],
-                    ),
-                    pw.SizedBox(height: 16),
-                    pw.Container(
-                      alignment: pw.Alignment.center,
-                      padding: pw.EdgeInsets.symmetric(vertical: 16),
-                      child: pw.Text(
-                        localizedStrings['footerPdf'] ??
-                            'Please keep the receipt as proof of payment',
-                        style: pw.TextStyle(
-                            fontSize: 16,
-                            fontWeight: pw.FontWeight.bold,
-                            font: font),
-                      ),
-                    ),
-                  ],
+                pw.SizedBox(height: 16),
+                pw.Container(
+                  alignment: pw.Alignment.center,
+                  padding: pw.EdgeInsets.symmetric(vertical: 16),
+                  child: pw.Text(
+                    localizedStrings['footerPdf'] ??
+                        'Please keep the receipt as proof of payment',
+                    style: pw.TextStyle(
+                        fontSize: 16,
+                        fontWeight: pw.FontWeight.bold,
+                        font: font),
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
+          ];
+        },
       ),
     );
 
@@ -1217,6 +1207,7 @@ class PdfHelper {
           ),
         ),
       ],
+      tableWidth: pw.TableWidth.max,
     );
   }
 
@@ -1301,6 +1292,7 @@ class PdfHelper {
           ),
         ),
       ],
+      tableWidth: pw.TableWidth.max,
     );
   }
 

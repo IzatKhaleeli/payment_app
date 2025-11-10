@@ -139,16 +139,13 @@ class ShareScreenOptions {
     File? file;
 
     String WhatsappText = " ";
+    file = await sharePdfForIds(
+      context,
+      ids,
+      languageCode,
+    );
     if (isMultiple) {
-      file = await sharePdfForIds(
-        context,
-        ids,
-        languageCode,
-      );
     } else {
-      file = await sharePdf(context, ids.first, languageCode,
-          isBlackAndWhite: isBlackAndWhite);
-
       final paymentMap = await DatabaseProvider.getPaymentById(ids.first);
       if (paymentMap == null) {
         print('No payment details found for ID $ids.first');

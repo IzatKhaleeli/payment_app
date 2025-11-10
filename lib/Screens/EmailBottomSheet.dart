@@ -386,17 +386,12 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
                 ),
                 SizedBox(height: 30),
 
-                Align(
-                  alignment: _selectedLanguage == 'ar'
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Text(
-                    Provider.of<LocalizationService>(context, listen: false)
-                        .getLocalizedString("selectTemplate"),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                Text(
+                  Provider.of<LocalizationService>(context, listen: false)
+                      .getLocalizedString("selectTemplate"),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 20),
@@ -487,7 +482,7 @@ class _EmailBottomSheetState extends State<EmailBottomSheet> {
 
                               File? file;
 
-                              if (widget.isMultiple) {
+                              if (!isBlackAndWhite) {
                                 file = await ShareScreenOptions.sharePdfForIds(
                                   context,
                                   widget.payments
