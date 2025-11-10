@@ -626,8 +626,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               ],
             ),
           ),
-          const SizedBox(
-              height: 4), // Adjust spacing between label and dropdown
+          const SizedBox(height: 4),
           DropdownButtonFormField<String>(
             decoration: InputDecoration(
               contentPadding: EdgeInsets.symmetric(horizontal: 12.w),

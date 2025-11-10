@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:mime/mime.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_Widgets/CustomPopups.dart';
 import '../../Models/Bank.dart';
+import '../../Models/CheckImage.dart';
 import '../../Models/Currency.dart';
 import '../../Services/database.dart';
 import 'package:provider/provider.dart';
@@ -385,6 +388,7 @@ class _RecordPaymentDisconnectedScreenState
                         if (newValue ==
                             localizationService.getLocalizedString('cash')) {
                           checkApprovalFlag = false;
+                          selectedFiles = [];
                         }
                         _selectedPaymentMethod = newValue;
                         _clearPaymentMethodFields();
@@ -979,6 +983,32 @@ class _RecordPaymentDisconnectedScreenState
           'isDisconnected': paymentDetails.isDisconnected,
         });
       }
+
+      try {
+        if (selectedFiles.isNotEmpty) {
+          List<CheckImage> imageObjs = [];
+          for (var f in selectedFiles) {
+            final bytes = await f.readAsBytes();
+            final base64Content = base64Encode(bytes);
+            final fileName = f.path.split('/').last;
+            final mime =
+                lookupMimeType(f.path, headerBytes: bytes) ?? 'image/jpeg';
+            imageObjs.add(CheckImage(
+              paymentId: idPaymentStored,
+              fileName: fileName,
+              mimeType: mime,
+              base64Content: base64Content,
+            ));
+          }
+
+          print(
+              "Inserting check images: ${imageObjs.map((i) => i.toMap()).toList()}");
+          await DatabaseProvider.insertCheckImages(imageObjs);
+        }
+      } catch (e) {
+        print('Error saving check images: $e');
+      }
+
       print("_agreedPaymentMethodFinished");
       Navigator.pop(context);
       Navigator.pushReplacement(

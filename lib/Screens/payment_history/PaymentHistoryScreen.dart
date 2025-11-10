@@ -550,9 +550,47 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                   margin: EdgeInsets.only(bottom: 50.h),
                   child: PaymentRecordsList(
                     scale: scale,
-                    paymentRecords: _editMode
-                        ? _selectablePaymentRecords()
-                        : _paymentRecords,
+                    paymentRecords: (() {
+                      if (!_editMode) return _paymentRecords;
+
+                      // In edit mode: base list
+                      final base = _selectablePaymentRecords();
+
+                      // If nothing selected yet, show base list
+                      if (_selectedIds.isEmpty) return base;
+
+                      // Determine the transaction date and msisdn of the first selected payment
+                      final int firstId = _selectedIds.first;
+                      Payment? firstPayment;
+                      try {
+                        firstPayment =
+                            _paymentRecords.firstWhere((p) => p.id == firstId);
+                      } catch (e) {
+                        firstPayment = null;
+                      }
+
+                      final DateTime? firstDate = firstPayment?.transactionDate;
+                      final String? firstMsisdn = firstPayment?.msisdn;
+                      if (firstDate == null) return base;
+
+                      // If first msisdn is null/empty, fall back to date-only filtering.
+                      final bool requireMsisdn =
+                          firstMsisdn != null && firstMsisdn.trim().isNotEmpty;
+
+                      // Return only payments that share the same Y/M/D (and msisdn when available)
+                      return base.where((p) {
+                        final d = p.transactionDate;
+                        if (d == null) return false;
+                        final bool sameDate = d.year == firstDate.year &&
+                            d.month == firstDate.month &&
+                            d.day == firstDate.day;
+                        if (!sameDate) return false;
+                        if (!requireMsisdn) return true;
+                        final String? ms = p.msisdn;
+                        if (ms == null) return false;
+                        return ms.trim() == firstMsisdn.trim();
+                      }).toList();
+                    })(),
                     itemBuilder: (scale, record) {
                       final bool isSelected =
                           record.id != null && _selectedIds.contains(record.id);
@@ -563,7 +601,58 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                           selected: isSelected,
                           onTap: () {
                             setState(() {
-                              if (record.id != null) {
+                              if (record.id == null) return;
+
+                              // If there is at least one selected id, enforce matching
+                              // transaction date and msisdn silently (no SnackBar).
+                              if (_selectedIds.isNotEmpty) {
+                                final int firstId = _selectedIds.first;
+                                Payment? firstPayment;
+                                try {
+                                  firstPayment = _paymentRecords
+                                      .firstWhere((p) => p.id == firstId);
+                                } catch (e) {
+                                  firstPayment = null;
+                                }
+
+                                final DateTime? firstDate =
+                                    firstPayment?.transactionDate;
+                                final String? firstMsisdn =
+                                    firstPayment?.msisdn;
+
+                                // If we can't determine first date, allow toggle
+                                if (firstDate == null) {
+                                  if (_selectedIds.contains(record.id))
+                                    _selectedIds.remove(record.id);
+                                  else
+                                    _selectedIds.add(record.id!);
+                                  return;
+                                }
+
+                                final d = record.transactionDate;
+                                if (d == null) return;
+                                final bool sameDate =
+                                    d.year == firstDate.year &&
+                                        d.month == firstDate.month &&
+                                        d.day == firstDate.day;
+
+                                final bool requireMsisdn =
+                                    firstMsisdn != null &&
+                                        firstMsisdn.trim().isNotEmpty;
+
+                                if (!sameDate) return;
+
+                                if (requireMsisdn) {
+                                  final ms = record.msisdn;
+                                  if (ms == null) return;
+                                  if (ms.trim() != firstMsisdn.trim()) return;
+                                }
+
+                                if (_selectedIds.contains(record.id))
+                                  _selectedIds.remove(record.id);
+                                else
+                                  _selectedIds.add(record.id!);
+                              } else {
                                 if (_selectedIds.contains(record.id))
                                   _selectedIds.remove(record.id);
                                 else
