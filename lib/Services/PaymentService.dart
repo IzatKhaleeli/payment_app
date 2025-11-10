@@ -204,7 +204,6 @@ class PaymentService {
 
         request.fields['paymentRequest'] = json.encode(body);
 
-        // Attach any related check images from local database
         try {
           List<Map<String, dynamic>> images =
               await DatabaseProvider.getCheckImagesByPaymentId(payment['id']);
@@ -239,10 +238,19 @@ class PaymentService {
         } catch (e) {
           print('Error fetching images for payment ${payment['id']}: $e');
         }
+        print("image processing complete");
 
-        // Send request and apply timeout
-        final streamedResponse =
-            await request.send().timeout(Duration(seconds: 10));
+        http.StreamedResponse? streamedResponse;
+        try {
+          streamedResponse =
+              await request.send().timeout(const Duration(seconds: 60));
+        } on TimeoutException catch (e) {
+          print('Multipart upload timed out: $e');
+          GlobalErrorNotifier.showError('Upload timed out.');
+          return;
+        }
+        print(
+            "image upload complete streamedResponse ${streamedResponse.statusCode}");
         response = await http.Response.fromStream(streamedResponse);
         print("multipart post request");
       } catch (e) {

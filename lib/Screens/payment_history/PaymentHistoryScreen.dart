@@ -695,6 +695,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         statusColor = AppColors.primaryRed;
         break;
     }
+
+    print("Building payment ${record}");
     return Card(
       elevation: 2,
       margin: EdgeInsets.symmetric(vertical: 4.h, horizontal: 3.w),
@@ -918,17 +920,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             DetailNoteItem(
               scale: scale,
               title: Provider.of<LocalizationService>(context, listen: false)
-                  .getLocalizedString('notifyFinance'),
-              value: Provider.of<LocalizationService>(context, listen: false)
-                  .getLocalizedString(
-                record.notifyFinance == 0 ? 'no' : 'yes',
-              ),
-              locale: Provider.of<LocalizationService>(context, listen: false)
-                  .selectedLanguageCode,
-            ),
-            DetailNoteItem(
-              scale: scale,
-              title: Provider.of<LocalizationService>(context, listen: false)
                   .getLocalizedString('checkApproval'),
               value: Provider.of<LocalizationService>(context, listen: false)
                   .getLocalizedString(
@@ -937,6 +928,18 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               locale: Provider.of<LocalizationService>(context, listen: false)
                   .selectedLanguageCode,
             ),
+            DetailNoteItem(
+              scale: scale,
+              title: Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString('notifyFinance'),
+              value: Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString(
+                record.notifyFinance == 0 ? 'no' : 'yes',
+              ),
+              locale: Provider.of<LocalizationService>(context, listen: false)
+                  .selectedLanguageCode,
+            ),
+
             if (record.paymentInvoiceFor != null &&
                 record.paymentInvoiceFor!.isNotEmpty)
               DetailNoteItem(

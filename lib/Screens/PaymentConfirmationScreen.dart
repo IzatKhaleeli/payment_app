@@ -49,6 +49,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   String amount = "";
   String currency = "";
   String deposit = "";
+  String notifyFinance = "";
+  String checkApproval = "";
   String viewPayment = '';
   String confirmPayment = '';
   String savePayment = '';
@@ -253,6 +255,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     amount = localizationService.getLocalizedString('amount');
     currency = localizationService.getLocalizedString('currency');
     deposit = localizationService.getLocalizedString('deposit');
+    checkApproval = localizationService.getLocalizedString('checkApproval');
+    notifyFinance = localizationService.getLocalizedString('notifyFinance');
     cancellationDate =
         localizationService.getLocalizedString('cancellationDate');
 
@@ -468,7 +472,28 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 : Provider.of<LocalizationService>(context, listen: false)
                     .getLocalizedString('yes'),
           ),
-          _divider(scale),
+          if ((paymentDetails['paymentMethod']?.toLowerCase() == "check") ||
+              (paymentDetails['paymentMethod'] == "شيك")) ...[
+            _divider(scale),
+            _detailItem(
+                scale,
+                checkApproval,
+                paymentDetails['checkApproval'] == 0
+                    ? Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString('no')
+                    : Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString('yes')),
+            _divider(scale),
+            _detailItem(
+                scale,
+                notifyFinance,
+                paymentDetails['notifyFinance'] == 0
+                    ? Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString('no')
+                    : Provider.of<LocalizationService>(context, listen: false)
+                        .getLocalizedString('yes')),
+            _divider(scale),
+          ],
           _detailItem(
             scale,
             cancellationStatus,
@@ -553,6 +578,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           buttonText: Provider.of<LocalizationService>(context, listen: false)
               .getLocalizedString('ok'),
           onPressButton: () {
+            // Define what happens when the button is pressed
             print('Success acknowledged');
           },
         );

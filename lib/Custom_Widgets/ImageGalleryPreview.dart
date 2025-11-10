@@ -53,7 +53,7 @@ Future<void> showImageGalleryPreview({
                   child: Padding(
                     padding: EdgeInsets.only(left: 8.0),
                     child: IconButton(
-                      icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                      icon: Icon(Icons.arrow_forward_ios, color: Colors.white),
                       onPressed: () {
                         if (currentIndex > 0) {
                           pageController.previousPage(
@@ -69,7 +69,7 @@ Future<void> showImageGalleryPreview({
                   child: Padding(
                     padding: EdgeInsets.only(right: 8.0),
                     child: IconButton(
-                      icon: Icon(Icons.arrow_forward_ios, color: Colors.white),
+                      icon: Icon(Icons.arrow_back_ios, color: Colors.white),
                       onPressed: () {
                         if (currentIndex < images.length - 1) {
                           pageController.nextPage(
