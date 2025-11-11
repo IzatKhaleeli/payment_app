@@ -785,7 +785,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         break;
     }
 
-    print("Building payment ${record}");
+    // print("Building payment ${record}");
     return Card(
       elevation: 2,
       margin: EdgeInsets.symmetric(vertical: 4.h, horizontal: 3.w),

@@ -1328,8 +1328,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             ));
           }
 
-          print(
-              "Inserting check images: ${imageObjs.map((i) => i.toMap()).toList()}");
+          // print(
+          //     "Inserting check images: ${imageObjs.map((i) => i.toMap()).toList()}");
           await DatabaseProvider.insertCheckImages(imageObjs);
         }
       } catch (e) {
