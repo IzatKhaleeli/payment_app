@@ -402,7 +402,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
             _detailItem(scale, amountCheck,
                 paymentDetails['amountCheck']?.toString() ?? ''),
             _divider(scale),
-            _detailItem(scale, currency, AppearedCurrency!),
+            _detailItem(scale, currency, AppearedCurrency ?? ''),
             _divider(scale),
             _detailNoteItem(
                 scale,

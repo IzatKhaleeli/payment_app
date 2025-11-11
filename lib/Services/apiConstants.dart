@@ -2,7 +2,7 @@
 // 'http://172.20.0.160:8080';   //ooredoo testing
 // 'https://b2bpayments.ooredoo.ps'; //ooredoo production
 
-const String baseUrl = 'http://172.20.0.160:8080';
+const String baseUrl = 'https://b2bpayments.ooredoo.ps';
 
 const String apiUrlLOV = '$baseUrl/ApplicationUtils/getLOVList?listname=';
 const String apiUrlLogin = '$baseUrl/authentication-server/mobile/login';

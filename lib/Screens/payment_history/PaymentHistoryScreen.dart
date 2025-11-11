@@ -18,7 +18,6 @@ import '../../Services/LocalizationService.dart';
 import 'package:provider/provider.dart';
 import '../../Services/database.dart';
 import '../../Models/Payment.dart';
-import '../../Services/secure_storage.dart';
 import '../../Utils/Enum.dart';
 import '../PaymentConfirmationScreen.dart';
 import '../../Services/PaymentService.dart';
@@ -201,7 +200,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               isDisconnected: payment['isDisconnected'],
               cancellationStatus: CancellationStatusExtension.fromString(
                   payment['cancellationStatus']),
-              msisdnReceipt: payment['msisdnReceipt']);
+              msisdnReceipt: payment['msisdnReceipt'],
+              notifyFinance: payment['notifyFinance'],
+              checkApproval: payment['checkApproval'],
+          );
         }).toList();
         _paymentRecords.sort((a, b) {
           // Determine the date to use for sorting for each record
@@ -785,7 +787,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         break;
     }
 
-    // print("Building payment ${record}");
+    print("Building payment ${record}");
     return Card(
       elevation: 2,
       margin: EdgeInsets.symmetric(vertical: 4.h, horizontal: 3.w),
