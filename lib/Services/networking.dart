@@ -66,23 +66,23 @@ class NetworkHelper {
       } else {
         throw Exception('Unsupported HTTP method: $method');
       }
-      print("Response status: ${response.statusCode}, body: ${response.body}");
+      // print("Response status: ${response.statusCode}, body: ${response.body}");
       if (response.statusCode == 200) {
-        print("status is 200");
+        // print("status is 200");
         final decodedBody = utf8.decode(response.bodyBytes);
         if (decodedBody.trim().startsWith('{') ||
             decodedBody.trim().startsWith('[')) {
           return response.body.isNotEmpty ? jsonDecode(decodedBody) : {};
         } else {
-          print("Unexpected response format: $decodedBody");
+          // print("Unexpected response format: $decodedBody");
           return {
             'error': 'Request Rejected',
             'status': 'Request Rejected',
           };
         }
       } else {
-        print("Response body: ${response.body}");
-        print("Error_Status: ${response.statusCode}");
+        // print("Response body: ${response.body}");
+        // print("Error_Status: ${response.statusCode}");
         return {
           'error': 'Error: Status code ${response.statusCode}',
           'status': response.statusCode,
