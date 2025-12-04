@@ -7,6 +7,23 @@ import 'package:sqflite/sqflite.dart';
 import '../Models/CheckImage.dart';
 
 class DatabaseProvider {
+  // Add a list of check images for a specific paymentId, always add new records
+  static Future<List<int>> addCheckImagesToPayment(
+      int paymentId, List<Map<String, dynamic>> images) async {
+    Database db = await database;
+    List<int> ids = [];
+    await db.transaction((txn) async {
+      for (var imageData in images) {
+        // Ensure paymentId is set
+        imageData['paymentId'] = paymentId;
+        int id = await txn.insert('check_images', imageData,
+            conflictAlgorithm: ConflictAlgorithm.ignore);
+        ids.add(id);
+      }
+    });
+    return ids;
+  }
+
   static const _databaseName = 'payments.db';
   // bumped to 6 to add check_images table
   static const _databaseVersion = 6;
@@ -223,7 +240,7 @@ class DatabaseProvider {
 
   //Retrieve a specific payment
   static Future<Map<String, dynamic>?> getPaymentById(int id) async {
-    print("getPaymentById method , database.dart started");
+    // print("getPaymentById method , database.dart started");
 
     Database db = await database;
     List<Map<String, dynamic>> result = await db.query(
@@ -236,7 +253,7 @@ class DatabaseProvider {
 
   static Future<void> updateSyncedPaymentDetail(
       int id, String voucherSerialNumber, String status) async {
-    print("updateSyncedPaymentDetail method , database.dart started");
+    // print("updateSyncedPaymentDetail method , database.dart started");
 
     try {
       Database db = await database;

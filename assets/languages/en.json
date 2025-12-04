@@ -289,5 +289,7 @@
   "paymentDetailCash":"Payment Details - Cash",
   "paymentDetailCheck":"Payment Details - Check",
   "checkImages":"Attchments",
-  "noImagesAttached": "No attachments attached"
+  "noImagesAttached": "No attachments attached",
+  "fileRequired": "At least one file is required for check payments",
+  "noFilesSelected": "No image files to display"
 }

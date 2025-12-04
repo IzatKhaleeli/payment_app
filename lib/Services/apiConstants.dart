@@ -2,7 +2,7 @@
 // 'http://172.20.0.160:8080';   //ooredoo testing
 // 'https://b2bpayments.ooredoo.ps'; //ooredoo production
 
-const String baseUrl = 'https://b2bpayments.ooredoo.ps';
+const String baseUrl = 'http://172.20.0.160:8080';
 
 const String apiUrlLOV = '$baseUrl/ApplicationUtils/getLOVList?listname=';
 const String apiUrlLogin = '$baseUrl/authentication-server/mobile/login';
@@ -16,3 +16,5 @@ const String apiUrlMinVersion =
 const String apiUrlSMS = '$baseUrl/sms/send';
 const String apiUrlEmail = '$baseUrl/email/send';
 const String apiUrlStatuses = '$baseUrl/payments/statuses';
+String apiUrlAttachments(String voucherSerialNumber) =>
+    '$baseUrl/payments/$voucherSerialNumber/attachments';

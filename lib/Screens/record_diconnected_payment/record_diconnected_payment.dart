@@ -738,6 +738,19 @@ class _RecordPaymentDisconnectedScreenState
         );
         return false;
       }
+      print("selectedFiles length is :${selectedFiles.length}");
+
+      if (selectedFiles.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(localizationService.getLocalizedString('file') +
+                ' ' +
+                isRequired),
+            backgroundColor: AppColors.primaryRed,
+          ),
+        );
+        return false;
+      }
 
       if (double.tryParse(_amountCheckController.text) == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -793,7 +806,6 @@ class _RecordPaymentDisconnectedScreenState
     if (!_validateFields(localizationService)) return;
     Payment paymentDetails =
         _preparePaymentObject('Saved', localizationService);
-    print("aa");
     CustomPopups.showCustomDialog(
       context: context,
       icon: Icon(Icons.warning, size: 60.0, color: AppColors.primaryRed),
@@ -804,10 +816,7 @@ class _RecordPaymentDisconnectedScreenState
       title: Provider.of<LocalizationService>(context, listen: false)
           .getLocalizedString('savePayment'),
       onPressButton: () {
-        print("dd");
-
         _agreedPayment(paymentDetails);
-        print("ff");
       },
     );
   }

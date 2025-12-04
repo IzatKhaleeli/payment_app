@@ -184,12 +184,12 @@ class PaymentService {
         "toCheckApproval": payment['checkApproval'],
         "toNotifyFinance": payment['notifyFinance'],
       };
-      print("body payment to sync :${body}");
+      // print("body payment to sync :${body}");
 
       if (payment["status"].toString().toLowerCase() == "synced") return;
-      print(
-          "the payment :${payment['transactionDate']} stats to sync is :${payment["status"]}");
-      print("before send sync api");
+      // print(
+      //     "the payment :${payment['transactionDate']} stats to sync is :${payment["status"]}");
+      // print("before send sync api");
       http.Response? response;
 
       try {
@@ -254,7 +254,6 @@ class PaymentService {
         response = await http.Response.fromStream(streamedResponse);
         print("multipart post request");
       } catch (e) {
-        print("catchhhh: $e");
         GlobalErrorNotifier.showError("Error: $e");
       }
       if (response!.statusCode == 200) {

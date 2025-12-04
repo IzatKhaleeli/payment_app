@@ -139,7 +139,6 @@
   "requiredFields": "الحقول المطلوبة",
 
   "transactionDate": "تاريخ الدفعة",
-    "transactionDate": "تاريخ الدفعة",
 
   "transactionTime": "وقت الدفعة",
 
@@ -253,7 +252,7 @@
   "defaultPrinter": "الطابعة الافتراضية",
   "noDefaultDeviceSetBody": "لم يتم تعيين طابعة افتراضية. يرجى الانتقال إلى إعدادات الطابعة لاختيار أو إعداد طابعة افتراضية قبل المتابعة ",
   "theDefaultDeviceNotConnected": "يبدو أن جهاز البلوتوث مغلق أو غير جاهز للاتصال. يرجى التأكد من تشغيل الجهاز والمحاولة مرة أخرى.",
-  "deposit": "إيداع",
+  "deposit": "تأمين نقدي",
   "checkApproval": "الموافقة على الشيك",
   "notifyFinance": "إخطار المالية",
   "no": "لا",
@@ -289,5 +288,7 @@
   "paymentDetailCash":"بيانات الدفعة - نقداً",
   "paymentDetailCheck":"بيانات الدفعة - شيكات",
   "checkImages":"المرفقات",
-  "noImagesAttached": "لا توجد صور مرفقة"
+  "noImagesAttached": "لا توجد صور مرفقة",
+  "fileRequired": "مطلوب ملف واحد على الأقل لدفعات الشيكات",
+  "noFilesSelected": "لا توجد ملفات صور لعرضها"
 }

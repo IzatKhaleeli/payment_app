@@ -9,7 +9,6 @@ import '../../Models/Bank.dart';
 import '../../Models/Currency.dart';
 import '../../Services/database.dart';
 import 'package:provider/provider.dart';
-// removed unused DecimalInputFormatter import
 import '../../core/constants.dart';
 import '../PaymentConfirmationScreen.dart';
 import '../../Models/Payment.dart';
@@ -1009,7 +1008,6 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         return false;
       }
 
-      // Validate amount check format (accepts decimal numbers)
       if (double.tryParse(_amountCheckController.text) == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1022,12 +1020,24 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
         return false;
       }
 
-      // Validate check number (only numeric characters)
       if (!RegExp(r'^[0-9]*$').hasMatch(_checkNumberController.text)) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
                 '${Provider.of<LocalizationService>(context, listen: false).getLocalizedString('checkNumber')} ${mustContainOnlyNumber}'),
+            backgroundColor: AppColors.primaryRed,
+          ),
+        );
+        return false;
+      }
+
+      // Require at least one file for check payments
+      if (selectedFiles.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                Provider.of<LocalizationService>(context, listen: false)
+                    .getLocalizedString('fileRequired')),
             backgroundColor: AppColors.primaryRed,
           ),
         );
@@ -1327,9 +1337,6 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
               base64Content: base64Content,
             ));
           }
-
-          // print(
-          //     "Inserting check images: ${imageObjs.map((i) => i.toMap()).toList()}");
           await DatabaseProvider.insertCheckImages(imageObjs);
         }
       } catch (e) {

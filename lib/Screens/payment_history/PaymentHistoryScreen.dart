@@ -84,7 +84,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
       });
     }
     if (_banks.length < 1) {
-      //  print("no banks");
       List<Map<String, dynamic>> banks = await DatabaseProvider.getAllBanks();
       String selectedCode =
           Provider.of<LocalizationService>(context, listen: false)
@@ -102,7 +101,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
       });
     }
 
-    //print("_fetchPayments method in PaymentHistory screen started");
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String usernameLogin = prefs.getString('usernameLogin') ?? 'null';
     List<Map<String, dynamic>> payments =
@@ -113,7 +111,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             _selectedCancellationStatuses,
             usernameLogin.toLowerCase());
 
-    // print("_fetchPayments|getPaymentsWithDateFilter ${payments}");
     String? dueDateCheckString;
     DateTime? dueDateCheck;
     String? lastUpdatedDateString;
@@ -178,31 +175,31 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             transactionDate = null;
           }
           return Payment(
-              id: payment['id'],
-              transactionDate: transactionDate,
-              lastUpdatedDate: lastUpdatedDate,
-              customerName: payment['customerName'],
-              msisdn: payment['msisdn'],
-              prNumber: payment['prNumber'],
-              paymentMethod: payment['paymentMethod'],
-              amount: payment['amount'],
-              currency: _currencies[payment['currency']],
-              amountCheck: payment['amountCheck'],
-              checkNumber: payment['checkNumber'],
-              bankBranch: _banks[payment['bankBranch']],
-              dueDateCheck: dueDateCheck,
-              paymentInvoiceFor: payment['paymentInvoiceFor'],
-              status: payment['status'],
-              voucherSerialNumber: serialNumber,
-              cancelReason: payment['cancelReason'],
-              cancellationDate: cancellationDate,
-              isDepositChecked: payment['isDepositChecked'],
-              isDisconnected: payment['isDisconnected'],
-              cancellationStatus: CancellationStatusExtension.fromString(
-                  payment['cancellationStatus']),
-              msisdnReceipt: payment['msisdnReceipt'],
-              notifyFinance: payment['notifyFinance'],
-              checkApproval: payment['checkApproval'],
+            id: payment['id'],
+            transactionDate: transactionDate,
+            lastUpdatedDate: lastUpdatedDate,
+            customerName: payment['customerName'],
+            msisdn: payment['msisdn'],
+            prNumber: payment['prNumber'],
+            paymentMethod: payment['paymentMethod'],
+            amount: payment['amount'],
+            currency: _currencies[payment['currency']],
+            amountCheck: payment['amountCheck'],
+            checkNumber: payment['checkNumber'],
+            bankBranch: _banks[payment['bankBranch']],
+            dueDateCheck: dueDateCheck,
+            paymentInvoiceFor: payment['paymentInvoiceFor'],
+            status: payment['status'],
+            voucherSerialNumber: serialNumber,
+            cancelReason: payment['cancelReason'],
+            cancellationDate: cancellationDate,
+            isDepositChecked: payment['isDepositChecked'],
+            isDisconnected: payment['isDisconnected'],
+            cancellationStatus: CancellationStatusExtension.fromString(
+                payment['cancellationStatus']),
+            msisdnReceipt: payment['msisdnReceipt'],
+            notifyFinance: payment['notifyFinance'],
+            checkApproval: payment['checkApproval'],
           );
         }).toList();
         _paymentRecords.sort((a, b) {
@@ -787,7 +784,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         break;
     }
 
-    print("Building payment ${record}");
+    // print("Building payment ${record}");
     return Card(
       elevation: 2,
       margin: EdgeInsets.symmetric(vertical: 4.h, horizontal: 3.w),
