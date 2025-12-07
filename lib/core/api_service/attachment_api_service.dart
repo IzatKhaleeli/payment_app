@@ -3,20 +3,18 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:mime/mime.dart';
 import '../../Services/apiConstants.dart';
-import '../../Services/database.dart';
 import '../../Services/globalError.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
 class AttachmentApiService {
   static Future<Map<String, dynamic>> uploadAttachments({
-    required int id,
     required String voucherSerialNumber,
     required Map<String, String> headers,
     required List<File> files,
   }) async {
-    print("Uploading attachments for ID: $id with ${files.length} files.");
-
+    print(
+        "Uploading attachments for voucher: $voucherSerialNumber with ${files.length} files.");
     http.Response? response;
     final uri = Uri.parse(apiUrlAttachments(voucherSerialNumber));
     final request = http.MultipartRequest('POST', uri);
@@ -40,16 +38,16 @@ class AttachmentApiService {
       }
     }
     // Print full request before sending
-    print('--- Multipart Request ---');
+    // print('--- Multipart Request ---');
     print('URL: ${request.url}');
     print('Headers: ${request.headers}');
-    print('Fields: ${request.fields}');
+    // print('Fields: ${request.fields}');
     print('Files:');
     for (var f in request.files) {
       print(
           '  name: ${f.field}, filename: ${f.filename}, length: ${f.length}, contentType: ${f.contentType}');
     }
-    print('-------------------------');
+    // print('-------------------------');
 
     http.StreamedResponse? streamedResponse;
     try {
@@ -93,11 +91,9 @@ class AttachmentApiService {
             'fileName': fileName,
             'mimeType': mimeType,
             'base64Content': base64Content,
-            'paymentId': id,
+            'paymentId': voucherSerialNumber,
           });
         }
-        // Save to database
-        await DatabaseProvider.addCheckImagesToPayment(id, imageRecords);
       }
 
       return {

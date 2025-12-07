@@ -1,4 +1,7 @@
 import 'dart:ui';
+import 'dart:io';
+import 'dart:convert';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
 
 import '../Services/secure_storage.dart';
@@ -19,6 +22,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../Models/LoginState.dart';
 import '../Screens/LoginScreen.dart';
 import '../Screens/SMS_Service.dart';
+import 'CheckAttachmentService.dart';
 import 'LocalizationService.dart';
 import 'apiConstants.dart';
 import 'package:mutex/mutex.dart';
@@ -26,7 +30,24 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'globalError.dart';
 
 class PaymentService {
-  static Timer? _networkTimer; // Reference to the Timer
+  /// Converts a list of CheckImage to a list of File objects by decoding base64 and writing to temp files
+  static Future<List<File>> checkImagesToFiles(List<dynamic> images) async {
+    final tempDir = await getTemporaryDirectory();
+    List<File> files = [];
+    for (var img in images) {
+      // img can be CheckImage or Map, handle both
+      final fileName = img is Map ? img['fileName'] : img.fileName;
+      final base64Content =
+          img is Map ? img['base64Content'] : img.base64Content;
+      final bytes = base64.decode(base64Content);
+      final file = File('${tempDir.path}/$fileName');
+      await file.writeAsBytes(bytes);
+      files.add(file);
+    }
+    return files;
+  }
+
+  static Timer? _networkTimer;
   static final StreamController<void> _syncController =
       StreamController<void>.broadcast();
   static Stream<void> get syncStream => _syncController.stream;
@@ -40,20 +61,44 @@ class PaymentService {
   }
 
   static Future<void> startPeriodicNetworkTest(BuildContext context) async {
-    _cancelNetworkTimer(); // Cancel the existing timer if any.
-    // Start the periodic timer after ensuring sync has completed.
-    _networkTimer = Timer.periodic(Duration(seconds: 4), (Timer timer) async {
-      await _checkNetworkAndSync(context);
-    });
+    _cancelNetworkTimer();
+    _networkTimer = Timer.periodic(
+      Duration(seconds: 5),
+      (Timer timer) async {
+        await _checkNetworkAndSync(context);
+      },
+    );
   }
 
-  // Check network and start sync if connected
   static Future<void> _checkNetworkAndSync(BuildContext context) async {
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult != ConnectivityResult.none) {
-      await syncPayments(context); // Trigger sync if network is available
-    } else
-      print(connectivityResult);
+      await syncPayments(context);
+      await syncConfirmedCheckImages(context);
+    }
+    // else
+    //   print(connectivityResult);
+  }
+
+  static Future<void> syncConfirmedCheckImages(BuildContext context) async {
+    final groupedImages =
+        await CheckAttachmentService.getConfirmedImagesGroupedByPayment();
+    for (var paymentImages in groupedImages) {
+      print("Syncing images for voucher: ${paymentImages.voucherSerialNumber}");
+
+      print("Number of images: ${paymentImages.images.length}");
+
+      final voucherNumber = paymentImages.voucherSerialNumber;
+      final images = paymentImages.images;
+      if (images.isEmpty) continue;
+      // Convert list of CheckImage to List<File>
+      final files = await checkImagesToFiles(images);
+      await CheckAttachmentService.uploadAttachments(
+          context: context, voucherNumber: voucherNumber, files: files);
+
+      await DatabaseProvider.markAllCheckImagesAsSynced(voucherNumber);
+      print('Marked all images as synced for paymentId: $voucherNumber');
+    }
   }
 
   static Future<void> syncPayments(BuildContext context) async {
@@ -61,10 +106,10 @@ class PaymentService {
       print("Sync already in progress, skipping.");
       return;
     }
-    await _syncMutex.acquire(); // Acquire lock
+    await _syncMutex.acquire();
 
     try {
-      _cancelNetworkTimer(); // Stop the network timer
+      _cancelNetworkTimer();
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? tokenID = prefs.getString('token');
@@ -78,13 +123,11 @@ class PaymentService {
         'Content-Type': 'application/json',
         'tokenID': fullToken,
       };
-      // Retrieve all confirmed payments
       List<Map<String, dynamic>> ConfirmedAndCancelledPendingPayments =
           await DatabaseProvider.getConfirmedOrCancelledPendingPayments();
       List<Map<String, dynamic>> confirmedPayments = [];
       List<Map<String, dynamic>> cancelledPendingPayments = [];
 
-      // Iterate through the results and separate them based on status
       for (var payment in ConfirmedAndCancelledPendingPayments) {
         if (payment['status'] == 'Confirmed') {
           confirmedPayments.add(payment);
@@ -147,9 +190,9 @@ class PaymentService {
         }
       }
     } finally {
-      _syncMutex.release(); // Release lock
-      startPeriodicNetworkTest(context); // Restart periodic checks
-      _syncController.add(null); // Notify listeners
+      _syncMutex.release();
+      startPeriodicNetworkTest(context);
+      _syncController.add(null);
     }
   }
 
@@ -262,7 +305,11 @@ class PaymentService {
         // Parse the response
         Map<String, dynamic> responseBody = json.decode(response.body);
         String? voucherSerialNumber = responseBody['voucherSerialNumber'];
-        print("voucherSerialNumber : ${voucherSerialNumber!}");
+        print("voucherSerialNumber : \\${voucherSerialNumber!}");
+
+        // Update voucher number for check images with this payment id
+        await DatabaseProvider.setVoucherNumberForCheckImages(
+            payment["id"], voucherSerialNumber);
 
         // Update payment in local database
         await DatabaseProvider.updateSyncedPaymentDetail(
@@ -490,7 +537,7 @@ class PaymentService {
           print('Error parsing days from response body: $e');
           return;
         }
-        print("number of ays to delete before is : ${days}");
+        // print("number of ays to delete before is : ${days}");
         await DatabaseProvider.deleteRecordsOlderThan(days);
       } else {
         print(
@@ -723,7 +770,6 @@ class PaymentService {
     );
   }
 
-// When logout is done
   static Future<void> completeLogout(BuildContext context) async {
     await Future.delayed(const Duration(milliseconds: 500));
 

@@ -291,5 +291,9 @@
   "checkImages":"Attchments",
   "noImagesAttached": "No attachments attached",
   "fileRequired": "At least one file is required for check payments",
-  "noFilesSelected": "No image files to display"
+  "noFilesSelected": "No image files to display",
+  "upload_files":"Upload Attachments",
+  "upload_from_gallery":"Upload from Gallery",
+  "take_a_photo":"Take a Photo",
+  "no_files_selected":"No files selected"
 }

@@ -256,14 +256,14 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         final dynamic data = response['data'];
 
         if (success && status == 200 && data is List) {
-          print("Portal Statuses Response:");
-          for (var item in data) {
-            print(
-              "Voucher: ${item['voucherSerialNumber']}, "
-              "Acceptance: ${item['acceptanceStatus']}, "
-              "Cancel: ${item['cancelStatus']}",
-            );
-          }
+          // print("Portal Statuses Response:");
+          // for (var item in data) {
+          //   print(
+          //     "Voucher: ${item['voucherSerialNumber']}, "
+          //     "Acceptance: ${item['acceptanceStatus']}, "
+          //     "Cancel: ${item['cancelStatus']}",
+          //   );
+          // }
 
           await DatabaseProvider.updatePaymentsFromPortalStatus(
             List<Map<String, dynamic>>.from(data),

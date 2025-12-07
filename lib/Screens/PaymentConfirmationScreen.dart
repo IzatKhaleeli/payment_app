@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -9,9 +8,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ooredoo_app/Screens/printerService/PrinterSettingScreen.dart';
 import 'package:ooredoo_app/Screens/record_diconnected_payment/record_diconnected_payment.dart';
-import 'package:ooredoo_app/core/api_service/attachment_api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Services/CheckAttachmentService.dart';
 import '../Services/LocalizationService.dart';
 import 'package:intl/intl.dart';
 import 'package:number_to_word_arabic/number_to_word_arabic.dart';
@@ -31,7 +30,7 @@ import '../Custom_Widgets/ImageGalleryPreview.dart';
 
 class PaymentConfirmationScreen extends StatefulWidget {
   final int paymentId;
-  PaymentConfirmationScreen({required this.paymentId});
+  const PaymentConfirmationScreen({super.key, required this.paymentId});
 
   @override
   State<PaymentConfirmationScreen> createState() =>
@@ -39,204 +38,7 @@ class PaymentConfirmationScreen extends StatefulWidget {
 }
 
 class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
-  void _showSelectedFilesPopup(
-      String voucherNumber, int paymentId, BuildContext parentContext) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(
-                Provider.of<LocalizationService>(context, listen: false)
-                    .getLocalizedString('uploadFile'),
-                style: TextStyle(color: AppColors.primaryRed),
-              ),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        PopupMenuButton<String>(
-                          icon: Icon(Icons.add_circle,
-                              color: AppColors.primaryRed, size: 28),
-                          tooltip: Provider.of<LocalizationService>(context,
-                                  listen: false)
-                              .getLocalizedString('uploadFromGallery'),
-                          itemBuilder: (BuildContext context) => [
-                            PopupMenuItem<String>(
-                              value: 'upload',
-                              child: Text(
-                                Provider.of<LocalizationService>(context,
-                                        listen: false)
-                                    .getLocalizedString('uploadFromGallery'),
-                                style: TextStyle(color: AppColors.primaryRed),
-                              ),
-                            ),
-                            PopupMenuItem<String>(
-                              value: 'camera',
-                              child: Text(
-                                Provider.of<LocalizationService>(context,
-                                        listen: false)
-                                    .getLocalizedString('takePhoto'),
-                                style: TextStyle(color: AppColors.primaryRed),
-                              ),
-                            ),
-                          ],
-                          onSelected: (value) async {
-                            final ImagePicker picker = ImagePicker();
-                            if (value == 'upload') {
-                              final List<XFile>? images =
-                                  await picker.pickMultiImage();
-                              if (images != null && images.isNotEmpty) {
-                                setState(() {
-                                  _selectedFiles
-                                      .addAll(images.map((e) => File(e.path)));
-                                });
-                              }
-                            } else if (value == 'camera') {
-                              final XFile? photo = await picker.pickImage(
-                                  source: ImageSource.camera);
-                              if (photo != null) {
-                                setState(() {
-                                  _selectedFiles.insert(0, File(photo.path));
-                                });
-                              }
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    if (_selectedFiles.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16.0),
-                        child: Center(
-                          child: Text(
-                            Provider.of<LocalizationService>(context,
-                                    listen: false)
-                                .getLocalizedString('noFilesSelected'),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      )
-                    else
-                      SizedBox(
-                        height: 120,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _selectedFiles.length,
-                          separatorBuilder: (_, __) => SizedBox(width: 8),
-                          itemBuilder: (context, index) {
-                            final f = _selectedFiles[index];
-                            return Stack(
-                              key: ValueKey(f.path),
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    f,
-                                    width: 120,
-                                    height: 120,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 0.5,
-                                  right: 0.5,
-                                  child: IconButton(
-                                    icon: Icon(Icons.delete,
-                                        color: Colors.red, size: 22),
-                                    tooltip: Provider.of<LocalizationService>(
-                                            context,
-                                            listen: false)
-                                        .getLocalizedString('delete'),
-                                    onPressed: () {
-                                      setState(() {
-                                        if (index >= 0 &&
-                                            index < _selectedFiles.length) {
-                                          _selectedFiles.removeAt(index);
-                                        }
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  child: Text(
-                    Provider.of<LocalizationService>(context, listen: false)
-                        .getLocalizedString('cancel'),
-                    style: TextStyle(color: AppColors.primaryRed),
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _selectedFiles.clear();
-                    });
-                    Navigator.of(context).pop();
-                  },
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryRed,
-                  ),
-                  child: Text(
-                    Provider.of<LocalizationService>(context, listen: false)
-                        .getLocalizedString('confirm'),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  // onPressed: _selectedFiles.isEmpty
-                  //     ? null
-                  //     : () async {
-                  //         Navigator.of(context).pop();
-                  //         await _uploadAttachments(
-                  //             voucherNumber, paymentId, _selectedFiles);
-                  //       },
-                  onPressed: _selectedFiles.isEmpty
-                      ? null
-                      : () async {
-                          Navigator.of(context)
-                              .pop(); // close file selection dialog
-                          await Future.delayed(
-                              Duration(milliseconds: 200)); // optional
-                          showDialog(
-                            context: parentContext, // use parent context here!
-                            barrierDismissible: false,
-                            builder: (BuildContext dialogContext) {
-                              return Center(child: CircularProgressIndicator());
-                            },
-                          );
-                          try {
-                            await _uploadAttachments(
-                                voucherNumber, paymentId, _selectedFiles);
-                          } finally {
-                            if (Navigator.of(parentContext, rootNavigator: true)
-                                .canPop()) {
-                              Navigator.of(parentContext, rootNavigator: true)
-                                  .pop();
-                            }
-                          }
-                        },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  List<File> _selectedFiles = [];
+  // Removed _selectedFiles; file selection is now handled locally when opening the popup.
   int hasDisconnectedPermission = 0;
 
   Map<String, dynamic>? _paymentDetails;
@@ -356,7 +158,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ScreenUtil.init(context, designSize: Size(360, 690));
+    ScreenUtil.init(context, designSize: const Size(360, 690));
     final size = MediaQuery.of(context).size;
     final scale = (size.shortestSide / 375).clamp(0.8, 1.3);
 
@@ -425,11 +227,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                           );
                   },
                   backgroundColor: AppColors.primaryRed,
-                  child: Icon(Icons.add, color: Colors.white),
+                  child: const Icon(Icons.add, color: Colors.white),
                 ),
               ),
             )
-          : SizedBox.shrink(),
+          : const SizedBox.shrink(),
     );
   }
 
@@ -747,15 +549,16 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                       ),
                       SizedBox(width: 8 * scale),
                       IconButton(
-                        icon: Icon(Icons.attach_file,
+                        icon: const Icon(Icons.attach_file,
                             color: AppColors.primaryRed),
                         onPressed: () {
                           _showImagesPreview();
                         },
                       ),
-                      SizedBox(width: 16),
+                      const SizedBox(width: 16),
                       PopupMenuButton<String>(
-                        icon: Icon(Icons.add, color: AppColors.primaryRed),
+                        icon:
+                            const Icon(Icons.add, color: AppColors.primaryRed),
                         itemBuilder: (BuildContext context) => [
                           PopupMenuItem<String>(
                             value: 'upload',
@@ -763,7 +566,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                               Provider.of<LocalizationService>(context,
                                       listen: false)
                                   .getLocalizedString("uploadFromGallery"),
-                              style: TextStyle(color: AppColors.primaryRed),
+                              style:
+                                  const TextStyle(color: AppColors.primaryRed),
                             ),
                           ),
                           PopupMenuItem<String>(
@@ -772,38 +576,39 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                               Provider.of<LocalizationService>(context,
                                       listen: false)
                                   .getLocalizedString("takePhoto"),
-                              style: TextStyle(color: AppColors.primaryRed),
+                              style:
+                                  const TextStyle(color: AppColors.primaryRed),
                             ),
                           ),
                         ],
                         onSelected: (value) async {
+                          List<File> files = [];
                           if (value == 'upload') {
                             final ImagePicker picker = ImagePicker();
                             final List<XFile>? images =
                                 await picker.pickMultiImage();
                             if (images != null && images.isNotEmpty) {
-                              setState(() {
-                                _selectedFiles
-                                    .addAll(images.map((e) => File(e.path)));
-                              });
+                              files.addAll(images.map((e) => File(e.path)));
                             }
                           } else if (value == 'camera') {
                             final ImagePicker picker = ImagePicker();
                             final XFile? photo = await picker.pickImage(
                                 source: ImageSource.camera);
                             if (photo != null) {
-                              setState(() {
-                                _selectedFiles.insert(0, File(photo.path));
-                              });
+                              files.insert(0, File(photo.path));
                             }
                           }
-                          if (_selectedFiles.isNotEmpty) {
+                          if (files.isNotEmpty) {
                             final voucherNumber =
                                 _paymentDetails?['voucherSerialNumber']
                                         ?.toString() ??
                                     widget.paymentId.toString();
-                            _showSelectedFilesPopup(
-                                voucherNumber, widget.paymentId, context);
+                            CheckAttachmentService.showSelectedFilesPopup(
+                              context: context,
+                              voucherNumber: voucherNumber,
+                              paymentId: widget.paymentId,
+                              initialFiles: files,
+                            );
                           }
                         },
                       ),
@@ -826,7 +631,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       if (images.isEmpty) {
         CustomPopups.showCustomResultPopup(
           context: context,
-          icon: Icon(Icons.info, color: AppColors.informationPopup, size: 40),
+          icon: const Icon(Icons.info,
+              color: AppColors.informationPopup, size: 40),
           message: Provider.of<LocalizationService>(context, listen: false)
               .getLocalizedString('noImagesAttached'),
           buttonText: Provider.of<LocalizationService>(context, listen: false)
@@ -839,11 +645,19 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         return;
       }
 
-      // decode base64 to bytes
+      // decode base64 to bytes, handle both String and Uint8List
       final List<Uint8List> bytesList = images.map<Uint8List>((img) {
-        final String b64 = img['base64Content'] ?? '';
+        final dynamic b64 = img['base64Content'];
         try {
-          return base64.decode(b64);
+          if (b64 is String) {
+            return base64.decode(b64);
+          } else if (b64 is Uint8List) {
+            return b64;
+          } else if (b64 is List<int>) {
+            return Uint8List.fromList(b64);
+          } else {
+            return Uint8List(0);
+          }
         } catch (_) {
           return Uint8List(0);
         }
@@ -890,7 +704,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                     Provider.of<LocalizationService>(context, listen: false)
                         .getLocalizedString('openAsPdf'),
                 child: IconButton(
-                  icon: FaIcon(FontAwesomeIcons.filePdf,
+                  icon: const FaIcon(FontAwesomeIcons.filePdf,
                       color: AppColors.primaryRed),
                   onPressed: () async {
                     ShareScreenOptions.showLanguageSelectionAndShare(
@@ -907,7 +721,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         Provider.of<LocalizationService>(context, listen: false)
                             .getLocalizedString('cancelPayment'),
                     child: IconButton(
-                        icon: Icon(Icons.cancel, color: AppColors.primaryRed),
+                        icon: const Icon(Icons.cancel,
+                            color: AppColors.primaryRed),
                         onPressed: () async {
                           // widget.paymentId is non-nullable
                           final int idToCancel = widget.paymentId;
@@ -929,7 +744,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         Provider.of<LocalizationService>(context, listen: false)
                             .getLocalizedString('sendPrinter'),
                     child: IconButton(
-                      icon: Icon(Icons.print, color: Colors.black),
+                      icon: const Icon(Icons.print, color: Colors.black),
                       onPressed: () async {
                         // Function to get the default printer info from SharedPreferences
                         final prefs = await SharedPreferences.getInstance();
@@ -944,7 +759,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                             printerAddress.isEmpty) {
                           CustomPopups.showTwoButtonPopup(
                             context: context,
-                            icon: Icon(Icons.warning,
+                            icon: const Icon(Icons.warning,
                                 size: 40, color: AppColors.primaryRed),
                             message: Provider.of<LocalizationService>(context,
                                     listen: false)
@@ -967,7 +782,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => PrinterSettingScreen(),
+                                  builder: (context) =>
+                                      const PrinterSettingScreen(),
                                 ),
                               );
                             },
@@ -979,7 +795,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                             if (!isBluetoothOn) {
                               CustomPopups.showCustomResultPopup(
                                 context: context,
-                                icon: Icon(Icons.error,
+                                icon: const Icon(Icons.error,
                                     color: AppColors.primaryRed, size: 40),
                                 message: Provider.of<LocalizationService>(
                                         context,
@@ -1015,9 +831,9 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         color: Colors.black.withOpacity(0.75),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      textStyle: TextStyle(color: Colors.white),
+                      textStyle: const TextStyle(color: Colors.white),
                       child: IconButton(
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.message,
                           color: Colors.green, // Set the color of the icon here
                         ),
@@ -1052,7 +868,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         Provider.of<LocalizationService>(context, listen: false)
                             .getLocalizedString('sendEmail'),
                     child: IconButton(
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.email,
                         color: Colors.blue,
                       ),
@@ -1088,7 +904,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         Provider.of<LocalizationService>(context, listen: false)
                             .getLocalizedString('sharePayment'),
                     child: IconButton(
-                      icon: FaIcon(
+                      icon: const FaIcon(
                         FontAwesomeIcons.whatsapp,
                         color: Colors.green,
                       ),
@@ -1126,11 +942,12 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         Provider.of<LocalizationService>(context, listen: false)
                             .getLocalizedString('deletePayment'),
                     child: IconButton(
-                      icon: Icon(Icons.delete, color: AppColors.primaryRed),
+                      icon:
+                          const Icon(Icons.delete, color: AppColors.primaryRed),
                       onPressed: () {
                         CustomPopups.showCustomDialog(
                           context: context,
-                          icon: Icon(Icons.delete,
+                          icon: const Icon(Icons.delete,
                               size: 60, color: AppColors.primaryRed),
                           title: Provider.of<LocalizationService>(context,
                                   listen: false)
@@ -1148,7 +965,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                               context: context,
                               barrierDismissible: false,
                               builder: (BuildContext dialogContext) {
-                                return Center(
+                                return const Center(
                                   child: CircularProgressIndicator(),
                                 );
                               },
@@ -1160,7 +977,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                                   widget.paymentId);
 
                               // Ensure the loading dialog is shown for at least 1 second
-                              await Future.delayed(Duration(seconds: 1));
+                              await Future.delayed(const Duration(seconds: 1));
                             } catch (error) {
                               // Handle any errors here if needed
                               print('Error deleting payment: $error');
@@ -1187,7 +1004,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         Provider.of<LocalizationService>(context, listen: false)
                             .getLocalizedString('editPayment'),
                     child: IconButton(
-                      icon: Icon(Icons.edit, color: Color(0xFFA67438)),
+                      icon: const Icon(Icons.edit, color: Color(0xFFA67438)),
                       onPressed: () {
                         Navigator.pushReplacement(
                           context,
@@ -1204,11 +1021,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                         Provider.of<LocalizationService>(context, listen: false)
                             .getLocalizedString('confirmPayment'),
                     child: IconButton(
-                      icon: Icon(Icons.check_circle, color: Colors.blue),
+                      icon: const Icon(Icons.check_circle, color: Colors.blue),
                       onPressed: () {
                         CustomPopups.showCustomDialog(
                           context: context,
-                          icon: Icon(Icons.check_circle,
+                          icon: const Icon(Icons.check_circle,
                               size: 60.0, color: AppColors.primaryRed),
                           title: Provider.of<LocalizationService>(context,
                                   listen: false)
@@ -1326,57 +1143,5 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
   Widget _divider(double scale) {
     return Divider(color: const Color(0xFFCCCCCC), height: 10 * scale);
-  }
-
-  Future<void> _uploadAttachments(
-      String voucherNumber, int paymentId, List<File> files) async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? tokenID = prefs.getString('token');
-      if (tokenID == null) {
-        print('Token not found');
-        return;
-      }
-      var fullToken = "Barer ${tokenID}";
-
-      var headers = {
-        'Content-Type': 'application/json',
-        'tokenID': fullToken,
-      };
-
-      final response = await AttachmentApiService.uploadAttachments(
-          voucherSerialNumber: voucherNumber,
-          id: paymentId,
-          headers: headers,
-          files: files);
-
-      final int status = response['status'] ?? 0;
-      final bool success = response['success'] ?? false;
-      final dynamic data = response['data'];
-
-      if (success && status == 200 && data is List) {
-        print('Attachments uploaded successfully for $voucherNumber');
-      } else if (status == 401) {
-        int tokenStatus = await PaymentService.attemptReLogin(context);
-        if (tokenStatus == 200) {
-          print("Token refreshed, retrying...");
-          await _uploadAttachments(voucherNumber, paymentId, files);
-        } else {
-          print("Unable to refresh token");
-        }
-      } else if (status == 408) {
-        print("Request timed out");
-      } else if (status == 429) {
-        print("Too many requests");
-      } else {
-        print("Error: Status $status, Data: $data");
-      }
-    } on SocketException {
-      print("Network error occurred");
-    } on TimeoutException {
-      print("Request timed out");
-    } catch (e) {
-      print("Error fetching portal statuses: $e");
-    }
   }
 }

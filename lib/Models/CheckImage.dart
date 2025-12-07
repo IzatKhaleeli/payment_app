@@ -1,9 +1,13 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 class CheckImage {
   int? id;
   int? paymentId;
   String fileName;
   String? mimeType;
-  String base64Content; // store base64 representation
+  String base64Content;
+  String? status;
 
   CheckImage({
     this.id,
@@ -11,15 +15,29 @@ class CheckImage {
     required this.fileName,
     this.mimeType,
     required this.base64Content,
+    this.status,
   });
 
   factory CheckImage.fromMap(Map<String, dynamic> map) {
+    // Handle both String and Uint8List for base64Content
+    var content = map['base64Content'];
+    String base64Str;
+    if (content is String) {
+      base64Str = content;
+    } else if (content is List<int>) {
+      base64Str = base64.encode(content);
+    } else if (content is Uint8List) {
+      base64Str = base64.encode(content);
+    } else {
+      base64Str = '';
+    }
     return CheckImage(
       id: map['id'],
       paymentId: map['paymentId'],
       fileName: map['fileName'] ?? '',
       mimeType: map['mimeType'],
-      base64Content: map['base64Content'] ?? '',
+      base64Content: base64Str,
+      status: map['status'],
     );
   }
 
@@ -30,6 +48,12 @@ class CheckImage {
       'fileName': fileName,
       'mimeType': mimeType,
       'base64Content': base64Content,
+      'status': status,
     };
+  }
+
+  @override
+  String toString() {
+    return 'CheckImage{id: $id, paymentId: $paymentId, fileName: $fileName, mimeType: $mimeType, base64Content: $base64Content, status: $status}';
   }
 }

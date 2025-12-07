@@ -7,26 +7,25 @@ import 'package:sqflite/sqflite.dart';
 import '../Models/CheckImage.dart';
 
 class DatabaseProvider {
-  // Add a list of check images for a specific paymentId, always add new records
-  static Future<List<int>> addCheckImagesToPayment(
-      int paymentId, List<Map<String, dynamic>> images) async {
+  static Future<void> setVoucherNumberForCheckImages(
+      int paymentId, String voucherSerialNumber) async {
     Database db = await database;
-    List<int> ids = [];
-    await db.transaction((txn) async {
-      for (var imageData in images) {
-        // Ensure paymentId is set
-        imageData['paymentId'] = paymentId;
-        int id = await txn.insert('check_images', imageData,
-            conflictAlgorithm: ConflictAlgorithm.ignore);
-        ids.add(id);
-      }
-    });
-    return ids;
+    await db.update(
+      'check_images',
+      {'voucherSerialNumber': voucherSerialNumber},
+      where: 'paymentId = ?',
+      whereArgs: [paymentId],
+    );
+  }
+
+  static Future<List<Map<String, dynamic>>> getConfirmedCheckImages() async {
+    Database db = await database;
+    return await db
+        .query('check_images', where: 'status = ?', whereArgs: ['confirmed']);
   }
 
   static const _databaseName = 'payments.db';
-  // bumped to 6 to add check_images table
-  static const _databaseVersion = 6;
+  static const _databaseVersion = 7;
   static Database? _database;
   DatabaseProvider._();
 
@@ -79,16 +78,24 @@ class DatabaseProvider {
     ''');
     }
     if (oldVersion < 6) {
-      // create dedicated check_images table (normalized storage)
       await db.execute('''
       CREATE TABLE IF NOT EXISTS check_images (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        paymentId INTEGER,
+        voucherSerialNumber TEXT,
         fileName TEXT,
         mimeType TEXT,
-        base64Content TEXT
+        base64Content TEXT,
+        status TEXT
       );
     ''');
+    }
+    if (oldVersion < 7) {
+      try {
+        await db
+            .execute("ALTER TABLE check_images ADD COLUMN paymentId INTEGER;");
+      } catch (e) {
+        print('Column paymentId may already exist: $e');
+      }
     }
   }
 
@@ -141,21 +148,55 @@ class DatabaseProvider {
       )
     ''');
 
-    // create check_images table
     await db.execute('''
       CREATE TABLE IF NOT EXISTS check_images (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         paymentId INTEGER,
+        voucherSerialNumber TEXT,
         fileName TEXT,
         mimeType TEXT,
-        base64Content TEXT
+        base64Content TEXT,
+        status TEXT
       );
     ''');
   }
 
+  static Future<void> markAllCheckImagesAsSynced(String voucherNumber) async {
+    Database db = await database;
+    await db.update(
+      'check_images',
+      {'status': 'synced'},
+      where: 'voucherSerialNumber = ?',
+      whereArgs: [voucherNumber],
+    );
+  }
+
+  static Future<int> insertConfirmedCheckImage(
+      Map<String, dynamic> imageData) async {
+    Database db = await database;
+    imageData['status'] = 'confirmed';
+    return await db.insert('check_images', imageData,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  static Future<List<int>> addCheckImagesToPayment(
+      String voucherNumber, List<Map<String, dynamic>> images) async {
+    Database db = await database;
+    List<int> ids = [];
+    await db.transaction((txn) async {
+      for (var imageData in images) {
+        imageData['voucherSerialNumber'] = voucherNumber;
+        int id = await txn.insert('check_images', imageData,
+            conflictAlgorithm: ConflictAlgorithm.ignore);
+        ids.add(id);
+      }
+    });
+    return ids;
+  }
+
   static Future<void> updatePaymentsFromPortalStatus(
       List<Map<String, dynamic>> portalData) async {
-    print("updatePaymentsFromPortalStatus started");
+    // print("updatePaymentsFromPortalStatus started");
     if (portalData.isEmpty) return;
 
     try {
@@ -198,7 +239,7 @@ class DatabaseProvider {
         }
       });
 
-      print("updatePaymentsFromPortalStatus finished successfully");
+      // print("updatePaymentsFromPortalStatus finished successfully");
     } catch (e) {
       print("Error updating portal statuses: $e");
       throw Exception('Failed to update payments from portal status');
@@ -456,7 +497,7 @@ class DatabaseProvider {
         DateTime(thresholdDate.year, thresholdDate.month, thresholdDate.day);
 
     // Log the threshold date for debugging
-    print('Deleting records older than: ${startOfDay.toIso8601String()}');
+    // print('Deleting records older than: ${startOfDay.toIso8601String()}');
 
     try {
       await db.transaction((Transaction txn) async {

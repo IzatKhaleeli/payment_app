@@ -130,7 +130,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       hasDisconnectedPermission = prefs.getInt('disconnectedPermission') ?? 0;
     });
-    print("Loaded hasDisconnectedPermission: $hasDisconnectedPermission");
+    // print("Loaded hasDisconnectedPermission: $hasDisconnectedPermission");
   }
 
   @override
