@@ -77,9 +77,9 @@
     
     // Check the initial Bluetooth state
     if centralManager?.state == .poweredOn {
-        print("Bluetooth is powered on.")
+        // print("Bluetooth is powered on.")
     } else {
-        print("Bluetooth is not powered on or available.")
+        // print("Bluetooth is not powered on or available.")
     }
 }
 
@@ -261,9 +261,9 @@
 
      func centralManagerDidUpdateState(_ central: CBCentralManager) {
          if central.state == .poweredOn {
-             print("Bluetooth is ON")
+            //  print("Bluetooth is ON")
          } else {
-             print("Bluetooth is not available")
+            //  print("Bluetooth is not available")
          }
      }
 

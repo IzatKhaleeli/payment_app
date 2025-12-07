@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:ooredoo_app/Custom_Widgets/ImageGalleryPreview.dart';
 import 'package:ooredoo_app/core/constants.dart';
 
+import '../Custom_Widgets/CustomPopups.dart';
 import '../Models/PaymentImages.dart';
 import '../Models/CheckImage.dart';
 import 'dart:async';
@@ -14,6 +19,56 @@ import 'LocalizationService.dart';
 import 'PaymentService.dart';
 
 class CheckAttachmentService {
+  static Future<void> showCheckImagesPreview({
+    required BuildContext context,
+    required int paymentId,
+  }) async {
+    try {
+      // fetch images for this payment
+      final images =
+          await DatabaseProvider.getCheckImagesByPaymentId(paymentId);
+      if (images.isEmpty) {
+        CustomPopups.showCustomResultPopup(
+          context: context,
+          icon: const Icon(Icons.info,
+              color: AppColors.informationPopup, size: 40),
+          message: Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString('noImagesAttached'),
+          buttonText: Provider.of<LocalizationService>(context, listen: false)
+              .getLocalizedString('ok'),
+          onPressButton: () {
+            // Define what happens when the button is pressed
+            print('Success acknowledged');
+          },
+        );
+        return;
+      }
+
+      // decode base64 to bytes, handle both String and Uint8List
+      final List<Uint8List> bytesList = images.map<Uint8List>((img) {
+        final dynamic b64 = img['base64Content'];
+        try {
+          if (b64 is String) {
+            return base64.decode(b64);
+          } else if (b64 is Uint8List) {
+            return b64;
+          } else if (b64 is List<int>) {
+            return Uint8List.fromList(b64);
+          } else {
+            return Uint8List(0);
+          }
+        } catch (_) {
+          return Uint8List(0);
+        }
+      }).toList();
+
+      // delegate to reusable widget
+      await showImageGalleryPreview(context: context, images: bytesList);
+    } catch (e) {
+      print('Error showing images preview: $e');
+    }
+  }
+
   static Future<List<PaymentImages>>
       getConfirmedImagesGroupedByPayment() async {
     final dbImages = await DatabaseProvider.getConfirmedCheckImages();

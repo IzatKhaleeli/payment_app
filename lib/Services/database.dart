@@ -234,7 +234,7 @@ class DatabaseProvider {
               whereArgs: [voucher],
             );
           } else {
-            print("Skipping voucher $voucher — statuses are 'Pending' or null");
+            // print("Skipping voucher $voucher — statuses are 'Pending' or null");
           }
         }
       });

@@ -24,7 +24,7 @@ void main() async {
   try {
     isJailbroken = await FlutterJailbreakDetection.jailbroken;
     developerMode = await FlutterJailbreakDetection.developerMode;
-    print("developer mode :${developerMode} : isJailbroken :${isJailbroken}");
+    // print("developer mode :${developerMode} : isJailbroken :${isJailbroken}");
   } on PlatformException {
     isJailbroken = true;
     developerMode = true;

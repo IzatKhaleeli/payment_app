@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:ooredoo_app/Screens/printerService/PrinterSettingScreen.dart';
+import '../../Services/CheckAttachmentService.dart';
 import '../../core/api_service/status_api_service.dart';
 import '../../core/constants.dart';
 import '../../core/utils/enum/cancellation_status_enum.dart';
@@ -232,7 +234,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         print("[]");
         return;
       }
-      print("Voucher serials to fetch statuses: $voucherSerials");
+      // print("Voucher serials to fetch statuses: $voucherSerials");
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? tokenID = prefs.getString('token');
@@ -956,6 +958,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                     ? formatDate(record.dueDateCheck!)
                     : '',
               ),
+              _buildCheckImagesRow(context, scale, record),
             ],
             if (record.cancellationStatus != null)
               PaymentDetailRow(
@@ -1486,6 +1489,108 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCheckImagesRow(
+      BuildContext context, double scale, dynamic record) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 3.0 * scale),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        textDirection: Directionality.of(context),
+        children: [
+          Flexible(
+            flex: 1,
+            child: Text(
+              Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString('checkImages'),
+              style: TextStyle(
+                fontSize: 14 * scale,
+                fontWeight: FontWeight.w400,
+                color: Colors.grey.shade500,
+              ),
+              softWrap: true,
+              overflow: TextOverflow.visible,
+            ),
+          ),
+          const SizedBox(width: 8.0),
+          Flexible(
+            flex: 1,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.attach_file,
+                      color: AppColors.primaryRed),
+                  onPressed: () {
+                    final paymentId = record.id ?? record.paymentId;
+                    if (paymentId != null) {
+                      CheckAttachmentService.showCheckImagesPreview(
+                        context: context,
+                        paymentId: paymentId,
+                      );
+                    } else {
+                      print('Error: paymentId is null for check image preview');
+                    }
+                  },
+                ),
+                const SizedBox(width: 8),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.add, color: AppColors.primaryRed),
+                  itemBuilder: (BuildContext context) => [
+                    PopupMenuItem<String>(
+                      value: 'upload',
+                      child: Text(
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .getLocalizedString("uploadFromGallery"),
+                        style: const TextStyle(color: AppColors.primaryRed),
+                      ),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'camera',
+                      child: Text(
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .getLocalizedString("takePhoto"),
+                        style: const TextStyle(color: AppColors.primaryRed),
+                      ),
+                    ),
+                  ],
+                  onSelected: (value) async {
+                    List<File> files = [];
+                    if (value == 'upload') {
+                      final ImagePicker picker = ImagePicker();
+                      final List<XFile>? images = await picker.pickMultiImage();
+                      if (images != null && images.isNotEmpty) {
+                        files.addAll(images.map((e) => File(e.path)));
+                      }
+                    } else if (value == 'camera') {
+                      final ImagePicker picker = ImagePicker();
+                      final XFile? photo =
+                          await picker.pickImage(source: ImageSource.camera);
+                      if (photo != null) {
+                        files.insert(0, File(photo.path));
+                      }
+                    }
+                    if (files.isNotEmpty) {
+                      final voucherNumber =
+                          record?.voucherSerialNumber?.toString() ??
+                              record.id.toString();
+                      CheckAttachmentService.showSelectedFilesPopup(
+                        context: context,
+                        voucherNumber: voucherNumber,
+                        paymentId: record.id,
+                        initialFiles: files,
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

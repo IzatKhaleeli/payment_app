@@ -51,12 +51,12 @@ Future<void> showImageGalleryPreview({
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Padding(
-                    padding: EdgeInsets.only(left: 8.0),
+                    padding: EdgeInsets.only(right: 8.0),
                     child: IconButton(
-                      icon: Icon(Icons.arrow_forward_ios, color: Colors.white),
+                      icon: Icon(Icons.arrow_back_ios, color: Colors.white),
                       onPressed: () {
-                        if (currentIndex > 0) {
-                          pageController.previousPage(
+                        if (currentIndex < images.length - 1) {
+                          pageController.nextPage(
                               duration: Duration(milliseconds: 250),
                               curve: Curves.easeInOut);
                         }
@@ -67,12 +67,12 @@ Future<void> showImageGalleryPreview({
                 Align(
                   alignment: Alignment.centerRight,
                   child: Padding(
-                    padding: EdgeInsets.only(right: 8.0),
+                    padding: EdgeInsets.only(left: 8.0),
                     child: IconButton(
-                      icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                      icon: Icon(Icons.arrow_forward_ios, color: Colors.white),
                       onPressed: () {
-                        if (currentIndex < images.length - 1) {
-                          pageController.nextPage(
+                        if (currentIndex > 0) {
+                          pageController.previousPage(
                               duration: Duration(milliseconds: 250),
                               curve: Curves.easeInOut);
                         }
