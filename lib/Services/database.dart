@@ -161,13 +161,14 @@ class DatabaseProvider {
     ''');
   }
 
-  static Future<void> markAllCheckImagesAsSynced(String voucherNumber) async {
+  static Future<void> markAllCheckImagesAsSynced(
+      String voucherNumber, String status) async {
     Database db = await database;
     await db.update(
       'check_images',
       {'status': 'synced'},
-      where: 'voucherSerialNumber = ?',
-      whereArgs: [voucherNumber],
+      where: 'voucherSerialNumber = ? AND status = ?',
+      whereArgs: [voucherNumber, status],
     );
   }
 
@@ -470,8 +471,8 @@ class DatabaseProvider {
     int id = await db.insert('payments', paymentData);
     print("the id of new payment is to return : ${id}");
     Map<String, dynamic>? newPayment = await getPaymentById(id);
-    print("the new payment after saved to db : $newPayment");
-    print("savePayment method in database.dart finished");
+    // print("the new payment after saved to db : $newPayment");
+    // print("savePayment method in database.dart finished");
     return id;
   }
 

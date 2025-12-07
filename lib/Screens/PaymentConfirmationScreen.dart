@@ -547,7 +547,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(width: 8 * scale),
                       IconButton(
                         icon: const Icon(Icons.attach_file,
                             color: AppColors.primaryRed),

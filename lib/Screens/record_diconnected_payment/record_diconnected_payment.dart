@@ -1007,6 +1007,7 @@ class _RecordPaymentDisconnectedScreenState
               fileName: fileName,
               mimeType: mime,
               base64Content: base64Content,
+              status: 'new',
             ));
           }
 

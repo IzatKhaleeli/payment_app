@@ -1330,12 +1330,14 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
             final fileName = f.path.split('/').last;
             final mime =
                 lookupMimeType(f.path, headerBytes: bytes) ?? 'image/jpeg';
-            imageObjs.add(CheckImage(
-              paymentId: idPaymentStored,
-              fileName: fileName,
-              mimeType: mime,
-              base64Content: base64Content,
-            ));
+            imageObjs.add(
+              CheckImage(
+                  paymentId: idPaymentStored,
+                  fileName: fileName,
+                  mimeType: mime,
+                  base64Content: base64Content,
+                  status: 'new'),
+            );
           }
           await DatabaseProvider.insertCheckImages(imageObjs);
         }

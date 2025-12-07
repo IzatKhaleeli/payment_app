@@ -40,14 +40,11 @@ class AttachmentApiService {
     // Print full request before sending
     // print('--- Multipart Request ---');
     print('URL: ${request.url}');
-    print('Headers: ${request.headers}');
     // print('Fields: ${request.fields}');
-    print('Files:');
     for (var f in request.files) {
       print(
           '  name: ${f.field}, filename: ${f.filename}, length: ${f.length}, contentType: ${f.contentType}');
     }
-    // print('-------------------------');
 
     http.StreamedResponse? streamedResponse;
     try {

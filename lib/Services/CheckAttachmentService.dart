@@ -44,26 +44,225 @@ class CheckAttachmentService {
         return;
       }
 
-      // decode base64 to bytes, handle both String and Uint8List
-      final List<Uint8List> bytesList = images.map<Uint8List>((img) {
+      // Prepare images and their sync status
+      final List<Map<String, dynamic>> galleryImages =
+          images.map<Map<String, dynamic>>((img) {
         final dynamic b64 = img['base64Content'];
+        Uint8List bytes;
         try {
           if (b64 is String) {
-            return base64.decode(b64);
+            bytes = base64.decode(b64);
           } else if (b64 is Uint8List) {
-            return b64;
+            bytes = b64;
           } else if (b64 is List<int>) {
-            return Uint8List.fromList(b64);
+            bytes = Uint8List.fromList(b64);
           } else {
-            return Uint8List(0);
+            bytes = Uint8List(0);
           }
         } catch (_) {
-          return Uint8List(0);
+          bytes = Uint8List(0);
         }
+        return {
+          'bytes': bytes,
+          'isSynced': (img['status']?.toString().toLowerCase() == 'synced'),
+        };
       }).toList();
 
-      // delegate to reusable widget
-      await showImageGalleryPreview(context: context, images: bytesList);
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(
+              Provider.of<LocalizationService>(context, listen: false)
+                  .getLocalizedString('attachements'),
+              style: const TextStyle(color: AppColors.primaryRed),
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: galleryImages.isEmpty
+                  ? Center(
+                      child: Text(
+                        Provider.of<LocalizationService>(context, listen: false)
+                            .getLocalizedString('noImagesAttached'),
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : GridView.builder(
+                      shrinkWrap: true,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 1,
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 8,
+                      ),
+                      itemCount: galleryImages.length,
+                      itemBuilder: (context, index) {
+                        final img = galleryImages[index];
+                        final isSynced = img['isSynced'] as bool;
+                        return GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return Dialog(
+                                  backgroundColor: Colors.transparent,
+                                  insetPadding: EdgeInsets.all(0),
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        color: Colors.black,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        child: Center(
+                                          child: InteractiveViewer(
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(0),
+                                              child: isSynced
+                                                  ? Image.memory(
+                                                      img['bytes'],
+                                                      width:
+                                                          MediaQuery.of(context)
+                                                              .size
+                                                              .width,
+                                                      height:
+                                                          MediaQuery.of(context)
+                                                              .size
+                                                              .height,
+                                                      fit: BoxFit.contain,
+                                                    )
+                                                  : ColorFiltered(
+                                                      colorFilter:
+                                                          const ColorFilter
+                                                              .mode(
+                                                        Colors.grey,
+                                                        BlendMode.saturation,
+                                                      ),
+                                                      child: Image.memory(
+                                                        img['bytes'],
+                                                        width: MediaQuery.of(
+                                                                context)
+                                                            .size
+                                                            .width,
+                                                        height: MediaQuery.of(
+                                                                context)
+                                                            .size
+                                                            .height,
+                                                        fit: BoxFit.contain,
+                                                      ),
+                                                    ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 32,
+                                        right: 32,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color:
+                                                Colors.black.withOpacity(0.5),
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.3),
+                                                blurRadius: 4,
+                                              ),
+                                            ],
+                                          ),
+                                          child: IconButton(
+                                            icon: const Icon(Icons.close,
+                                                color: Colors.white, size: 32),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          child: Stack(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: isSynced
+                                      ? Image.memory(
+                                          img['bytes'],
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : ColorFiltered(
+                                          colorFilter: const ColorFilter.mode(
+                                            Colors.grey,
+                                            BlendMode.saturation,
+                                          ),
+                                          child: Image.memory(
+                                            img['bytes'],
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              if (!isSynced)
+                                Positioned(
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 4),
+                                    color: Colors.black.withOpacity(0.7),
+                                    child: Center(
+                                      child: Text(
+                                        Provider.of<LocalizationService>(
+                                                context,
+                                                listen: false)
+                                            .getLocalizedString(
+                                                'not_uploaded_yet'),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+            actions: [
+              TextButton(
+                child: Text(
+                  Provider.of<LocalizationService>(context, listen: false)
+                      .getLocalizedString('ok'),
+                  style: const TextStyle(color: AppColors.primaryRed),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
     } catch (e) {
       print('Error showing images preview: $e');
     }
@@ -293,7 +492,9 @@ class CheckAttachmentService {
       final int status = response['status'] ?? 0;
       final bool success = response['success'] ?? false;
       final dynamic data = response['data'];
-      if (success && status == 200 && data is List) {
+      if (success && status == 200) {
+        await DatabaseProvider.markAllCheckImagesAsSynced(
+            voucherNumber, 'confirmed');
         print('Attachments uploaded successfully for $voucherNumber');
       } else if (status == 401) {
         int tokenStatus = await PaymentService.attemptReLogin(context);

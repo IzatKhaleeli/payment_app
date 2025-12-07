@@ -72,32 +72,30 @@ class PaymentService {
 
   static Future<void> _checkNetworkAndSync(BuildContext context) async {
     var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult != ConnectivityResult.none) {
+    if (connectivityResult[0] != ConnectivityResult.none) {
+      print("Internet available: " + connectivityResult.toString());
       await syncPayments(context);
       await syncConfirmedCheckImages(context);
+    } else {
+      print("No internet: " + connectivityResult.toString());
     }
-    // else
-    //   print(connectivityResult);
   }
 
   static Future<void> syncConfirmedCheckImages(BuildContext context) async {
     final groupedImages =
         await CheckAttachmentService.getConfirmedImagesGroupedByPayment();
     for (var paymentImages in groupedImages) {
-      print("Syncing images for voucher: ${paymentImages.voucherSerialNumber}");
-
-      print("Number of images: ${paymentImages.images.length}");
-
       final voucherNumber = paymentImages.voucherSerialNumber;
+      if (voucherNumber == null || voucherNumber.toString().isEmpty) {
+        print('Skipping sync: voucherNumber is null or empty');
+        continue;
+      }
+      print("Syncing images for voucher: $voucherNumber");
       final images = paymentImages.images;
       if (images.isEmpty) continue;
-      // Convert list of CheckImage to List<File>
       final files = await checkImagesToFiles(images);
       await CheckAttachmentService.uploadAttachments(
           context: context, voucherNumber: voucherNumber, files: files);
-
-      await DatabaseProvider.markAllCheckImagesAsSynced(voucherNumber);
-      print('Marked all images as synced for paymentId: $voucherNumber');
     }
   }
 
@@ -230,17 +228,13 @@ class PaymentService {
       // print("body payment to sync :${body}");
 
       if (payment["status"].toString().toLowerCase() == "synced") return;
-      // print(
-      //     "the payment :${payment['transactionDate']} stats to sync is :${payment["status"]}");
-      // print("before send sync api");
+
       http.Response? response;
 
       try {
-        // Build multipart/form-data request and put the JSON in 'paymentRequest' field
         final uri = Uri.parse(apiUrl);
         final request = http.MultipartRequest('POST', uri);
 
-        // Add headers except content-type which MultipartRequest will set
         headers.forEach((k, v) {
           if (k.toLowerCase() != 'content-type') request.headers[k] = v;
         });
@@ -289,13 +283,25 @@ class PaymentService {
               await request.send().timeout(const Duration(seconds: 60));
         } on TimeoutException catch (e) {
           print('Multipart upload timed out: $e');
-          GlobalErrorNotifier.showError('Upload timed out.');
+          GlobalErrorNotifier.showError('Request timed out.');
+          return;
+        } on SocketException catch (e) {
+          print('No internet connection: $e');
+          GlobalErrorNotifier.showError('No internet connection.');
           return;
         }
         print(
             "image upload complete streamedResponse ${streamedResponse.statusCode}");
         response = await http.Response.fromStream(streamedResponse);
         print("multipart post request");
+      } on SocketException catch (e) {
+        print('No internet connection: $e');
+        GlobalErrorNotifier.showError('No internet connection.');
+        return;
+      } on TimeoutException catch (e) {
+        print('Request timed out: $e');
+        GlobalErrorNotifier.showError('Request timed out.');
+        return;
       } catch (e) {
         GlobalErrorNotifier.showError("Error: $e");
       }
@@ -307,11 +313,11 @@ class PaymentService {
         String? voucherSerialNumber = responseBody['voucherSerialNumber'];
         print("voucherSerialNumber : \\${voucherSerialNumber!}");
 
-        // Update voucher number for check images with this payment id
         await DatabaseProvider.setVoucherNumberForCheckImages(
             payment["id"], voucherSerialNumber);
+        await DatabaseProvider.markAllCheckImagesAsSynced(
+            voucherSerialNumber, 'new');
 
-        // Update payment in local database
         await DatabaseProvider.updateSyncedPaymentDetail(
             payment["id"], voucherSerialNumber, 'Synced');
         _syncController.add(null);

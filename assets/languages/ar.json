@@ -290,5 +290,11 @@
   "checkImages":"المرفقات",
   "noImagesAttached": "لا توجد صور مرفقة",
   "fileRequired": "مطلوب ملف واحد على الأقل لدفعات الشيكات",
-  "noFilesSelected": "لا توجد ملفات صور لعرضها"
+  "noFilesSelected": "لا توجد ملفات صور لعرضها",
+  "upload_files":"رفع المرفقات",
+  "upload_from_gallery":"رفع من المعرض",
+  "take_a_photo":"التقاط صورة",
+  "no_files_selected":"لا توجد ملفات محددة",
+  "attachements":"المرفقات",
+  "not_uploaded_yet":"لم يتم الرفع بعد"
 }

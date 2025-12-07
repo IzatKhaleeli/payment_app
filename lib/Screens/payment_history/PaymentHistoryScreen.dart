@@ -958,7 +958,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                     ? formatDate(record.dueDateCheck!)
                     : '',
               ),
-              _buildCheckImagesRow(context, scale, record),
+              _buildCheckImagesRow(context, scale, record,
+                  Provider.of<LocalizationService>(context, listen: false)),
             ],
             if (record.cancellationStatus != null)
               PaymentDetailRow(
@@ -1492,105 +1493,142 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  Widget _buildCheckImagesRow(
-      BuildContext context, double scale, dynamic record) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 3.0 * scale),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        textDirection: Directionality.of(context),
-        children: [
-          Flexible(
-            flex: 1,
-            child: Text(
-              Provider.of<LocalizationService>(context, listen: false)
-                  .getLocalizedString('checkImages'),
-              style: TextStyle(
-                fontSize: 14 * scale,
-                fontWeight: FontWeight.w400,
-                color: Colors.grey.shade500,
-              ),
-              softWrap: true,
-              overflow: TextOverflow.visible,
-            ),
-          ),
-          const SizedBox(width: 8.0),
-          Flexible(
-            flex: 1,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.attach_file,
-                      color: AppColors.primaryRed),
-                  onPressed: () {
-                    final paymentId = record.id ?? record.paymentId;
-                    if (paymentId != null) {
-                      CheckAttachmentService.showCheckImagesPreview(
-                        context: context,
-                        paymentId: paymentId,
-                      );
-                    } else {
-                      print('Error: paymentId is null for check image preview');
-                    }
-                  },
-                ),
-                const SizedBox(width: 8),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.add, color: AppColors.primaryRed),
-                  itemBuilder: (BuildContext context) => [
-                    PopupMenuItem<String>(
-                      value: 'upload',
-                      child: Text(
-                        Provider.of<LocalizationService>(context, listen: false)
-                            .getLocalizedString("uploadFromGallery"),
-                        style: const TextStyle(color: AppColors.primaryRed),
+  Widget _buildCheckImagesRow(BuildContext context, double scale,
+      dynamic record, LocalizationService localizationService) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: DatabaseProvider.getCheckImagesByPaymentId(
+          record.id ?? record.paymentId),
+      builder: (context, snapshot) {
+        int total = 0;
+        int synced = 0;
+        if (snapshot.hasData && snapshot.data != null) {
+          total = snapshot.data!.length;
+          synced = snapshot.data!
+              .where((img) =>
+                  (img['status']?.toString().toLowerCase() == 'synced'))
+              .length;
+        }
+
+        String label = localizationService.getLocalizedString('checkImages');
+        String countText = total > 0
+            ? ' ($synced/$total ${localizationService.getLocalizedString('synced')})'
+            : '';
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: 3.0 * scale),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            textDirection: Directionality.of(context),
+            children: [
+              Flexible(
+                flex: 1,
+                child: Row(
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 14 * scale,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey.shade500,
                       ),
+                      softWrap: true,
+                      overflow: TextOverflow.visible,
                     ),
-                    PopupMenuItem<String>(
-                      value: 'camera',
-                      child: Text(
-                        Provider.of<LocalizationService>(context, listen: false)
-                            .getLocalizedString("takePhoto"),
-                        style: const TextStyle(color: AppColors.primaryRed),
+                    if (countText.isNotEmpty && !(total > 0 && total == synced))
+                      Text(
+                        countText,
+                        style: TextStyle(
+                          fontSize: 14 * scale,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.primaryRed,
+                        ),
+                        softWrap: true,
+                        overflow: TextOverflow.visible,
                       ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8.0),
+              Flexible(
+                flex: 1,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.attach_file,
+                          color: AppColors.primaryRed),
+                      onPressed: () {
+                        final paymentId = record.id ?? record.paymentId;
+                        if (paymentId != null) {
+                          CheckAttachmentService.showCheckImagesPreview(
+                            context: context,
+                            paymentId: paymentId,
+                          );
+                        } else {
+                          print(
+                              'Error: paymentId is null for check image preview');
+                        }
+                      },
+                    ),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.add, color: AppColors.primaryRed),
+                      itemBuilder: (BuildContext context) => [
+                        PopupMenuItem<String>(
+                          value: 'upload',
+                          child: Text(
+                            Provider.of<LocalizationService>(context,
+                                    listen: false)
+                                .getLocalizedString("uploadFromGallery"),
+                            style: const TextStyle(color: AppColors.primaryRed),
+                          ),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'camera',
+                          child: Text(
+                            Provider.of<LocalizationService>(context,
+                                    listen: false)
+                                .getLocalizedString("takePhoto"),
+                            style: const TextStyle(color: AppColors.primaryRed),
+                          ),
+                        ),
+                      ],
+                      onSelected: (value) async {
+                        List<File> files = [];
+                        if (value == 'upload') {
+                          final ImagePicker picker = ImagePicker();
+                          final List<XFile>? images =
+                              await picker.pickMultiImage();
+                          if (images != null && images.isNotEmpty) {
+                            files.addAll(images.map((e) => File(e.path)));
+                          }
+                        } else if (value == 'camera') {
+                          final ImagePicker picker = ImagePicker();
+                          final XFile? photo = await picker.pickImage(
+                              source: ImageSource.camera);
+                          if (photo != null) {
+                            files.insert(0, File(photo.path));
+                          }
+                        }
+                        if (files.isNotEmpty) {
+                          final voucherNumber =
+                              record?.voucherSerialNumber?.toString() ??
+                                  record.id.toString();
+                          CheckAttachmentService.showSelectedFilesPopup(
+                            context: context,
+                            voucherNumber: voucherNumber,
+                            paymentId: record.id,
+                            initialFiles: files,
+                          );
+                        }
+                      },
                     ),
                   ],
-                  onSelected: (value) async {
-                    List<File> files = [];
-                    if (value == 'upload') {
-                      final ImagePicker picker = ImagePicker();
-                      final List<XFile>? images = await picker.pickMultiImage();
-                      if (images != null && images.isNotEmpty) {
-                        files.addAll(images.map((e) => File(e.path)));
-                      }
-                    } else if (value == 'camera') {
-                      final ImagePicker picker = ImagePicker();
-                      final XFile? photo =
-                          await picker.pickImage(source: ImageSource.camera);
-                      if (photo != null) {
-                        files.insert(0, File(photo.path));
-                      }
-                    }
-                    if (files.isNotEmpty) {
-                      final voucherNumber =
-                          record?.voucherSerialNumber?.toString() ??
-                              record.id.toString();
-                      CheckAttachmentService.showSelectedFilesPopup(
-                        context: context,
-                        voucherNumber: voucherNumber,
-                        paymentId: record.id,
-                        initialFiles: files,
-                      );
-                    }
-                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
