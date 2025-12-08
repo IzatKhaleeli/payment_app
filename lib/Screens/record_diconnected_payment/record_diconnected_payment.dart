@@ -1,10 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mime/mime.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../Custom_Widgets/CustomPopups.dart';
 import '../../Models/Bank.dart';
 import '../../Models/CheckImage.dart';
@@ -995,25 +1000,44 @@ class _RecordPaymentDisconnectedScreenState
 
       try {
         if (selectedFiles.isNotEmpty) {
-          List<CheckImage> imageObjs = [];
+          // Copy selected files into app documents and save filePath in DB
+          final dir = await getApplicationDocumentsDirectory();
+          final uuid = Uuid();
           for (var f in selectedFiles) {
-            final bytes = await f.readAsBytes();
-            final base64Content = base64Encode(bytes);
-            final fileName = f.path.split('/').last;
+            final originalName = p.basename(f.path);
+            final ext = p.extension(originalName);
+            final newName =
+                '${DateTime.now().millisecondsSinceEpoch}_${uuid.v4()}$ext';
+            final newPath = p.join(dir.path, newName);
+            try {
+              await f.copy(newPath);
+            } catch (_) {
+              // if copy fails, fallback to using original path
+            }
+
+            Uint8List bytes = Uint8List(0);
+            try {
+              final fileForRead = File(newPath);
+              if (await fileForRead.exists()) {
+                bytes = await fileForRead.readAsBytes();
+              } else {
+                bytes = await f.readAsBytes();
+              }
+            } catch (_) {
+              // ignore read errors, mime will fallback
+            }
+
             final mime =
                 lookupMimeType(f.path, headerBytes: bytes) ?? 'image/jpeg';
-            imageObjs.add(CheckImage(
-              paymentId: idPaymentStored,
-              fileName: fileName,
-              mimeType: mime,
-              base64Content: base64Content,
-              status: 'new',
-            ));
-          }
 
-          // print(
-          //     "Inserting check images: ${imageObjs.map((i) => i.toMap()).toList()}");
-          await DatabaseProvider.insertCheckImages(imageObjs);
+            await DatabaseProvider.insertCheckImage({
+              'paymentId': idPaymentStored,
+              'fileName': originalName,
+              'mimeType': mime,
+              'filePath': newPath,
+              'status': 'new',
+            });
+          }
         }
       } catch (e) {
         print('Error saving check images: $e');

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
+import 'package:path/path.dart' as p;
 
 import '../Services/secure_storage.dart';
 import 'package:flutter/material.dart';
@@ -30,19 +32,61 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'globalError.dart';
 
 class PaymentService {
-  /// Converts a list of CheckImage to a list of File objects by decoding base64 and writing to temp files
+  /// Converts a list of CheckImage or Map records into Files ready for upload.
   static Future<List<File>> checkImagesToFiles(List<dynamic> images) async {
     final tempDir = await getTemporaryDirectory();
     List<File> files = [];
-    for (var img in images) {
-      // img can be CheckImage or Map, handle both
-      final fileName = img is Map ? img['fileName'] : img.fileName;
-      final base64Content =
-          img is Map ? img['base64Content'] : img.base64Content;
-      final bytes = base64.decode(base64Content);
-      final file = File('${tempDir.path}/$fileName');
-      await file.writeAsBytes(bytes);
-      files.add(file);
+    for (int idx = 0; idx < images.length; idx++) {
+      final img = images[idx];
+      try {
+        String? filePath;
+        dynamic base64Content;
+        String? fileName;
+
+        if (img is Map) {
+          filePath = img['filePath'] as String?;
+          base64Content = img['base64Content'];
+          fileName = img['fileName'] as String?;
+        } else {
+          // Support CheckImage objects and other dynamic shapes
+          filePath = (img as dynamic).filePath as String?;
+          base64Content = (img as dynamic).base64Content;
+          fileName = (img as dynamic).fileName as String?;
+        }
+
+        // Prefer existing file on disk
+        if (filePath != null && filePath.isNotEmpty) {
+          final f = File(filePath);
+          if (await f.exists()) {
+            files.add(f);
+            continue;
+          }
+        }
+
+        // Fallback: convert base64 content to a temp file
+        if (base64Content != null) {
+          Uint8List bytes;
+          if (base64Content is String) {
+            bytes = base64.decode(base64Content);
+          } else if (base64Content is Uint8List) {
+            bytes = base64Content;
+          } else if (base64Content is List<int>) {
+            bytes = Uint8List.fromList(base64Content);
+          } else {
+            // unsupported format
+            continue;
+          }
+
+          final safeName = fileName ??
+              'img_${DateTime.now().millisecondsSinceEpoch}_$idx.jpg';
+          final out = File(p.join(tempDir.path, safeName));
+          await out.writeAsBytes(bytes, flush: true);
+          files.add(out);
+          continue;
+        }
+      } catch (e) {
+        print('Error converting image to file: $e');
+      }
     }
     return files;
   }
@@ -72,7 +116,7 @@ class PaymentService {
 
   static Future<void> _checkNetworkAndSync(BuildContext context) async {
     var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult[0] != ConnectivityResult.none) {
+    if (connectivityResult != ConnectivityResult.none) {
       print("Internet available: " + connectivityResult.toString());
       await syncPayments(context);
       await syncConfirmedCheckImages(context);
@@ -246,17 +290,41 @@ class PaymentService {
               await DatabaseProvider.getCheckImagesByPaymentId(payment['id']);
           for (var img in images) {
             try {
-              String base64Content = img['base64Content'] ?? '';
-              if (base64Content.isEmpty) continue;
-              List<int> bytes = base64.decode(base64Content);
-              String fileName =
+              // Prefer file on disk (filePath) to avoid decoding large base64 from DB
+              Uint8List bytes = Uint8List(0);
+
+              final String? filePath = (img['filePath'] as String?)?.trim();
+              if (filePath != null && filePath.isNotEmpty) {
+                final file = File(filePath);
+                if (await file.exists()) {
+                  bytes = await file.readAsBytes();
+                }
+              }
+
+              // Fallback to base64Content only if file not available
+              if (bytes.isEmpty) {
+                final dynamic base64Content = img['base64Content'];
+                if (base64Content is String && base64Content.isNotEmpty) {
+                  bytes = base64.decode(base64Content);
+                } else if (base64Content is Uint8List) {
+                  bytes = base64Content;
+                } else if (base64Content is List<int>) {
+                  bytes = Uint8List.fromList(base64Content);
+                } else {
+                  // nothing to attach
+                  continue;
+                }
+              }
+
+              final String fileName =
                   img['fileName'] ?? '${payment['transactionId']}_img.jpg';
-              String? mimeType = img['mimeType'] ??
+              final String mimeType = (img['mimeType'] as String?) ??
                   lookupMimeType(fileName, headerBytes: bytes) ??
                   'image/jpeg';
+
               MediaType? mediaType;
               try {
-                mediaType = MediaType.parse(mimeType ?? 'image/jpeg');
+                mediaType = MediaType.parse(mimeType);
               } catch (e) {
                 mediaType = MediaType('image', 'jpeg');
               }

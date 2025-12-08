@@ -21,6 +21,9 @@ import '../../Models/CheckImage.dart';
 
 import 'widgets/custom_textfield.dart';
 import 'widgets/upload_file_widget.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 class RecordPaymentScreen extends StatefulWidget {
   final int? id;
@@ -1323,23 +1326,31 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
 
       try {
         if (selectedFiles.isNotEmpty) {
-          List<CheckImage> imageObjs = [];
+          final dir = await getApplicationDocumentsDirectory();
+          final uuid = Uuid();
+
           for (var f in selectedFiles) {
             final bytes = await f.readAsBytes();
-            final base64Content = base64Encode(bytes);
-            final fileName = f.path.split('/').last;
+            final originalName = p.basename(f.path);
+            final ext = p.extension(originalName);
+            final newName =
+                '${DateTime.now().millisecondsSinceEpoch}_${uuid.v4()}$ext';
+            final newPath = p.join(dir.path, newName);
+            try {
+              await f.copy(newPath);
+            } catch (_) {
+              // if copy fails, fallback to original path
+            }
             final mime =
                 lookupMimeType(f.path, headerBytes: bytes) ?? 'image/jpeg';
-            imageObjs.add(
-              CheckImage(
-                  paymentId: idPaymentStored,
-                  fileName: fileName,
-                  mimeType: mime,
-                  base64Content: base64Content,
-                  status: 'new'),
-            );
+            await DatabaseProvider.insertCheckImage({
+              'paymentId': idPaymentStored,
+              'fileName': originalName,
+              'mimeType': mime,
+              'filePath': newPath,
+              'status': 'new',
+            });
           }
-          await DatabaseProvider.insertCheckImages(imageObjs);
         }
       } catch (e) {
         print('Error saving check images: $e');

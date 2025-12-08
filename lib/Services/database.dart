@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
@@ -7,23 +8,6 @@ import 'package:sqflite/sqflite.dart';
 import '../Models/CheckImage.dart';
 
 class DatabaseProvider {
-  static Future<void> setVoucherNumberForCheckImages(
-      int paymentId, String voucherSerialNumber) async {
-    Database db = await database;
-    await db.update(
-      'check_images',
-      {'voucherSerialNumber': voucherSerialNumber},
-      where: 'paymentId = ?',
-      whereArgs: [paymentId],
-    );
-  }
-
-  static Future<List<Map<String, dynamic>>> getConfirmedCheckImages() async {
-    Database db = await database;
-    return await db
-        .query('check_images', where: 'status = ?', whereArgs: ['confirmed']);
-  }
-
   static const _databaseName = 'payments.db';
   static const _databaseVersion = 7;
   static Database? _database;
@@ -92,6 +76,9 @@ class DatabaseProvider {
       await db.execute('ALTER TABLE check_images ADD COLUMN status TEXT;');
       await db.execute(
           'ALTER TABLE check_images ADD COLUMN voucherSerialNumber TEXT;');
+      await db.execute('''
+      ALTER TABLE check_images ADD COLUMN filePath TEXT;
+    ''');
     }
   }
 
@@ -152,9 +139,21 @@ class DatabaseProvider {
         fileName TEXT,
         mimeType TEXT,
         base64Content TEXT,
-        status TEXT
+        status TEXT,
+        filePath TEXT
       );
     ''');
+  }
+
+  static Future<void> setVoucherNumberForCheckImages(
+      int paymentId, String voucherSerialNumber) async {
+    Database db = await database;
+    await db.update(
+      'check_images',
+      {'voucherSerialNumber': voucherSerialNumber},
+      where: 'paymentId = ?',
+      whereArgs: [paymentId],
+    );
   }
 
   static Future<void> markAllCheckImagesAsSynced(
@@ -167,6 +166,34 @@ class DatabaseProvider {
       whereArgs: [voucherNumber, status],
     );
   }
+
+  static Future<void> deleteCheckImage(int id) async {
+    Database db = await database;
+    await db.delete('check_images', where: 'id = ?', whereArgs: [id]);
+  }
+
+  static Future<List<Map<String, dynamic>>> getConfirmedCheckImages() async {
+    Database db = await database;
+
+    final metadataList = await db.query(
+      'check_images',
+      columns: [
+        'id',
+        'paymentId',
+        'voucherSerialNumber',
+        'fileName',
+        'mimeType',
+        'status',
+        'filePath'
+      ],
+      where: 'status = ?',
+      whereArgs: ['confirmed'],
+    );
+
+    // Return metadata including filePath. UI should read files from filePath instead of storing large base64 in DB.
+    return metadataList;
+  }
+
 
   static Future<int> insertConfirmedCheckImage(
       Map<String, dynamic> imageData) async {
@@ -185,6 +212,53 @@ class DatabaseProvider {
         imageData['voucherSerialNumber'] = voucherNumber;
         int id = await txn.insert('check_images', imageData,
             conflictAlgorithm: ConflictAlgorithm.ignore);
+        ids.add(id);
+      }
+    });
+    return ids;
+  }
+
+  // Check images helpers
+  static Future<int> insertCheckImage(Map<String, dynamic> imageData) async {
+    Database db = await database;
+    return await db.insert('check_images', imageData,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  static Future<List<Map<String, dynamic>>> getCheckImagesByPaymentId(
+      int paymentId) async {
+    Database db = await database;
+
+    // Fetch metadata only (including filePath). Do NOT load large base64Content here.
+    final metadataList = await db.query(
+      'check_images',
+      columns: [
+        'id',
+        'paymentId',
+        'voucherSerialNumber',
+        'fileName',
+        'mimeType',
+        'status',
+        'filePath'
+      ],
+      where: 'paymentId = ?',
+      whereArgs: [paymentId],
+    );
+
+    return metadataList;
+  }
+
+
+
+  // Insert multiple check images in a transaction. Returns list of inserted row ids.
+  static Future<List<int>> insertCheckImages(List<CheckImage> images) async {
+    final db = await database;
+    List<int> ids = [];
+    await db.transaction((txn) async {
+      for (var img in images) {
+        final map = img.toMap();
+        int id = await txn.insert('check_images', map,
+            conflictAlgorithm: ConflictAlgorithm.replace);
         ids.add(id);
       }
     });
@@ -243,6 +317,9 @@ class DatabaseProvider {
     }
   }
 
+
+
+//payments table operations
   static Future<List<Map<String, dynamic>>> getAllPayments(
       String userId) async {
     print("printAllPayments method , database.dart started");
@@ -706,37 +783,33 @@ class DatabaseProvider {
     await db.delete('banks');
   }
 
-  // Check images helpers
-  static Future<int> insertCheckImage(Map<String, dynamic> imageData) async {
-    Database db = await database;
-    return await db.insert('check_images', imageData,
-        conflictAlgorithm: ConflictAlgorithm.replace);
-  }
-
-  static Future<List<Map<String, dynamic>>> getCheckImagesByPaymentId(
-      int paymentId) async {
-    Database db = await database;
-    return await db
-        .query('check_images', where: 'paymentId = ?', whereArgs: [paymentId]);
-  }
-
-  static Future<void> deleteCheckImage(int id) async {
-    Database db = await database;
-    await db.delete('check_images', where: 'id = ?', whereArgs: [id]);
-  }
-
-  // Insert multiple check images in a transaction. Returns list of inserted row ids.
-  static Future<List<int>> insertCheckImages(List<CheckImage> images) async {
+  /// Migration helper: convert any existing base64Content rows into files on disk
+  /// and update the record to set `filePath` and clear `base64Content`.
+  static Future<void> migrateBase64ToFiles() async {
     final db = await database;
-    List<int> ids = [];
-    await db.transaction((txn) async {
-      for (var img in images) {
-        final map = img.toMap();
-        int id = await txn.insert('check_images', map,
-            conflictAlgorithm: ConflictAlgorithm.replace);
-        ids.add(id);
+    final rows = await db.query('check_images', where: 'base64Content IS NOT NULL');
+    if (rows.isEmpty) return;
+
+    Directory dir = await getApplicationDocumentsDirectory();
+    final uuid = Uuid();
+
+    for (var r in rows) {
+      final int? id = r['id'] as int?;
+      final String? base64Str = r['base64Content'] as String?;
+      final String? fileNameFromDb = r['fileName'] as String?;
+      if (base64Str == null || id == null) continue;
+      try {
+        final bytes = base64.decode(base64Str);
+        final safeName = (fileNameFromDb != null && fileNameFromDb.isNotEmpty)
+            ? fileNameFromDb
+            : 'check_${id}_${uuid.v4()}.jpg';
+        final filePath = join(dir.path, safeName);
+        final file = File(filePath);
+        await file.writeAsBytes(bytes, flush: true);
+        await db.update('check_images', {'filePath': filePath, 'base64Content': null}, where: 'id = ?', whereArgs: [id]);
+      } catch (e) {
+        print('Failed to migrate check_images id $id: $e');
       }
-    });
-    return ids;
+    }
   }
 }

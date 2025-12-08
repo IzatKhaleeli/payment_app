@@ -17,6 +17,9 @@ import 'package:flutter/material.dart';
 import '../core/api_service/attachment_api_service.dart';
 import 'LocalizationService.dart';
 import 'PaymentService.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 class CheckAttachmentService {
   static Future<void> showCheckImagesPreview({
@@ -44,29 +47,52 @@ class CheckAttachmentService {
         return;
       }
 
-      // Prepare images and their sync status
-      final List<Map<String, dynamic>> galleryImages =
-          images.map<Map<String, dynamic>>((img) {
-        final dynamic b64 = img['base64Content'];
-        Uint8List bytes;
+      // Prepare images and their sync status by reading file bytes from filePath.
+      final List<Map<String, dynamic>> galleryImages = [];
+      for (var img in images) {
+        Uint8List bytes = Uint8List(0);
         try {
-          if (b64 is String) {
-            bytes = base64.decode(b64);
-          } else if (b64 is Uint8List) {
-            bytes = b64;
-          } else if (b64 is List<int>) {
-            bytes = Uint8List.fromList(b64);
+          final dynamic filePath = img['filePath'];
+          if (filePath is String && filePath.isNotEmpty) {
+            final file = File(filePath);
+            if (await file.exists()) {
+              bytes = await file.readAsBytes();
+            } else {
+              // fallback to base64Content if file missing
+              final b64 = img['base64Content'];
+              if (b64 is String) {
+                bytes = base64.decode(b64);
+              } else if (b64 is Uint8List) {
+                bytes = b64;
+              } else if (b64 is List<int>) {
+                bytes = Uint8List.fromList(b64);
+              }
+            }
           } else {
-            bytes = Uint8List(0);
+            final b64 = img['base64Content'];
+            if (b64 is String) {
+              bytes = base64.decode(b64);
+            } else if (b64 is Uint8List) {
+              bytes = b64;
+            } else if (b64 is List<int>) {
+              bytes = Uint8List.fromList(b64);
+            }
           }
         } catch (_) {
           bytes = Uint8List(0);
         }
-        return {
-          'bytes': bytes,
-          'isSynced': (img['status']?.toString().toLowerCase() == 'synced'),
-        };
-      }).toList();
+
+        // Skip invalid/empty image bytes to prevent Image.memory exceptions
+        if (bytes.isNotEmpty) {
+          galleryImages.add({
+            'bytes': bytes,
+            'isSynced': (img['status']?.toString().toLowerCase() == 'synced'),
+          });
+        } else {
+          print(
+              'Skipping image (empty/invalid data) for record id: ${img['id'] ?? 'unknown'}');
+        }
+      }
 
       await showDialog(
         context: context,
@@ -287,16 +313,28 @@ class CheckAttachmentService {
   static Future<List<Map<String, dynamic>>> prepareImageRecords(
       List<File> files, int paymentId, String voucherNumber) async {
     List<Map<String, dynamic>> imageRecords = [];
+    final dir = await getApplicationDocumentsDirectory();
+    final uuid = Uuid();
     for (final file in files) {
-      final fileName = file.path.split('/').last;
-      final mimeType = 'image/${fileName.split('.').last}';
-      final base64Content = await file.readAsBytes();
+      final originalName = p.basename(file.path);
+      final ext = p.extension(originalName);
+      final mimeType = 'image/${ext.replaceFirst('.', '')}';
+      final newName =
+          '${DateTime.now().millisecondsSinceEpoch}_${uuid.v4()}$ext';
+      final newPath = p.join(dir.path, newName);
+      try {
+        await file.copy(newPath);
+      } catch (_) {
+        // fallback to using original path if copy failed
+        // (for example when running on platforms where original path is already in app space)
+      }
+
       imageRecords.add({
         'paymentId': paymentId,
         'voucherSerialNumber': voucherNumber,
-        'fileName': fileName,
+        'fileName': originalName,
         'mimeType': mimeType,
-        'base64Content': base64Content,
+        'filePath': newPath,
         'status': 'confirmed',
       });
     }

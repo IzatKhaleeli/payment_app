@@ -8,6 +8,7 @@ class CheckImage {
   String? mimeType;
   String base64Content;
   String? status;
+  String? filePath;
 
   CheckImage({
     this.id,
@@ -16,6 +17,7 @@ class CheckImage {
     this.mimeType,
     required this.base64Content,
     this.status,
+    this.filePath,
   });
 
   factory CheckImage.fromMap(Map<String, dynamic> map) {
@@ -38,6 +40,7 @@ class CheckImage {
       mimeType: map['mimeType'],
       base64Content: base64Str,
       status: map['status'],
+      filePath: map['filePath'] as String?,
     );
   }
 
@@ -49,11 +52,12 @@ class CheckImage {
       'mimeType': mimeType,
       'base64Content': base64Content,
       'status': status,
+      'filePath': filePath,
     };
   }
 
   @override
   String toString() {
-    return 'CheckImage{id: $id, paymentId: $paymentId, fileName: $fileName, mimeType: $mimeType, base64Content: $base64Content, status: $status}';
+    return 'CheckImage{id: $id, paymentId: $paymentId, fileName: $fileName, mimeType: $mimeType, base64Content: $base64Content, status: $status, filePath: $filePath}';
   }
 }
