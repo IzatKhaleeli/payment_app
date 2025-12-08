@@ -187,14 +187,11 @@ class PaymentService {
           continue;
         }
 
-        print("the payment enter here is ${p}");
-
         Map<String, String> body = {
           "voucherSerialNumber": p["voucherSerialNumber"],
           "cancelReason": p["cancelReason"].toString(),
           "cancelTransactionDate": p["cancellationDate"],
         };
-        print("the payment to delete ${body}");
 
         try {
           final response = await http.delete(

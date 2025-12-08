@@ -190,17 +190,7 @@ class DatabaseProvider {
       whereArgs: ['confirmed'],
     );
 
-    // Return metadata including filePath. UI should read files from filePath instead of storing large base64 in DB.
     return metadataList;
-  }
-
-
-  static Future<int> insertConfirmedCheckImage(
-      Map<String, dynamic> imageData) async {
-    Database db = await database;
-    imageData['status'] = 'confirmed';
-    return await db.insert('check_images', imageData,
-        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   static Future<List<int>> addCheckImagesToPayment(
@@ -246,23 +236,6 @@ class DatabaseProvider {
     );
 
     return metadataList;
-  }
-
-
-
-  // Insert multiple check images in a transaction. Returns list of inserted row ids.
-  static Future<List<int>> insertCheckImages(List<CheckImage> images) async {
-    final db = await database;
-    List<int> ids = [];
-    await db.transaction((txn) async {
-      for (var img in images) {
-        final map = img.toMap();
-        int id = await txn.insert('check_images', map,
-            conflictAlgorithm: ConflictAlgorithm.replace);
-        ids.add(id);
-      }
-    });
-    return ids;
   }
 
   static Future<void> updatePaymentsFromPortalStatus(
@@ -316,8 +289,6 @@ class DatabaseProvider {
       throw Exception('Failed to update payments from portal status');
     }
   }
-
-
 
 //payments table operations
   static Future<List<Map<String, dynamic>>> getAllPayments(
@@ -570,12 +541,55 @@ class DatabaseProvider {
     DateTime startOfDay =
         DateTime(thresholdDate.year, thresholdDate.month, thresholdDate.day);
 
-    // Log the threshold date for debugging
-    // print('Deleting records older than: ${startOfDay.toIso8601String()}');
-
     try {
       await db.transaction((Transaction txn) async {
-        // Execute delete commands within the transaction
+        // Find payments to delete
+        final paymentsToDelete1 = await txn.query(
+          'payments',
+          columns: ['id'],
+          where: 'status != ? AND transactionDate < ?',
+          whereArgs: ['saved', startOfDay.toIso8601String()],
+        );
+        final paymentsToDelete2 = await txn.query(
+          'payments',
+          columns: ['id'],
+          where: 'status = ? AND lastUpdatedDate < ?',
+          whereArgs: ['saved', startOfDay.toIso8601String()],
+        );
+        final paymentIds = <int>{};
+        for (var p in paymentsToDelete1) {
+          if (p['id'] != null) paymentIds.add(p['id'] as int);
+        }
+        for (var p in paymentsToDelete2) {
+          if (p['id'] != null) paymentIds.add(p['id'] as int);
+        }
+
+        // Delete related check_images and their files
+        for (var paymentId in paymentIds) {
+          final checkImages = await txn.query(
+            'check_images',
+            columns: ['id', 'filePath'],
+            where: 'paymentId = ?',
+            whereArgs: [paymentId],
+          );
+          for (var img in checkImages) {
+            final filePath = img['filePath'] as String?;
+            if (filePath != null && filePath.isNotEmpty) {
+              try {
+                final file = File(filePath);
+                if (await file.exists()) {
+                  await file.delete();
+                }
+              } catch (e) {
+                print('Error deleting image file: $filePath, $e');
+              }
+            }
+            await txn.delete('check_images',
+                where: 'id = ?', whereArgs: [img['id']]);
+          }
+        }
+
+        // Delete payments
         await txn.execute(
           'DELETE FROM payments WHERE status != ? AND transactionDate < ?',
           ['saved', startOfDay.toIso8601String()],
@@ -787,7 +801,8 @@ class DatabaseProvider {
   /// and update the record to set `filePath` and clear `base64Content`.
   static Future<void> migrateBase64ToFiles() async {
     final db = await database;
-    final rows = await db.query('check_images', where: 'base64Content IS NOT NULL');
+    final rows =
+        await db.query('check_images', where: 'base64Content IS NOT NULL');
     if (rows.isEmpty) return;
 
     Directory dir = await getApplicationDocumentsDirectory();
@@ -806,7 +821,9 @@ class DatabaseProvider {
         final filePath = join(dir.path, safeName);
         final file = File(filePath);
         await file.writeAsBytes(bytes, flush: true);
-        await db.update('check_images', {'filePath': filePath, 'base64Content': null}, where: 'id = ?', whereArgs: [id]);
+        await db.update(
+            'check_images', {'filePath': filePath, 'base64Content': null},
+            where: 'id = ?', whereArgs: [id]);
       } catch (e) {
         print('Failed to migrate check_images id $id: $e');
       }
