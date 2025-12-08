@@ -10,9 +10,19 @@ Future<void> saveCredentials(String username, String password) async {
 
 // Retrieve credentials
 Future<Map<String, String?>> getCredentials() async {
-  String? username = await storage.read(key: 'username');
-  String? password = await storage.read(key: 'password');
-  return {'username': username, 'password': password};
+  try {
+    String? username = await storage.read(key: 'username');
+    String? password = await storage.read(key: 'password');
+    return {'username': username, 'password': password};
+  } catch (e) {
+    // Secure storage decryption error (BadPaddingException, unwrap failed, etc.)
+    print("SecureStorage ERROR while reading credentials: $e");
+    print("Clearing corrupted secure storage...");
+
+    await storage.deleteAll();
+
+    return {'username': null, 'password': null};
+  }
 }
 
 // Delete credentials

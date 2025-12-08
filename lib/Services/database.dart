@@ -79,23 +79,19 @@ class DatabaseProvider {
     }
     if (oldVersion < 6) {
       await db.execute('''
-      CREATE TABLE IF NOT EXISTS check_images (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        voucherSerialNumber TEXT,
-        fileName TEXT,
-        mimeType TEXT,
-        base64Content TEXT,
-        status TEXT
-      );
-    ''');
+  CREATE TABLE IF NOT EXISTS check_images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    paymentId INTEGER,
+    fileName TEXT,
+    mimeType TEXT,
+    base64Content TEXT
+  );
+''');
     }
     if (oldVersion < 7) {
-      try {
-        await db
-            .execute("ALTER TABLE check_images ADD COLUMN paymentId INTEGER;");
-      } catch (e) {
-        print('Column paymentId may already exist: $e');
-      }
+      await db.execute('ALTER TABLE check_images ADD COLUMN status TEXT;');
+      await db.execute(
+          'ALTER TABLE check_images ADD COLUMN voucherSerialNumber TEXT;');
     }
   }
 
