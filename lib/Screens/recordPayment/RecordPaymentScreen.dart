@@ -17,7 +17,6 @@ import 'package:intl/intl.dart';
 import 'record_payment_widgets.dart' as record_widgets;
 import 'package:flutter/services.dart';
 import 'package:mime/mime.dart';
-import '../../Models/CheckImage.dart';
 
 import 'widgets/custom_textfield.dart';
 import 'widgets/upload_file_widget.dart';
@@ -240,8 +239,13 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen>
       _paymentInvoiceForController.text =
           paymentParams["paymentInvoiceFor"] ?? '';
 
-      _dueDateCheckController.text =
-          paymentParams["dueDateCheck"]?.toString() ?? '';
+      // _dueDateCheckController.text =
+      //     paymentParams["dueDateCheck"]?.toString() ?? '';
+      _dueDateCheckController.text = paymentParams["dueDateCheck"] != null &&
+              paymentParams["dueDateCheck"].toString().isNotEmpty
+          ? DateFormat('yyyy-MM-dd')
+              .format(DateTime.parse(paymentParams["dueDateCheck"].toString()))
+          : '';
 
       isDepositChecked = paymentParams["isDepositChecked"] == 0 ? false : true;
       checkApprovalFlag = paymentParams["checkApproval"] == 0 ? false : true;

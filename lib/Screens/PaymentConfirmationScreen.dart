@@ -422,6 +422,111 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
             _detailItem(scale, checkNumber,
                 paymentDetails['checkNumber']?.toString() ?? ''),
             _divider(scale),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 6 * scale),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    checkImages,
+                    style: TextStyle(
+                      fontSize: 14 * scale,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            paymentDetails['checkImages'] != null
+                                ? Provider.of<LocalizationService>(context,
+                                        listen: false)
+                                    .getLocalizedString(
+                                        paymentDetails['checkImages']
+                                            .toLowerCase())
+                                : '',
+                            textAlign: TextAlign.end,
+                            style: TextStyle(
+                              fontSize: 14 * scale,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.attach_file,
+                              color: AppColors.primaryRed),
+                          onPressed: () {
+                            _showImagesPreview();
+                          },
+                        ),
+                        const SizedBox(width: 16),
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.add,
+                              color: AppColors.primaryRed),
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem<String>(
+                              value: 'upload',
+                              child: Text(
+                                Provider.of<LocalizationService>(context,
+                                        listen: false)
+                                    .getLocalizedString("uploadFromGallery"),
+                                style: const TextStyle(
+                                    color: AppColors.primaryRed),
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'camera',
+                              child: Text(
+                                Provider.of<LocalizationService>(context,
+                                        listen: false)
+                                    .getLocalizedString("takePhoto"),
+                                style: const TextStyle(
+                                    color: AppColors.primaryRed),
+                              ),
+                            ),
+                          ],
+                          onSelected: (value) async {
+                            List<File> files = [];
+                            if (value == 'upload') {
+                              final ImagePicker picker = ImagePicker();
+                              final List<XFile>? images =
+                                  await picker.pickMultiImage();
+                              if (images != null && images.isNotEmpty) {
+                                files.addAll(images.map((e) => File(e.path)));
+                              }
+                            } else if (value == 'camera') {
+                              final ImagePicker picker = ImagePicker();
+                              final XFile? photo = await picker.pickImage(
+                                  source: ImageSource.camera);
+                              if (photo != null) {
+                                files.insert(0, File(photo.path));
+                              }
+                            }
+                            if (files.isNotEmpty) {
+                              final voucherNumber =
+                                  _paymentDetails?['voucherSerialNumber']
+                                          ?.toString() ??
+                                      widget.paymentId.toString();
+                              CheckAttachmentService.showSelectedFilesPopup(
+                                context: context,
+                                voucherNumber: voucherNumber,
+                                paymentId: widget.paymentId,
+                                initialFiles: files,
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            _divider(scale),
             _detailItem(scale, bankBranch, AppearedBank ?? ''),
             _divider(scale),
             _detailItem(
@@ -513,110 +618,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               Provider.of<LocalizationService>(context, listen: false)
                   .selectedLanguageCode),
           _divider(scale),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 6 * scale),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  checkImages,
-                  style: TextStyle(
-                    fontSize: 14 * scale,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          paymentDetails['checkImages'] != null
-                              ? Provider.of<LocalizationService>(context,
-                                      listen: false)
-                                  .getLocalizedString(
-                                      paymentDetails['checkImages']
-                                          .toLowerCase())
-                              : '',
-                          textAlign: TextAlign.end,
-                          style: TextStyle(
-                            fontSize: 14 * scale,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.attach_file,
-                            color: AppColors.primaryRed),
-                        onPressed: () {
-                          _showImagesPreview();
-                        },
-                      ),
-                      const SizedBox(width: 16),
-                      PopupMenuButton<String>(
-                        icon:
-                            const Icon(Icons.add, color: AppColors.primaryRed),
-                        itemBuilder: (BuildContext context) => [
-                          PopupMenuItem<String>(
-                            value: 'upload',
-                            child: Text(
-                              Provider.of<LocalizationService>(context,
-                                      listen: false)
-                                  .getLocalizedString("uploadFromGallery"),
-                              style:
-                                  const TextStyle(color: AppColors.primaryRed),
-                            ),
-                          ),
-                          PopupMenuItem<String>(
-                            value: 'camera',
-                            child: Text(
-                              Provider.of<LocalizationService>(context,
-                                      listen: false)
-                                  .getLocalizedString("takePhoto"),
-                              style:
-                                  const TextStyle(color: AppColors.primaryRed),
-                            ),
-                          ),
-                        ],
-                        onSelected: (value) async {
-                          List<File> files = [];
-                          if (value == 'upload') {
-                            final ImagePicker picker = ImagePicker();
-                            final List<XFile>? images =
-                                await picker.pickMultiImage();
-                            if (images != null && images.isNotEmpty) {
-                              files.addAll(images.map((e) => File(e.path)));
-                            }
-                          } else if (value == 'camera') {
-                            final ImagePicker picker = ImagePicker();
-                            final XFile? photo = await picker.pickImage(
-                                source: ImageSource.camera);
-                            if (photo != null) {
-                              files.insert(0, File(photo.path));
-                            }
-                          }
-                          if (files.isNotEmpty) {
-                            final voucherNumber =
-                                _paymentDetails?['voucherSerialNumber']
-                                        ?.toString() ??
-                                    widget.paymentId.toString();
-                            CheckAttachmentService.showSelectedFilesPopup(
-                              context: context,
-                              voucherNumber: voucherNumber,
-                              paymentId: widget.paymentId,
-                              initialFiles: files,
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

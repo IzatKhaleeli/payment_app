@@ -296,5 +296,6 @@
   "take_a_photo":"التقاط صورة",
   "no_files_selected":"لا توجد ملفات محددة",
   "attachements":"المرفقات",
-  "not_uploaded_yet":"لم يتم الرفع بعد"
+  "not_uploaded_yet":"لم يتم الرفع بعد",
+  "pending finance":"قيد الانتظار للمالية"
 }

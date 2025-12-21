@@ -5,7 +5,6 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:sqflite/sqflite.dart';
-import '../Models/CheckImage.dart';
 
 class DatabaseProvider {
   static const _databaseName = 'payments.db';

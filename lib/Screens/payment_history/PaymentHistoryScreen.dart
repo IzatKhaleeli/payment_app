@@ -219,14 +219,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   }
 
   Future<void> _fetchPortalStatuses() async {
-    // print('_fetchPortalStatuses');
-    // print('_paymentRecords ${_paymentRecords}');
     try {
       List<String> voucherSerials = _paymentRecords
-          .where((payment) => payment.status.toLowerCase() == 'synced'
-              // &&
-              // payment.cancellationStatus == null
-              )
           .map((payment) => payment.voucherSerialNumber)
           .toList();
 
@@ -234,7 +228,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         print("[]");
         return;
       }
-      // print("Voucher serials to fetch statuses: $voucherSerials");
+      print("Voucher serials to fetch statuses: $voucherSerials");
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? tokenID = prefs.getString('token');

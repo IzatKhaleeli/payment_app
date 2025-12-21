@@ -297,5 +297,6 @@
   "take_a_photo":"Take a Photo",
   "no_files_selected":"No files selected",
   "attachements":"Attachments",
-  "not_uploaded_yet":"Not uploaded yet"
+  "not_uploaded_yet":"Not uploaded yet",
+  "pending finance":"pending finance"
 }
